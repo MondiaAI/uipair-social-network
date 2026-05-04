@@ -62,6 +62,8 @@ function CircleDetailPage() {
   const [sessionOpen, setSessionOpen] = useState(false);
   const [confirmJoinOpen, setConfirmJoinOpen] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
 
   const isMember = members.some((m) => m.id === user?.id);
 
