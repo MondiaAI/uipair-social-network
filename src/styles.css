@@ -167,4 +167,45 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+
+  /* Inline links: brand-purple hover/active */
+  a:not([class*="no-brand"]):hover {
+    color: color-mix(in oklch, var(--primary) 85%, black);
+  }
+  a:not([class*="no-brand"]):active {
+    color: color-mix(in oklch, var(--primary) 70%, black);
+  }
+
+  /* Inputs/textareas/selects: purple border + ring on hover/focus */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):hover,
+  textarea:hover,
+  select:hover {
+    border-color: color-mix(in oklch, var(--primary) 55%, var(--border));
+  }
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 25%, transparent);
+    outline: none;
+  }
+
+  /* Buttons that use the primary token: deeper purple on hover/active */
+  button.bg-primary:hover,
+  a.bg-primary:hover,
+  [data-slot="button"].bg-primary:hover {
+    background-color: color-mix(in oklch, var(--primary) 88%, black);
+  }
+  button.bg-primary:active,
+  a.bg-primary:active,
+  [data-slot="button"].bg-primary:active {
+    background-color: color-mix(in oklch, var(--primary) 75%, black);
+  }
+
+  /* Outline / ghost buttons: subtle purple tint */
+  button[class*="border"]:hover:not(.bg-primary):not(.bg-destructive):not([disabled]),
+  [data-slot="button"][class*="border"]:hover:not(.bg-primary):not(.bg-destructive):not([disabled]) {
+    background-color: color-mix(in oklch, var(--primary) 8%, transparent);
+    border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
+  }
 }

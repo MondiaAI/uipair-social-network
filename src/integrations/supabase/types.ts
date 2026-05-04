@@ -622,6 +622,7 @@ export type Database = {
           reputation_score: number
           skills: string[]
           stripe_account_id: string | null
+          terms_accepted_at: string | null
           university: string | null
           updated_at: string
           username: string | null
@@ -646,6 +647,7 @@ export type Database = {
           reputation_score?: number
           skills?: string[]
           stripe_account_id?: string | null
+          terms_accepted_at?: string | null
           university?: string | null
           updated_at?: string
           username?: string | null
@@ -670,6 +672,7 @@ export type Database = {
           reputation_score?: number
           skills?: string[]
           stripe_account_id?: string | null
+          terms_accepted_at?: string | null
           university?: string | null
           updated_at?: string
           username?: string | null
