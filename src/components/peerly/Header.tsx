@@ -22,7 +22,8 @@ export function Header() {
   const { mode, setMode } = useFeedMode();
   const navigate = useNavigate();
   const [unread, setUnread] = useState(0);
-
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [proOpen, setProOpen] = useState(false);
   useEffect(() => {
     if (!user) return;
     const load = async () => {
@@ -84,6 +85,7 @@ export function Header() {
         <div className="flex items-center gap-3">
           <button
             type="button"
+            onClick={() => setNotifOpen(true)}
             className="relative rounded-full p-2 hover:bg-muted transition-colors"
             aria-label="Notifications"
           >
@@ -114,9 +116,9 @@ export function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem disabled>View Profile</DropdownMenuItem>
-              <DropdownMenuItem disabled>Settings</DropdownMenuItem>
-              <DropdownMenuItem disabled>PEERLY Pro</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => user && navigate({ to: "/profile/$userId", params: { userId: user.id } })}>View Profile</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setProOpen(true)}>PEERLY Pro</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={async () => {
