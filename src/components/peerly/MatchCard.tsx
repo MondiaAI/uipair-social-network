@@ -154,9 +154,28 @@ export function MatchCard({ profile, score, edge }: Props) {
 
       <div className="mt-4 flex gap-2">
         {status === "none" && (
-          <Button size="sm" className="flex-1" onClick={handleConnect} disabled={busy}>
-            <UserPlus className="h-4 w-4" /> Connect
-          </Button>
+          <>
+            <Button size="sm" className="flex-1" onClick={handleConnect} disabled={busy}>
+              <UserPlus className="h-4 w-4" /> Connect
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                try {
+                  localStorage.setItem(`partnership_intro:${profile.id}`, partnershipTemplate);
+                } catch {}
+                await handleConnect();
+                toast.message("Partnership intro saved", {
+                  description: "We'll prefill your first message once they accept.",
+                });
+              }}
+              disabled={busy}
+              title="Send a study partnership intro"
+            >
+              <Handshake className="h-4 w-4" /> Partner
+            </Button>
+          </>
         )}
         {status === "outgoing_pending" && (
           <>
@@ -179,9 +198,32 @@ export function MatchCard({ profile, score, edge }: Props) {
           </>
         )}
         {status === "friends" && (
-          <Button size="sm" className="flex-1" onClick={handleMessage} disabled={busy}>
-            <MessageCircle className="h-4 w-4" /> Message
-          </Button>
+          <>
+            <Button
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                let prefill: string | undefined;
+                try {
+                  prefill = localStorage.getItem(`partnership_intro:${profile.id}`) ?? undefined;
+                  if (prefill) localStorage.removeItem(`partnership_intro:${profile.id}`);
+                } catch {}
+                handleMessage(prefill);
+              }}
+              disabled={busy}
+            >
+              <MessageCircle className="h-4 w-4" /> Message
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleMessage(partnershipTemplate)}
+              disabled={busy}
+              title="Send a study partnership pitch"
+            >
+              <Handshake className="h-4 w-4" /> Partner
+            </Button>
+          </>
         )}
       </div>
     </div>
