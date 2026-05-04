@@ -909,6 +909,47 @@ export type Database = {
           },
         ]
       }
+      project_workspaces: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          project_id: string
+          status: Database["public"]["Enums"]["workspace_status"]
+          type: Database["public"]["Enums"]["workspace_type"]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          project_id: string
+          status?: Database["public"]["Enums"]["workspace_status"]
+          type?: Database["public"]["Enums"]["workspace_type"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          status?: Database["public"]["Enums"]["workspace_status"]
+          type?: Database["public"]["Enums"]["workspace_type"]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_workspaces_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           category: Database["public"]["Enums"]["project_category"]
@@ -1172,6 +1213,8 @@ export type Database = {
       project_task_status: "todo" | "in_progress" | "done"
       reaction_type: "lightbulb" | "fire" | "brain" | "bookmark" | "agree"
       study_request_status: "pending" | "accepted" | "declined" | "cancelled"
+      workspace_status: "active" | "draft" | "complete"
+      workspace_type: "document" | "board" | "mindmap" | "thread"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1334,6 +1377,8 @@ export const Constants = {
       project_task_status: ["todo", "in_progress", "done"],
       reaction_type: ["lightbulb", "fire", "brain", "bookmark", "agree"],
       study_request_status: ["pending", "accepted", "declined", "cancelled"],
+      workspace_status: ["active", "draft", "complete"],
+      workspace_type: ["document", "board", "mindmap", "thread"],
     },
   },
 } as const

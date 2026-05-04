@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
-import { format, isValid } from "date-fns";
+import { format, formatDistanceToNow, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
 import { CATEGORY_FILTERS, type ProjectCategory, type ProjectRole } from "@/lib/project-meta";
 import { CreateProjectModal } from "@/components/peerly/CreateProjectModal";
@@ -24,12 +25,17 @@ export const Route = createFileRoute("/_app/lab")({
 interface ProjectRow extends ProjectCardData {
   is_public: boolean;
   progress: number;
+  updated_at?: string;
 }
+
+type MemberAvatar = { full_name: string | null; username: string | null; avatar_url: string | null };
+
 
 function LabPage() {
   const { user } = useAuth();
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [myProjectIds, setMyProjectIds] = useState<Set<string>>(new Set());
+  const [memberAvatars, setMemberAvatars] = useState<Record<string, MemberAvatar[]>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<ProjectCategory | "all">("all");
@@ -42,7 +48,7 @@ function LabPage() {
       supabase
         .from("projects")
         .select(
-          "id, name, description, subject, category, open_roles, team_size_limit, member_count, deadline, is_public, progress, creator_id",
+          "id, name, description, subject, category, open_roles, team_size_limit, member_count, deadline, is_public, progress, creator_id, updated_at",
         )
         .order("created_at", { ascending: false })
         .limit(60),
@@ -53,13 +59,31 @@ function LabPage() {
 
     const rows = (projectData ?? []) as Array<ProjectRow & { creator_id: string }>;
     const creatorIds = Array.from(new Set(rows.map((r) => r.creator_id)));
-    const { data: profilesData } = creatorIds.length
-      ? await supabase
-          .from("profiles")
-          .select("id, full_name, username, avatar_url, university")
-          .in("id", creatorIds)
-      : { data: [] as { id: string; full_name: string | null; username: string | null; avatar_url: string | null; university: string | null }[] };
+    const myIds = new Set(((memberQ.data ?? []) as { project_id: string }[]).map((m) => m.project_id));
+
+    const [{ data: profilesData }, { data: myMembers }] = await Promise.all([
+      creatorIds.length
+        ? supabase.from("profiles").select("id, full_name, username, avatar_url, university").in("id", creatorIds)
+        : Promise.resolve({ data: [] as { id: string; full_name: string | null; username: string | null; avatar_url: string | null; university: string | null }[] }),
+      myIds.size
+        ? supabase.from("project_members").select("project_id, user_id").in("project_id", Array.from(myIds))
+        : Promise.resolve({ data: [] as { project_id: string; user_id: string }[] }),
+    ]);
     const profileMap = new Map((profilesData ?? []).map((p) => [p.id, p]));
+
+    const memberUserIds = Array.from(new Set((myMembers ?? []).map((m) => m.user_id)));
+    const { data: memberProfiles } = memberUserIds.length
+      ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", memberUserIds)
+      : { data: [] as Array<{ id: string } & MemberAvatar> };
+    const memberProfileMap = new Map((memberProfiles ?? []).map((p) => [p.id, p]));
+
+    const avatars: Record<string, MemberAvatar[]> = {};
+    (myMembers ?? []).forEach((m) => {
+      const p = memberProfileMap.get(m.user_id);
+      if (!p) return;
+      avatars[m.project_id] = avatars[m.project_id] ? [...avatars[m.project_id], p] : [p];
+    });
+    setMemberAvatars(avatars);
 
     setProjects(
       rows.map((r) => ({
@@ -68,7 +92,7 @@ function LabPage() {
         creator: profileMap.get(r.creator_id) ?? null,
       })),
     );
-    setMyProjectIds(new Set(((memberQ.data ?? []) as { project_id: string }[]).map((m) => m.project_id)));
+    setMyProjectIds(myIds);
     setLoading(false);
   };
 
@@ -104,35 +128,57 @@ function LabPage() {
       <HackathonBanner />
 
       {myProjects.length > 0 && (
-        <section className="space-y-2">
-          <h2 className="text-sm font-semibold text-muted-foreground">Active Projects</h2>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold text-muted-foreground">My Lab Projects</h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {myProjects.map((p) => {
-              const dl = p.deadline ? new Date(p.deadline) : null;
+              const status =
+                p.progress >= 100 ? { label: "Complete", cls: "bg-blue-100 text-blue-700 border-blue-200" }
+                : p.progress === 0 ? { label: "Draft", cls: "bg-amber-100 text-amber-700 border-amber-200" }
+                : { label: "Active", cls: "bg-emerald-100 text-emerald-700 border-emerald-200" };
+              const collaborators = (memberAvatars[p.id] ?? []).slice(0, 4);
+              const extra = (memberAvatars[p.id]?.length ?? 0) - collaborators.length;
+              const updated = p.updated_at ? new Date(p.updated_at) : null;
               return (
-                <Link
-                  key={p.id}
-                  to="/lab/$projectId"
-                  params={{ projectId: p.id }}
-                  className="block w-[220px] shrink-0"
-                >
-                  <Card className="h-full p-3 transition hover:shadow-md">
-                    <p className="line-clamp-1 text-sm font-semibold">{p.name}</p>
-                    <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{p.subject}</p>
-                    <div className="mt-3">
-                      <Progress value={p.progress} className="h-1.5" />
-                      <p className="mt-1 text-[10px] text-muted-foreground">{p.progress}% · {p.member_count}/{p.team_size_limit}</p>
+                <Card key={p.id} className="flex flex-col gap-3 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="line-clamp-1 text-base font-semibold">{p.name}</p>
+                    <Badge variant="outline" className={status.cls}>{status.label}</Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex -space-x-2">
+                      {collaborators.map((c, i) => (
+                        <Avatar key={i} className="h-7 w-7 border-2 border-background">
+                          <AvatarImage src={c.avatar_url ?? undefined} />
+                          <AvatarFallback className="text-[10px]">
+                            {(c.full_name ?? c.username ?? "?").slice(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                      {extra > 0 && (
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-muted text-[10px] font-medium">
+                          +{extra}
+                        </div>
+                      )}
                     </div>
-                    {dl && isValid(dl) && (
-                      <p className="mt-2 text-[10px] text-muted-foreground">Due {format(dl, "MMM d")}</p>
-                    )}
-                  </Card>
-                </Link>
+                    <span className="text-xs text-muted-foreground">
+                      {updated && isValid(updated) ? `Edited ${formatDistanceToNow(updated, { addSuffix: true })}` : "—"}
+                    </span>
+                  </div>
+                  <div>
+                    <Progress value={p.progress} className="h-1.5" />
+                    <p className="mt-1 text-[10px] text-muted-foreground">{p.progress}% · {p.member_count}/{p.team_size_limit} members</p>
+                  </div>
+                  <Button asChild size="sm" className="w-full">
+                    <Link to="/lab/$projectId" params={{ projectId: p.id }}>Open</Link>
+                  </Button>
+                </Card>
               );
             })}
           </div>
         </section>
       )}
+
 
       <section className="space-y-3">
         <div className="flex items-center gap-2">
@@ -176,6 +222,11 @@ function LabPage() {
           </div>
         )}
       </section>
+
+      <Button onClick={() => setCreateOpen(true)} className="w-full" size="lg">
+        <Plus className="h-5 w-5" />
+        Create New Project
+      </Button>
 
       <CreateProjectModal open={createOpen} onOpenChange={setCreateOpen} />
       <ApplyToProjectModal

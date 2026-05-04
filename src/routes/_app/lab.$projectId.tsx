@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { ROLE_CHIP, ROLE_LABEL, type ProjectRole } from "@/lib/project-meta";
 import { subjectChipClass } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
+import { ProjectWorkspace } from "@/components/peerly/ProjectWorkspace";
 
 export const Route = createFileRoute("/_app/lab/$projectId")({
   component: ProjectDetailPage,
@@ -232,14 +233,25 @@ function ProjectDetailPage() {
         </div>
       </Card>
 
-      <Tabs defaultValue="activity">
+      <Tabs defaultValue="workspace">
         <TabsList>
+          <TabsTrigger value="workspace">Workspace</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="files">Files</TabsTrigger>
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
           <TabsTrigger value="members">Members</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="workspace">
+          <ProjectWorkspace
+            projectId={projectId}
+            members={members}
+            isMember={isMember}
+            projectName={project.name}
+          />
+        </TabsContent>
+
 
         <TabsContent value="activity" className="space-y-3">
           {isMember && (
