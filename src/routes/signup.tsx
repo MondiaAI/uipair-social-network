@@ -122,7 +122,22 @@ function SignupPage() {
               <div><Label>Full name</Label><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} /></div>
               <div><Label>Email</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
               <div><Label>Password</Label><Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-              <Button type="submit" className="w-full" disabled={loading}>{loading ? "Creating…" : "Continue"}</Button>
+              <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  required
+                />
+                <span>
+                  I agree to peerly's{" "}
+                  <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</Link>{" "}
+                  and{" "}
+                  <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
+                </span>
+              </label>
+              <Button type="submit" className="w-full" disabled={loading || !acceptTerms}>{loading ? "Creating…" : "Continue"}</Button>
             </form>
           </>
         )}
