@@ -227,6 +227,24 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
           </>
         )}
       </div>
+
+      {onNotAMatch && status !== "friends" && (
+        <div className="mt-2 flex justify-end">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive"
+            onClick={() => {
+              onNotAMatch(profile.id);
+              toast.success("Thanks — we'll improve your matches", {
+                description: `${name} won't be suggested again.`,
+              });
+            }}
+          >
+            <ThumbsDown className="h-3.5 w-3.5" /> Not a match
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
