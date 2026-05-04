@@ -93,6 +93,52 @@ function CircleDetailPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [circleId]);
 
+  // Realtime + polling: auto-grant access when membership is created
+  // (e.g., after a Stripe subscription webhook inserts the membership row).
+  useEffect(() => {
+    if (!user || !circleId || isMember) return;
+
+    const channel = supabase
+      .channel(`circle-membership-${circleId}-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "circle_members",
+          filter: `circle_id=eq.${circleId}`,
+        },
+        (payload) => {
+          const row = payload.new as { user_id?: string };
+          if (row.user_id === user.id) {
+            toast.success("Access granted — welcome to the circle!");
+            load();
+          }
+        }
+      )
+      .subscribe();
+
+    // Polling fallback every 15s in case realtime drops or webhook is delayed
+    const poll = setInterval(async () => {
+      const { data } = await supabase
+        .from("circle_members")
+        .select("user_id")
+        .eq("circle_id", circleId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        toast.success("Access granted — welcome to the circle!");
+        load();
+      }
+    }, 15000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(poll);
+    };
+    // eslint-disable-next-line
+  }, [user?.id, circleId, isMember]);
+
   const requestJoin = () => {
     if (!user || !circle) return;
     setConfirmJoinOpen(true);
@@ -238,12 +284,16 @@ function CircleDetailPage() {
         </TabsList>
 
         <TabsContent value="discussion" className="mt-4 space-y-3">
-          {isMember && (
+          {isMember ? (
             <div className="rounded-lg border bg-card p-3 space-y-2">
               <Textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="Share something with the circle…" rows={3} />
               <div className="flex justify-end">
                 <Button size="sm" onClick={handlePost} disabled={!postContent.trim()}>Post</Button>
               </div>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed bg-muted/30 p-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to post and comment.
             </div>
           )}
           {posts.length === 0 ? (
@@ -266,7 +316,7 @@ function CircleDetailPage() {
         </TabsContent>
 
         <TabsContent value="resources" className="mt-4 space-y-3">
-          {isMember && (
+          {isMember ? (
             <Dialog open={resOpen} onOpenChange={setResOpen}>
               <DialogTrigger asChild><Button size="sm" variant="outline">+ Add resource</Button></DialogTrigger>
               <DialogContent>
@@ -278,6 +328,10 @@ function CircleDetailPage() {
                 </div>
               </DialogContent>
             </Dialog>
+          ) : (
+            <div className="rounded-lg border border-dashed bg-muted/30 p-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to upload resources.
+            </div>
           )}
           {resources.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No resources yet.</p>
@@ -313,7 +367,7 @@ function CircleDetailPage() {
         </TabsContent>
 
         <TabsContent value="schedule" className="mt-4 space-y-3">
-          {isMember && (
+          {isMember ? (
             <Dialog open={sessionOpen} onOpenChange={setSessionOpen}>
               <DialogTrigger asChild><Button size="sm" variant="outline">+ Schedule session</Button></DialogTrigger>
               <DialogContent>
@@ -326,6 +380,10 @@ function CircleDetailPage() {
                 </div>
               </DialogContent>
             </Dialog>
+          ) : (
+            <div className="rounded-lg border border-dashed bg-muted/30 p-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to schedule live sessions{!isMember && " and access join links"}.
+            </div>
           )}
           {sessions.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No upcoming sessions.</p>
@@ -336,7 +394,11 @@ function CircleDetailPage() {
                 <p className="text-xs text-muted-foreground">{new Date(s.scheduled_at).toLocaleString()}</p>
               </div>
               {s.join_url && (
-                <Button asChild size="sm"><a href={s.join_url} target="_blank" rel="noopener noreferrer">Join</a></Button>
+                isMember ? (
+                  <Button asChild size="sm"><a href={s.join_url} target="_blank" rel="noopener noreferrer">Join</a></Button>
+                ) : (
+                  <Button size="sm" variant="outline" disabled title="Join the circle to access live sessions"><Lock className="h-3.5 w-3.5" /> Locked</Button>
+                )
               )}
             </div>
           ))}
