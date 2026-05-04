@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getRequest } from "@tanstack/react-start/server";
+import type Stripe from "stripe";
 import { type StripeEnv, createStripeClient } from "@/lib/stripe.server";
 
 function isStripeEnv(v: unknown): v is StripeEnv {
