@@ -14,6 +14,8 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { NotificationPanel } from "./NotificationPanel";
+import { ProUpgradeModal } from "./ProUpgradeModal";
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
