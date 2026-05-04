@@ -48,7 +48,7 @@ function LabPage() {
       supabase
         .from("projects")
         .select(
-          "id, name, description, subject, category, open_roles, team_size_limit, member_count, deadline, is_public, progress, creator_id",
+          "id, name, description, subject, category, open_roles, team_size_limit, member_count, deadline, is_public, progress, creator_id, updated_at",
         )
         .order("created_at", { ascending: false })
         .limit(60),
@@ -59,13 +59,31 @@ function LabPage() {
 
     const rows = (projectData ?? []) as Array<ProjectRow & { creator_id: string }>;
     const creatorIds = Array.from(new Set(rows.map((r) => r.creator_id)));
-    const { data: profilesData } = creatorIds.length
-      ? await supabase
-          .from("profiles")
-          .select("id, full_name, username, avatar_url, university")
-          .in("id", creatorIds)
-      : { data: [] as { id: string; full_name: string | null; username: string | null; avatar_url: string | null; university: string | null }[] };
+    const myIds = new Set(((memberQ.data ?? []) as { project_id: string }[]).map((m) => m.project_id));
+
+    const [{ data: profilesData }, { data: myMembers }] = await Promise.all([
+      creatorIds.length
+        ? supabase.from("profiles").select("id, full_name, username, avatar_url, university").in("id", creatorIds)
+        : Promise.resolve({ data: [] as { id: string; full_name: string | null; username: string | null; avatar_url: string | null; university: string | null }[] }),
+      myIds.size
+        ? supabase.from("project_members").select("project_id, user_id").in("project_id", Array.from(myIds))
+        : Promise.resolve({ data: [] as { project_id: string; user_id: string }[] }),
+    ]);
     const profileMap = new Map((profilesData ?? []).map((p) => [p.id, p]));
+
+    const memberUserIds = Array.from(new Set((myMembers ?? []).map((m) => m.user_id)));
+    const { data: memberProfiles } = memberUserIds.length
+      ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", memberUserIds)
+      : { data: [] as Array<{ id: string } & MemberAvatar> };
+    const memberProfileMap = new Map((memberProfiles ?? []).map((p) => [p.id, p]));
+
+    const avatars: Record<string, MemberAvatar[]> = {};
+    (myMembers ?? []).forEach((m) => {
+      const p = memberProfileMap.get(m.user_id);
+      if (!p) return;
+      avatars[m.project_id] = avatars[m.project_id] ? [...avatars[m.project_id], p] : [p];
+    });
+    setMemberAvatars(avatars);
 
     setProjects(
       rows.map((r) => ({
@@ -74,7 +92,7 @@ function LabPage() {
         creator: profileMap.get(r.creator_id) ?? null,
       })),
     );
-    setMyProjectIds(new Set(((memberQ.data ?? []) as { project_id: string }[]).map((m) => m.project_id)));
+    setMyProjectIds(myIds);
     setLoading(false);
   };
 
