@@ -17,7 +17,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ChevronDown, Search } from "lucide-react";
 
 export const Route = createFileRoute("/_app/match")({
   component: MatchPage,
