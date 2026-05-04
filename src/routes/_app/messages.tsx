@@ -171,15 +171,63 @@ function MessagesPage() {
   );
 
   const send = async () => {
-    if (!user || !activeId || !draft.trim()) return;
+    if (!user || !activeId) return;
+    if (!draft.trim() && !attachment) return;
     setSending(true);
-    const content = draft.trim();
+    let content = draft.trim();
+    const file = attachment;
     setDraft("");
-    const { error } = await supabase
-      .from("messages")
-      .insert({ conversation_id: activeId, sender_id: user.id, content });
-    if (error) setDraft(content);
-    setSending(false);
+    setAttachment(null);
+    try {
+      if (file) {
+        setUploading(true);
+        const path = `${user.id}/${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+        const { error: upErr } = await supabase.storage.from("resources").upload(path, file);
+        if (upErr) throw upErr;
+        const { data: signed } = await supabase.storage.from("resources").createSignedUrl(path, 60 * 60 * 24 * 7);
+        if (signed?.signedUrl) {
+          content = content ? `${content}\n${signed.signedUrl}` : signed.signedUrl;
+        }
+      }
+      const { error } = await supabase
+        .from("messages")
+        .insert({ conversation_id: activeId, sender_id: user.id, content });
+      if (error) throw error;
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to send");
+      setDraft(content);
+      if (file) setAttachment(file);
+    } finally {
+      setUploading(false);
+      setSending(false);
+    }
+  };
+
+  const onPickFile = (f: File | null) => {
+    if (!f) return;
+    if (f.size > 10 * 1024 * 1024) {
+      toast.error("File must be under 10MB");
+      return;
+    }
+    setAttachment(f);
+  };
+
+  const insertEmoji = (emoji: string) => {
+    const el = textareaRef.current;
+    const next = (val: string) => val.slice(0, MAX_LEN);
+    if (!el) {
+      setDraft((d) => next(d + emoji));
+      return;
+    }
+    const start = el.selectionStart ?? draft.length;
+    const end = el.selectionEnd ?? draft.length;
+    const updated = next(draft.slice(0, start) + emoji + draft.slice(end));
+    setDraft(updated);
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + emoji.length;
+      el.setSelectionRange(pos, pos);
+    });
   };
 
   return (
