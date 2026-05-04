@@ -93,12 +93,24 @@ function CircleDetailPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [circleId]);
 
-  const handleJoin = async () => {
+  const requestJoin = () => {
     if (!user || !circle) return;
-    if (circle.is_premium) { toast.info("Premium subscriptions coming soon"); return; }
+    setConfirmJoinOpen(true);
+  };
+
+  const confirmJoin = async () => {
+    if (!user || !circle) return;
+    if (circle.is_premium) {
+      toast.info("Premium subscriptions coming soon");
+      setConfirmJoinOpen(false);
+      return;
+    }
+    setJoining(true);
     const { error } = await supabase.from("circle_members").insert({ circle_id: circleId, user_id: user.id });
+    setJoining(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Joined circle!");
+    setConfirmJoinOpen(false);
     load();
   };
 
