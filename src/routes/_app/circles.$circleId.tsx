@@ -316,7 +316,7 @@ function CircleDetailPage() {
         </TabsContent>
 
         <TabsContent value="resources" className="mt-4 space-y-3">
-          {isMember && (
+          {isMember ? (
             <Dialog open={resOpen} onOpenChange={setResOpen}>
               <DialogTrigger asChild><Button size="sm" variant="outline">+ Add resource</Button></DialogTrigger>
               <DialogContent>
@@ -328,6 +328,10 @@ function CircleDetailPage() {
                 </div>
               </DialogContent>
             </Dialog>
+          ) : (
+            <div className="rounded-lg border border-dashed bg-muted/30 p-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to upload resources.
+            </div>
           )}
           {resources.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No resources yet.</p>
