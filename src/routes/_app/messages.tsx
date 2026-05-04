@@ -41,13 +41,22 @@ interface MessageRow {
 
 function MessagesPage() {
   const { user } = useAuth();
-  const { c: activeId } = Route.useSearch();
+  const { c: activeId, m: prefill } = Route.useSearch();
   const navigate = useNavigate({ from: "/messages" });
   const [conversations, setConversations] = useState<ConversationRow[]>([]);
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  // Apply prefill from query string once per active conversation
+  useEffect(() => {
+    if (prefill) {
+      setDraft(prefill);
+      navigate({ search: (prev) => ({ ...prev, m: undefined }), replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill, activeId]);
 
   // Load conversation list + subscribe
   useEffect(() => {
