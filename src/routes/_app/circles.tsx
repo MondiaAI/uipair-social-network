@@ -21,6 +21,7 @@ interface CircleRow extends CircleCardData {}
 
 function CirclesPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [circles, setCircles] = useState<CircleRow[]>([]);
   const [memberships, setMemberships] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
