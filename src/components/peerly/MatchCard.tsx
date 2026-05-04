@@ -1,9 +1,19 @@
 import { useState } from "react";
-import { MessageCircle, GraduationCap } from "lucide-react";
+import { MessageCircle, GraduationCap, UserPlus, Check, X, Clock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MatchScoreRing } from "./MatchScoreRing";
-import { StudyTogetherModal } from "./StudyTogetherModal";
+import { useAuth } from "@/lib/auth-context";
+import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
+import {
+  deriveStatus,
+  sendFriendRequest,
+  respondToRequest,
+  cancelRequest,
+  openConversation,
+  type FriendEdge,
+} from "@/lib/friends";
 
 export interface MatchProfile {
   id: string;
@@ -21,15 +31,80 @@ export interface MatchProfile {
 interface Props {
   profile: MatchProfile;
   score: number;
+  edge: FriendEdge | null;
 }
 
-export function MatchCard({ profile, score }: Props) {
-  const [open, setOpen] = useState(false);
+export function MatchCard({ profile, score, edge }: Props) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+
   const name = profile.full_name || profile.username || "Student";
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
   const isOnline = profile.last_seen_at
     ? Date.now() - new Date(profile.last_seen_at).getTime() < 5 * 60 * 1000
     : false;
+
+  const status = user ? deriveStatus(edge, user.id) : "none";
+
+  const handleConnect = async () => {
+    if (!user) return;
+    setBusy(true);
+    try {
+      await sendFriendRequest(user.id, profile.id);
+      toast.success(`Friend request sent to ${name}`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not send request");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleAccept = async () => {
+    if (!edge) return;
+    setBusy(true);
+    try {
+      await respondToRequest(edge.id, true);
+      toast.success(`You and ${name} are now connected`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not accept");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDecline = async () => {
+    if (!edge) return;
+    setBusy(true);
+    try {
+      await respondToRequest(edge.id, false);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!edge) return;
+    setBusy(true);
+    try {
+      await cancelRequest(edge.id);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleMessage = async () => {
+    if (!user) return;
+    setBusy(true);
+    try {
+      const conversationId = await openConversation(user.id, profile.id);
+      navigate({ to: "/messages", search: { c: conversationId } });
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not open chat");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="relative rounded-xl border bg-card p-4 shadow-sm">
@@ -71,21 +146,39 @@ export function MatchCard({ profile, score }: Props) {
           )}
         </div>
       </div>
+
       <div className="mt-4 flex gap-2">
-        <Button variant="outline" size="sm" className="flex-1">
-          <MessageCircle className="h-4 w-4" /> Message
-        </Button>
-        <Button size="sm" className="flex-1" onClick={() => setOpen(true)}>
-          Study Together
-        </Button>
+        {status === "none" && (
+          <Button size="sm" className="flex-1" onClick={handleConnect} disabled={busy}>
+            <UserPlus className="h-4 w-4" /> Connect
+          </Button>
+        )}
+        {status === "outgoing_pending" && (
+          <>
+            <Button size="sm" variant="outline" className="flex-1" disabled>
+              <Clock className="h-4 w-4" /> Request sent
+            </Button>
+            <Button size="sm" variant="ghost" onClick={handleCancel} disabled={busy}>
+              Cancel
+            </Button>
+          </>
+        )}
+        {status === "incoming_pending" && (
+          <>
+            <Button size="sm" className="flex-1" onClick={handleAccept} disabled={busy}>
+              <Check className="h-4 w-4" /> Accept
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleDecline} disabled={busy}>
+              <X className="h-4 w-4" /> Decline
+            </Button>
+          </>
+        )}
+        {status === "friends" && (
+          <Button size="sm" className="flex-1" onClick={handleMessage} disabled={busy}>
+            <MessageCircle className="h-4 w-4" /> Message
+          </Button>
+        )}
       </div>
-      <StudyTogetherModal
-        open={open}
-        onOpenChange={setOpen}
-        partnerId={profile.id}
-        partnerName={name}
-        defaultSubject={profile.field_of_study ?? undefined}
-      />
     </div>
   );
 }
