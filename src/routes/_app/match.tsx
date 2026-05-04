@@ -71,6 +71,7 @@ function MatchPage() {
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [yearRange, setYearRange] = useState<[number, number]>([1, 6]);
   const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("best");
 
   useEffect(() => {
     if (!user) return;
@@ -78,7 +79,7 @@ function MatchPage() {
       setLoading(true);
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, username, avatar_url, university, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at")
+        .select("id, full_name, username, avatar_url, university, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at, created_at")
         .neq("id", user.id)
         .limit(100);
       setProfiles((data ?? []) as ProfileRow[]);
