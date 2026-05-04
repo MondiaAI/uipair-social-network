@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { ROLE_CHIP, ROLE_LABEL, type ProjectRole } from "@/lib/project-meta";
 import { subjectChipClass } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
+import { ProjectWorkspace } from "@/components/peerly/ProjectWorkspace";
 
 export const Route = createFileRoute("/_app/lab/$projectId")({
   component: ProjectDetailPage,
