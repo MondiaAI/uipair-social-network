@@ -54,6 +54,7 @@ function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -174,13 +175,19 @@ function MessagesPage() {
     if (!user || !activeId) return;
     if (!draft.trim() && !attachment) return;
     setSending(true);
+    const originalDraft = draft;
+    const originalAttachment = attachment;
     let content = draft.trim();
     const file = attachment;
-    setDraft("");
-    setAttachment(null);
+    let progressTimer: ReturnType<typeof setInterval> | null = null;
     try {
       if (file) {
         setUploading(true);
+        setUploadProgress(5);
+        // Simulated progress while supabase-js uploads (no native progress event).
+        progressTimer = setInterval(() => {
+          setUploadProgress((p) => (p < 90 ? p + Math.max(1, (90 - p) * 0.15) : p));
+        }, 200);
         const path = `${user.id}/${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
         const { error: upErr } = await supabase.storage.from("resources").upload(path, file);
         if (upErr) throw upErr;
@@ -188,17 +195,24 @@ function MessagesPage() {
         if (signed?.signedUrl) {
           content = content ? `${content}\n${signed.signedUrl}` : signed.signedUrl;
         }
+        setUploadProgress(100);
       }
       const { error } = await supabase
         .from("messages")
         .insert({ conversation_id: activeId, sender_id: user.id, content });
       if (error) throw error;
+      // Only clear draft + attachment after a fully successful send
+      setDraft("");
+      setAttachment(null);
     } catch (e: any) {
       toast.error(e.message ?? "Failed to send");
-      setDraft(content);
-      if (file) setAttachment(file);
+      // Restore exactly what the user had
+      setDraft(originalDraft);
+      setAttachment(originalAttachment);
     } finally {
+      if (progressTimer) clearInterval(progressTimer);
       setUploading(false);
+      setUploadProgress(0);
       setSending(false);
     }
   };
@@ -364,24 +378,40 @@ function MessagesPage() {
               className="border-t p-3"
             >
               {attachment && (
-                <div className="mb-2 flex items-center gap-2 rounded-lg border bg-muted/40 p-2 text-xs">
-                  {attachment.type.startsWith("image/") ? (
-                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+                <div className="mb-2 rounded-lg border bg-muted/40 p-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    {attachment.type.startsWith("image/") ? (
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="truncate flex-1">{attachment.name}</span>
+                    <span className="text-muted-foreground">
+                      {(attachment.size / 1024).toFixed(0)} KB
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAttachment(null)}
+                      disabled={uploading}
+                      className="rounded p-1 hover:bg-accent disabled:opacity-50"
+                      aria-label="Remove attachment"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                  {uploading && (
+                    <div className="mt-2">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full bg-primary transition-all duration-200"
+                          style={{ width: `${Math.round(uploadProgress)}%` }}
+                        />
+                      </div>
+                      <p className="mt-1 text-[10px] text-muted-foreground">
+                        Uploading… {Math.round(uploadProgress)}%
+                      </p>
+                    </div>
                   )}
-                  <span className="truncate flex-1">{attachment.name}</span>
-                  <span className="text-muted-foreground">
-                    {(attachment.size / 1024).toFixed(0)} KB
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setAttachment(null)}
-                    className="rounded p-1 hover:bg-accent"
-                    aria-label="Remove attachment"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
                 </div>
               )}
               <div className="flex items-end gap-2">
