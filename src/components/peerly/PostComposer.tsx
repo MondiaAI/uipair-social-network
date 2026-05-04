@@ -4,31 +4,21 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Image as ImageIcon, Paperclip, Radio } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { COMPOSER_TAGS, POST_TYPE_META, type PostType } from "@/lib/post-types";
 import { toast } from "sonner";
-
-const POST_TYPES = [
-  { value: "brainstorm", label: "💡 Brainstorm" },
-  { value: "research", label: "🔬 Research" },
-  { value: "partner", label: "🤝 Find a partner" },
-  { value: "question", label: "❓ Question" },
-  { value: "resource", label: "📚 Resource" },
-] as const;
 
 export function PostComposer({ onPosted }: { onPosted: () => void }) {
   const { user, profile } = useAuth();
   const [content, setContent] = useState("");
-  const [postType, setPostType] = useState<typeof POST_TYPES[number]["value"]>("brainstorm");
+  const [postType, setPostType] = useState<PostType>("brainstorm");
+  const [isLive, setIsLive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const initials = (profile?.full_name || profile?.username || "?")
     .split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+  const firstName = (profile?.full_name || profile?.username || "there").split(" ")[0];
 
   const handleSubmit = async () => {
     if (!user || !content.trim()) return;
@@ -37,15 +27,14 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
       user_id: user.id,
       content: content.trim(),
       post_type: postType,
+      is_live_session: isLive,
       university: profile?.university ?? null,
     });
     setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
+    if (error) { toast.error(error.message); return; }
     setContent("");
     setPostType("brainstorm");
+    setIsLive(false);
     onPosted();
   };
 
@@ -60,22 +49,55 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
         </Avatar>
         <div className="flex-1 space-y-3">
           <Textarea
-            placeholder="Share an idea, ask a question, drop a resource…"
+            placeholder={`What's on your mind, ${firstName}?`}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="min-h-[80px] resize-none border-none p-0 shadow-none focus-visible:ring-0 text-base"
+            className="min-h-[64px] resize-none border-none p-0 shadow-none focus-visible:ring-0 text-base"
           />
-          <div className="flex items-center justify-between gap-2">
-            <Select value={postType} onValueChange={(v) => setPostType(v as typeof postType)}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {POST_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+          <div className="flex flex-wrap gap-2">
+            {COMPOSER_TAGS.map((t) => {
+              const meta = POST_TYPE_META[t];
+              const active = postType === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setPostType(t)}
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-semibold transition-all",
+                    active
+                      ? cn(meta.chipBg, meta.chipText, "ring-2 ring-offset-1", meta.ring)
+                      : "bg-muted text-muted-foreground hover:bg-muted/70",
+                  )}
+                >
+                  {meta.emoji} {meta.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-between gap-2 border-t pt-3">
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <button type="button" className="rounded-md p-2 hover:bg-muted" title="Image">
+                <ImageIcon className="h-4 w-4" />
+              </button>
+              <button type="button" className="rounded-md p-2 hover:bg-muted" title="File">
+                <Paperclip className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsLive((v) => !v)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium hover:bg-muted",
+                  isLive && "bg-destructive/10 text-destructive hover:bg-destructive/15",
+                )}
+                title="Live Session"
+              >
+                <Radio className="h-4 w-4" />
+                Live
+              </button>
+            </div>
             <Button onClick={handleSubmit} disabled={submitting || !content.trim()}>
               {submitting ? "Posting…" : "Post"}
             </Button>
