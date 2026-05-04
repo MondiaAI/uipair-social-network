@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { NotificationPanel } from "./NotificationPanel";
 import { ProUpgradeModal } from "./ProUpgradeModal";
+import { PeerlyLogo } from "./PeerlyLogo";
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
@@ -49,11 +50,8 @@ export function Header() {
     <header className="sticky top-0 z-40 h-16 w-full border-b bg-card">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
         {/* Left: Logo */}
-        <Link to="/feed" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
-            P
-          </div>
-          <span className="text-lg font-bold tracking-tight">PEERLY</span>
+        <Link to="/feed" aria-label="peerly home">
+          <PeerlyLogo size="sm" variant="light" />
         </Link>
 
         {/* Center: Campus/Global toggle */}
