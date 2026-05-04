@@ -46,6 +46,7 @@ function SignupPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   // If logged in already (e.g. after Google), jump to step 2 to finish profile
   useEffect(() => {
@@ -54,10 +55,11 @@ function SignupPage() {
 
   const handleStep1 = async (e: FormEvent) => {
     e.preventDefault();
+    if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: window.location.origin, data: { full_name: fullName } },
+      options: { emailRedirectTo: window.location.origin, data: { full_name: fullName, terms_accepted_at: new Date().toISOString() } },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
@@ -65,6 +67,7 @@ function SignupPage() {
   };
 
   const handleGoogle = async () => {
+    if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (result.error) toast.error("Google sign-in failed");
   };
@@ -119,7 +122,22 @@ function SignupPage() {
               <div><Label>Full name</Label><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} /></div>
               <div><Label>Email</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
               <div><Label>Password</Label><Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-              <Button type="submit" className="w-full" disabled={loading}>{loading ? "Creating…" : "Continue"}</Button>
+              <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  required
+                />
+                <span>
+                  I agree to peerly's{" "}
+                  <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</Link>{" "}
+                  and{" "}
+                  <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
+                </span>
+              </label>
+              <Button type="submit" className="w-full" disabled={loading || !acceptTerms}>{loading ? "Creating…" : "Continue"}</Button>
             </form>
           </>
         )}
@@ -210,6 +228,11 @@ function SignupPage() {
       {step === 1 && (
         <p className="mt-4 text-sm text-muted-foreground">Already have an account? <Link to="/login" className="font-semibold text-primary hover:underline">Sign in</Link></p>
       )}
+      <p className="mt-2 text-center text-xs text-muted-foreground lg:text-left">
+        <Link to="/terms" className="hover:underline">Terms</Link>
+        <span className="mx-2">·</span>
+        <Link to="/privacy" className="hover:underline">Privacy</Link>
+      </p>
       </div>
     </SplitAuthLayout>
   );

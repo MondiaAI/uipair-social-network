@@ -102,6 +102,13 @@ function LoginPage() {
             Sign up
           </Link>
         </p>
+
+        <p className="text-center text-xs text-muted-foreground">
+          By continuing you agree to our{" "}
+          <Link to="/terms" className="hover:underline">Terms</Link>
+          {" "}and{" "}
+          <Link to="/privacy" className="hover:underline">Privacy Policy</Link>.
+        </p>
       </div>
     </SplitAuthLayout>
   );
