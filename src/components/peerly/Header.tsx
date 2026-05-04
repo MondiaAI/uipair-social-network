@@ -45,6 +45,7 @@ export function Header() {
     .toUpperCase();
 
   return (
+    <>
     <header className="sticky top-0 z-40 h-16 w-full border-b bg-card">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
         {/* Left: Logo */}
