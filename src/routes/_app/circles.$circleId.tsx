@@ -12,11 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { EmbeddedCheckoutModal } from "@/components/peerly/EmbeddedCheckoutModal";
-import { createCircleCheckout, verifyCircleCheckout } from "@/server/payments.functions";
+import { createCircleCheckout, verifyCircleCheckout, cancelCircleSubscription } from "@/server/payments.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 import { subjectChipClass } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
 
 export const Route = createFileRoute("/_app/circles/$circleId")({
   component: CircleDetailPage,
