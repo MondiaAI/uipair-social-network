@@ -265,8 +265,7 @@ function MatchPage() {
                   <button
                     className="underline-offset-2 hover:underline"
                     onClick={() => {
-                      setHidden(new Set());
-                      try { localStorage.removeItem("match:not_a_match"); } catch {}
+                      restoreAll().catch(() => toast.error("Could not restore"));
                     }}
                   >
                     Restore {hidden.size} hidden
