@@ -147,8 +147,17 @@ function CircleDetailPage() {
   const confirmJoin = async () => {
     if (!user || !circle) return;
     if (circle.is_premium) {
-      toast.info("Premium subscriptions coming soon");
-      setConfirmJoinOpen(false);
+      setJoining(true);
+      try {
+        const { clientSecret } = await createCircleCheckout({ data: { circleId: circle.id } });
+        setCheckoutClientSecret(clientSecret);
+        setConfirmJoinOpen(false);
+        setCheckoutOpen(true);
+      } catch (err: any) {
+        toast.error(err?.message ?? "Could not start checkout");
+      } finally {
+        setJoining(false);
+      }
       return;
     }
     setJoining(true);
@@ -157,6 +166,22 @@ function CircleDetailPage() {
     if (error) { toast.error(error.message); return; }
     toast.success("Joined circle!");
     setConfirmJoinOpen(false);
+    load();
+  };
+
+  const handleCheckoutComplete = async () => {
+    // Belt-and-suspenders: try the verify path immediately so access unlocks
+    // even if the webhook is slightly delayed. Realtime/polling will also catch it.
+    try {
+      const sessionId = new URLSearchParams(window.location.search).get("checkout_session_id");
+      if (sessionId) {
+        await verifyCircleCheckout({ data: { sessionId } });
+      }
+    } catch (err) {
+      console.warn("verify after checkout failed (webhook will still grant)", err);
+    }
+    setCheckoutOpen(false);
+    setCheckoutClientSecret(null);
     load();
   };
 
