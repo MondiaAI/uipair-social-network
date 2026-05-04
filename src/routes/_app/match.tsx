@@ -126,8 +126,20 @@ function MatchPage() {
         return true;
       })
       .map((p) => ({ profile: p, score: computeScore(me, p) }))
-      .sort((a, b) => b.score - a.score);
-  }, [profiles, me, mode, profile?.university, subjects, availability, yearRange, query]);
+      .sort((a, b) => {
+        if (sortKey === "newest") {
+          const ta = a.profile.created_at ? new Date(a.profile.created_at).getTime() : 0;
+          const tb = b.profile.created_at ? new Date(b.profile.created_at).getTime() : 0;
+          return tb - ta;
+        }
+        if (sortKey === "active") {
+          const ta = a.profile.last_seen_at ? new Date(a.profile.last_seen_at).getTime() : 0;
+          const tb = b.profile.last_seen_at ? new Date(b.profile.last_seen_at).getTime() : 0;
+          return tb - ta;
+        }
+        return b.score - a.score;
+      });
+  }, [profiles, me, mode, profile?.university, subjects, availability, yearRange, query, sortKey]);
 
   const toggleSubject = (s: string) =>
     setSubjects((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
