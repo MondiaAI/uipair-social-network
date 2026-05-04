@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 180" width="520" height="180">
+  <defs>
+    <clipPath id="cl"><circle cx="72" cy="90" r="54"/></clipPath>
+    <clipPath id="cr"><circle cx="120" cy="90" r="54"/></clipPath>
+  </defs>
+
+  <!-- Left circle -->
+  <circle cx="72" cy="90" r="54" fill="#534AB7"/>
+  <!-- Right circle -->
+  <circle cx="120" cy="90" r="54" fill="#7F77DD"/>
+  <!-- Overlap blend -->
+  <circle cx="120" cy="90" r="54" fill="#6460CC" clip-path="url(#cl)"/>
+
+  <!-- Left person -->
+  <circle cx="72" cy="68" r="13" fill="#EEEDFE"/>
+  <path d="M48 118 Q48 96 72 96 Q96 96 96 118" fill="#EEEDFE"/>
+
+  <!-- Right person -->
+  <circle cx="120" cy="68" r="13" fill="#EEEDFE"/>
+  <path d="M96 118 Q96 96 120 96 Q144 96 144 118" fill="#EEEDFE"/>
+
+  <!-- Connection spark -->
+  <circle cx="96" cy="42" r="5" fill="#ffffff" opacity="0.6"/>
+
+  <!-- Wordmark -->
+  <text x="198" y="78" font-family="Inter, Helvetica Neue, Arial, sans-serif" font-size="52" font-weight="500" fill="#26215C" letter-spacing="-2">peerly</text>
+  <!-- Tagline -->
+  <text x="200" y="108" font-family="Inter, Helvetica Neue, Arial, sans-serif" font-size="12" font-weight="400" fill="#7F77DD" letter-spacing="3.5">YOUR CAMPUS. EVERY CAMPUS.</text>
+</svg>
