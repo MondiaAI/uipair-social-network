@@ -152,7 +152,7 @@ function SignupPage() {
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
                 </span>
               </label>
-              <Button type="submit" className="w-full" disabled={loading || !acceptTerms}>{loading ? "Creating…" : "Continue"}</Button>
+              <Button type="submit" className="w-full" disabled={loading || !acceptTerms || !passwordStrong}>{loading ? "Creating…" : "Continue"}</Button>
             </form>
           </>
         )}
