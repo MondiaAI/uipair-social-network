@@ -394,7 +394,11 @@ function CircleDetailPage() {
                 <p className="text-xs text-muted-foreground">{new Date(s.scheduled_at).toLocaleString()}</p>
               </div>
               {s.join_url && (
-                <Button asChild size="sm"><a href={s.join_url} target="_blank" rel="noopener noreferrer">Join</a></Button>
+                isMember ? (
+                  <Button asChild size="sm"><a href={s.join_url} target="_blank" rel="noopener noreferrer">Join</a></Button>
+                ) : (
+                  <Button size="sm" variant="outline" disabled title="Join the circle to access live sessions"><Lock className="h-3.5 w-3.5" /> Locked</Button>
+                )
               )}
             </div>
           ))}
