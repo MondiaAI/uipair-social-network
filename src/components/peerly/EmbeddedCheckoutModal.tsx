@@ -65,7 +65,7 @@ export function EmbeddedCheckoutModal({
           checkoutRef.current = null;
         }
 
-        const checkout = await stripe.initEmbeddedCheckout({
+        const checkout = await stripe.createEmbeddedCheckoutPage({
           fetchClientSecret: async () => clientSecret,
           onComplete: () => {
             toast.success("Payment confirmed — unlocking your circle…");
