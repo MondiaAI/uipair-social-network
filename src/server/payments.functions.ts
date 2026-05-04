@@ -69,7 +69,7 @@ export const createCircleCheckout = createServerFn({ method: "POST" })
     const stripe = createStripeClient(data.environment);
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      ui_mode: "embedded" as Stripe.Checkout.SessionCreateParams.UiMode,
+      ui_mode: "embedded" as any,
       return_url: `${origin}/circles/${circle.id}?checkout_session_id={CHECKOUT_SESSION_ID}`,
       line_items: [
         {
