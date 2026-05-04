@@ -15,6 +15,8 @@ import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
 import { PasswordInput } from "@/components/peerly/PasswordInput";
+import { PasswordStrengthMeter } from "@/components/peerly/PasswordStrengthMeter";
+import { evaluatePassword } from "@/lib/password-strength";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/signup")({
@@ -48,6 +50,11 @@ function SignupPage() {
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const passwordsMatch = password.length > 0 && password === confirmPassword;
+  const passwordStrong = evaluatePassword(password).score >= 2;
+
 
   // If logged in already (e.g. after Google), jump to step 2 to finish profile
   useEffect(() => {
@@ -57,6 +64,7 @@ function SignupPage() {
   const handleStep1 = async (e: FormEvent) => {
     e.preventDefault();
     if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
+    if (!passwordStrong) return toast.error("Please choose a stronger password");
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
@@ -124,7 +132,11 @@ function SignupPage() {
             <form onSubmit={handleStep1} className="space-y-3">
               <div><Label>Full name</Label><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} /></div>
               <div><Label>Email</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-              <div><Label>Password</Label><PasswordInput required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+              <div className="space-y-1.5">
+                <Label>Password</Label>
+                <PasswordInput required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <PasswordStrengthMeter value={password} showChecklist />
+              </div>
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
                 <input
                   type="checkbox"
@@ -140,7 +152,7 @@ function SignupPage() {
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
                 </span>
               </label>
-              <Button type="submit" className="w-full" disabled={loading || !acceptTerms}>{loading ? "Creating…" : "Continue"}</Button>
+              <Button type="submit" className="w-full" disabled={loading || !acceptTerms || !passwordStrong}>{loading ? "Creating…" : "Continue"}</Button>
             </form>
           </>
         )}
@@ -172,6 +184,21 @@ function SignupPage() {
                   <SelectContent>{[1, 2, 3, 4, 5, 6].map((y) => <SelectItem key={y} value={String(y)}>Year {y}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
+              <div className="space-y-1.5 pt-1">
+                <Label>Confirm password</Label>
+                <PasswordInput
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter your password"
+                  aria-invalid={confirmPassword.length > 0 && !passwordsMatch}
+                />
+                {confirmPassword.length > 0 && (
+                  <p className={cn("text-xs", passwordsMatch ? "text-emerald-600" : "text-destructive")}>
+                    {passwordsMatch ? "Passwords match" : "Passwords don't match"}
+                  </p>
+                )}
+              </div>
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
                 <input
                   type="checkbox"
@@ -186,7 +213,7 @@ function SignupPage() {
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
                 </span>
               </label>
-              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms} className="w-full">Continue</Button>
+              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms || !passwordsMatch} className="w-full">Continue</Button>
             </div>
           </>
         )}
