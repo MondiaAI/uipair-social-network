@@ -52,7 +52,14 @@ function MessagesPage() {
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  const MAX_LEN = 2000;
+  const isImageUrl = (s: string) => /\.(png|jpe?g|gif|webp|avif)$/i.test(s.trim());
 
   // Apply prefill from query string once per active conversation
   useEffect(() => {
