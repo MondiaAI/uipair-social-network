@@ -1,0 +1,70 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
+import { useFeedMode } from "@/lib/feed-context";
+import { PostComposer } from "@/components/peerly/PostComposer";
+import { PostCard, type FeedPost } from "@/components/peerly/PostCard";
+
+export const Route = createFileRoute("/_app/feed")({
+  component: FeedPage,
+});
+
+function FeedPage() {
+  const { profile } = useAuth();
+  const { mode } = useFeedMode();
+  const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadPosts = useCallback(async () => {
+    setLoading(true);
+    let q = supabase
+      .from("posts")
+      .select("id, user_id, content, post_type, university, created_at, profiles!posts_user_id_fkey(full_name, username, avatar_url, university)")
+      .order("created_at", { ascending: false })
+      .limit(50);
+
+    if (mode === "campus" && profile?.university) {
+      q = q.eq("university", profile.university);
+    }
+
+    const { data, error } = await q;
+    if (!error && data) setPosts(data as unknown as FeedPost[]);
+    setLoading(false);
+  }, [mode, profile?.university]);
+
+  useEffect(() => {
+    loadPosts();
+  }, [loadPosts]);
+
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-6 space-y-4">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Knowledge Feed</h1>
+        <p className="text-sm text-muted-foreground">
+          {mode === "campus"
+            ? profile?.university
+              ? `Showing posts from ${profile.university}`
+              : "Add your university in settings to see campus posts"
+            : "Posts from students worldwide"}
+        </p>
+      </div>
+
+      <PostComposer onPosted={loadPosts} />
+
+      {loading ? (
+        <div className="text-center text-muted-foreground py-12">Loading feed…</div>
+      ) : posts.length === 0 ? (
+        <div className="rounded-2xl border bg-card p-12 text-center">
+          <p className="text-muted-foreground">
+            {mode === "campus"
+              ? "No posts from your campus yet. Be the first!"
+              : "No posts yet. Share something!"}
+          </p>
+        </div>
+      ) : (
+        posts.map((p) => <PostCard key={p.id} post={p} onChange={loadPosts} />)
+      )}
+    </div>
+  );
+}

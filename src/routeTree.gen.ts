@@ -9,38 +9,157 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppMatchRouteImport } from './routes/_app/match'
+import { Route as AppLabRouteImport } from './routes/_app/lab'
+import { Route as AppGigsRouteImport } from './routes/_app/gigs'
+import { Route as AppFeedRouteImport } from './routes/_app/feed'
+import { Route as AppCirclesRouteImport } from './routes/_app/circles'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppMatchRoute = AppMatchRouteImport.update({
+  id: '/match',
+  path: '/match',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLabRoute = AppLabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGigsRoute = AppGigsRouteImport.update({
+  id: '/gigs',
+  path: '/gigs',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppFeedRoute = AppFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCirclesRoute = AppCirclesRouteImport.update({
+  id: '/circles',
+  path: '/circles',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/circles': typeof AppCirclesRoute
+  '/feed': typeof AppFeedRoute
+  '/gigs': typeof AppGigsRoute
+  '/lab': typeof AppLabRoute
+  '/match': typeof AppMatchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/circles': typeof AppCirclesRoute
+  '/feed': typeof AppFeedRoute
+  '/gigs': typeof AppGigsRoute
+  '/lab': typeof AppLabRoute
+  '/match': typeof AppMatchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
+  '/_app/circles': typeof AppCirclesRoute
+  '/_app/feed': typeof AppFeedRoute
+  '/_app/gigs': typeof AppGigsRoute
+  '/_app/lab': typeof AppLabRoute
+  '/_app/match': typeof AppMatchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/circles'
+    | '/feed'
+    | '/gigs'
+    | '/lab'
+    | '/match'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/circles'
+    | '/feed'
+    | '/gigs'
+    | '/lab'
+    | '/match'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/login'
+    | '/signup'
+    | '/_app/circles'
+    | '/_app/feed'
+    | '/_app/gigs'
+    | '/_app/lab'
+    | '/_app/match'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,21 +167,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/match': {
+      id: '/_app/match'
+      path: '/match'
+      fullPath: '/match'
+      preLoaderRoute: typeof AppMatchRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/lab': {
+      id: '/_app/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof AppLabRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/gigs': {
+      id: '/_app/gigs'
+      path: '/gigs'
+      fullPath: '/gigs'
+      preLoaderRoute: typeof AppGigsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/feed': {
+      id: '/_app/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AppFeedRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/circles': {
+      id: '/_app/circles'
+      path: '/circles'
+      fullPath: '/circles'
+      preLoaderRoute: typeof AppCirclesRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppCirclesRoute: typeof AppCirclesRoute
+  AppFeedRoute: typeof AppFeedRoute
+  AppGigsRoute: typeof AppGigsRoute
+  AppLabRoute: typeof AppLabRoute
+  AppMatchRoute: typeof AppMatchRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppCirclesRoute: AppCirclesRoute,
+  AppFeedRoute: AppFeedRoute,
+  AppGigsRoute: AppGigsRoute,
+  AppLabRoute: AppLabRoute,
+  AppMatchRoute: AppMatchRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
