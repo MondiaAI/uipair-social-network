@@ -30,7 +30,7 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
-    setName(""); setDescription(""); setCampusOnly(false); setIsPremium(false);
+    setName(""); setDescription(""); setCampusOnly(false); setIsPremium(true);
     setPrice("4.99"); setSchedule(""); setResourcesUrl("");
   };
 
