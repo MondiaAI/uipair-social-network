@@ -1,0 +1,1 @@
+ALTER TYPE public.gig_category ADD VALUE IF NOT EXISTS 'writing';

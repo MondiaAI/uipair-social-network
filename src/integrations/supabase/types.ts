@@ -1188,6 +1188,7 @@ export type Database = {
         | "translation"
         | "proofreading"
         | "other"
+        | "writing"
       gig_order_status:
         | "pending"
         | "in_progress"
@@ -1354,6 +1355,7 @@ export const Constants = {
         "translation",
         "proofreading",
         "other",
+        "writing",
       ],
       gig_order_status: [
         "pending",
