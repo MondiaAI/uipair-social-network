@@ -379,6 +379,30 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string
+          user_a: string
+          user_b: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          user_a: string
+          user_b: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          user_a?: string
+          user_b?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -397,6 +421,33 @@ export type Database = {
           follower_id?: string
           following_id?: string
           id?: string
+        }
+        Relationships: []
+      }
+      friend_requests: {
+        Row: {
+          created_at: string
+          id: string
+          recipient_id: string
+          sender_id: string
+          status: Database["public"]["Enums"]["friend_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipient_id: string
+          sender_id: string
+          status?: Database["public"]["Enums"]["friend_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipient_id?: string
+          sender_id?: string
+          status?: Database["public"]["Enums"]["friend_request_status"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -561,6 +612,41 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -1210,6 +1296,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       has_active_circle_subscription: {
         Args: { _circle_id: string; _environment?: string; _user_id: string }
         Returns: boolean
@@ -1231,6 +1318,7 @@ export type Database = {
       bounty_status: "open" | "claimed" | "completed" | "cancelled"
       circle_member_role: "leader" | "moderator" | "member"
       circle_scope: "campus" | "global"
+      friend_request_status: "pending" | "accepted" | "declined" | "canceled"
       gig_category:
         | "tutoring"
         | "notes"
@@ -1398,6 +1486,7 @@ export const Constants = {
       bounty_status: ["open", "claimed", "completed", "cancelled"],
       circle_member_role: ["leader", "moderator", "member"],
       circle_scope: ["campus", "global"],
+      friend_request_status: ["pending", "accepted", "declined", "canceled"],
       gig_category: [
         "tutoring",
         "notes",

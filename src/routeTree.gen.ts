@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppMessagesRouteImport } from './routes/_app/messages'
 import { Route as AppMatchRouteImport } from './routes/_app/match'
 import { Route as AppLabRouteImport } from './routes/_app/lab'
 import { Route as AppGigsRouteImport } from './routes/_app/gigs'
@@ -54,6 +55,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppMessagesRoute = AppMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppMatchRoute = AppMatchRouteImport.update({
   id: '/match',
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/gigs': typeof AppGigsRoute
   '/lab': typeof AppLabRouteWithChildren
   '/match': typeof AppMatchRoute
+  '/messages': typeof AppMessagesRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/gigs': typeof AppGigsRoute
   '/lab': typeof AppLabRouteWithChildren
   '/match': typeof AppMatchRoute
+  '/messages': typeof AppMessagesRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   '/_app/gigs': typeof AppGigsRoute
   '/_app/lab': typeof AppLabRouteWithChildren
   '/_app/match': typeof AppMatchRoute
+  '/_app/messages': typeof AppMessagesRoute
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/gigs'
     | '/lab'
     | '/match'
+    | '/messages'
     | '/circles/$circleId'
     | '/lab/$projectId'
     | '/profile/$userId'
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/gigs'
     | '/lab'
     | '/match'
+    | '/messages'
     | '/circles/$circleId'
     | '/lab/$projectId'
     | '/profile/$userId'
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/_app/gigs'
     | '/_app/lab'
     | '/_app/match'
+    | '/_app/messages'
     | '/_app/circles/$circleId'
     | '/_app/lab/$projectId'
     | '/_app/profile/$userId'
@@ -268,6 +280,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/messages': {
+      id: '/_app/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof AppMessagesRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/match': {
       id: '/_app/match'
@@ -372,6 +391,7 @@ interface AppRouteChildren {
   AppGigsRoute: typeof AppGigsRoute
   AppLabRoute: typeof AppLabRouteWithChildren
   AppMatchRoute: typeof AppMatchRoute
+  AppMessagesRoute: typeof AppMessagesRoute
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
 }
 
@@ -382,6 +402,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppGigsRoute: AppGigsRoute,
   AppLabRoute: AppLabRouteWithChildren,
   AppMatchRoute: AppMatchRoute,
+  AppMessagesRoute: AppMessagesRoute,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
 }
 

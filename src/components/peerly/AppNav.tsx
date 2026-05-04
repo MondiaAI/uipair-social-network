@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Users, Zap, FlaskConical, DollarSign, type LucideIcon } from "lucide-react";
+import { Home, Users, Zap, FlaskConical, DollarSign, MessageSquare, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs: { to: string; label: string; icon: LucideIcon }[] = [
   { to: "/feed", label: "Feed", icon: Home },
   { to: "/circles", label: "Circles", icon: Users },
   { to: "/match", label: "Match", icon: Zap },
+  { to: "/messages", label: "Chat", icon: MessageSquare },
   { to: "/lab", label: "Lab", icon: FlaskConical },
   { to: "/gigs", label: "Gigs", icon: DollarSign },
 ];
@@ -40,7 +41,7 @@ export function AppNav() {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-card">
-        <div className="grid grid-cols-5">
+        <div className="grid grid-cols-6">
           {tabs.map((t) => {
             const active = pathname.startsWith(t.to);
             const Icon = t.icon;

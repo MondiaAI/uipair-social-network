@@ -1,0 +1,288 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Send, MessageSquare } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
+
+const search = z.object({ c: z.string().uuid().optional() });
+
+export const Route = createFileRoute("/_app/messages")({
+  validateSearch: (s) => search.parse(s),
+  component: MessagesPage,
+});
+
+interface ConversationRow {
+  id: string;
+  user_a: string;
+  user_b: string;
+  last_message_at: string;
+  other?: {
+    id: string;
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  };
+  preview?: string;
+}
+
+interface MessageRow {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+}
+
+function MessagesPage() {
+  const { user } = useAuth();
+  const { c: activeId } = Route.useSearch();
+  const navigate = useNavigate({ from: "/messages" });
+  const [conversations, setConversations] = useState<ConversationRow[]>([]);
+  const [messages, setMessages] = useState<MessageRow[]>([]);
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  // Load conversation list + subscribe
+  useEffect(() => {
+    if (!user) return;
+    const load = async () => {
+      const { data: convs } = await supabase
+        .from("conversations")
+        .select("id, user_a, user_b, last_message_at")
+        .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
+        .order("last_message_at", { ascending: false });
+      const list = (convs ?? []) as ConversationRow[];
+      const otherIds = list.map((c) => (c.user_a === user.id ? c.user_b : c.user_a));
+      if (otherIds.length === 0) {
+        setConversations([]);
+        return;
+      }
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, full_name, username, avatar_url")
+        .in("id", otherIds);
+      const byId = new Map((profs ?? []).map((p) => [p.id, p]));
+
+      // Fetch latest message preview per conversation
+      const { data: previews } = await supabase
+        .from("messages")
+        .select("conversation_id, content, created_at")
+        .in("conversation_id", list.map((c) => c.id))
+        .order("created_at", { ascending: false });
+      const previewBy = new Map<string, string>();
+      (previews ?? []).forEach((m) => {
+        if (!previewBy.has(m.conversation_id)) previewBy.set(m.conversation_id, m.content);
+      });
+
+      setConversations(
+        list.map((c) => {
+          const otherId = c.user_a === user.id ? c.user_b : c.user_a;
+          return {
+            ...c,
+            other: byId.get(otherId) as ConversationRow["other"],
+            preview: previewBy.get(c.id),
+          };
+        })
+      );
+    };
+    load();
+
+    const channel = supabase
+      .channel(`conv_list:${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => load())
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => load())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  // Load active conversation messages + subscribe
+  useEffect(() => {
+    if (!activeId) {
+      setMessages([]);
+      return;
+    }
+    const load = async () => {
+      const { data } = await supabase
+        .from("messages")
+        .select("id, conversation_id, sender_id, content, created_at")
+        .eq("conversation_id", activeId)
+        .order("created_at", { ascending: true });
+      setMessages((data ?? []) as MessageRow[]);
+    };
+    load();
+
+    const channel = supabase
+      .channel(`messages:${activeId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${activeId}` },
+        (payload) => {
+          setMessages((prev) =>
+            prev.some((m) => m.id === (payload.new as MessageRow).id)
+              ? prev
+              : [...prev, payload.new as MessageRow]
+          );
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeId]);
+
+  // Auto-scroll
+  useEffect(() => {
+    scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight });
+  }, [messages, activeId]);
+
+  const active = useMemo(
+    () => conversations.find((c) => c.id === activeId) ?? null,
+    [conversations, activeId]
+  );
+
+  const send = async () => {
+    if (!user || !activeId || !draft.trim()) return;
+    setSending(true);
+    const content = draft.trim();
+    setDraft("");
+    const { error } = await supabase
+      .from("messages")
+      .insert({ conversation_id: activeId, sender_id: user.id, content });
+    if (error) setDraft(content);
+    setSending(false);
+  };
+
+  return (
+    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-5xl gap-4 px-4 py-6">
+      {/* Sidebar */}
+      <aside className="flex w-72 flex-col rounded-xl border bg-card shadow-sm">
+        <div className="border-b p-4">
+          <h1 className="text-lg font-bold">Messages</h1>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          {conversations.length === 0 ? (
+            <div className="p-6 text-center text-sm text-muted-foreground">
+              <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-40" />
+              No conversations yet. Connect with a study partner first.
+            </div>
+          ) : (
+            conversations.map((c) => {
+              const name = c.other?.full_name || c.other?.username || "Student";
+              const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+              const isActive = c.id === activeId;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => navigate({ search: { c: c.id } })}
+                  className={cn(
+                    "flex w-full items-center gap-3 border-b p-3 text-left transition-colors hover:bg-accent",
+                    isActive && "bg-accent"
+                  )}
+                >
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={c.other?.avatar_url ?? undefined} />
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {c.preview ?? "Say hi 👋"}
+                    </p>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </aside>
+
+      {/* Chat panel */}
+      <section className="flex flex-1 flex-col rounded-xl border bg-card shadow-sm">
+        {!active ? (
+          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
+            Select a conversation to start chatting
+          </div>
+        ) : (
+          <>
+            <header className="flex items-center gap-3 border-b p-4">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={active.other?.avatar_url ?? undefined} />
+                <AvatarFallback>
+                  {(active.other?.full_name || active.other?.username || "S").slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">
+                  {active.other?.full_name || active.other?.username || "Student"}
+                </p>
+                <p className="text-xs text-muted-foreground">Private chat</p>
+              </div>
+            </header>
+
+            <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto p-4">
+              {messages.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  No messages yet. Send the first one!
+                </p>
+              ) : (
+                messages.map((m) => {
+                  const mine = m.sender_id === user?.id;
+                  return (
+                    <div
+                      key={m.id}
+                      className={cn("flex", mine ? "justify-end" : "justify-start")}
+                    >
+                      <div
+                        className={cn(
+                          "max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow-sm",
+                          mine
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-foreground"
+                        )}
+                      >
+                        <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                        <p className={cn(
+                          "mt-1 text-[10px]",
+                          mine ? "text-primary-foreground/70" : "text-muted-foreground"
+                        )}>
+                          {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                send();
+              }}
+              className="flex gap-2 border-t p-3"
+            >
+              <Input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Type a message…"
+                disabled={sending}
+              />
+              <Button type="submit" disabled={sending || !draft.trim()}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
+          </>
+        )}
+      </section>
+    </div>
+  );
+}

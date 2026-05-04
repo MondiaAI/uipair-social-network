@@ -5,6 +5,8 @@ import { useAuth } from "@/lib/auth-context";
 import { useFeedMode } from "@/lib/feed-context";
 import { SUBJECTS } from "@/lib/subjects";
 import { MatchCard, type MatchProfile } from "@/components/peerly/MatchCard";
+import { IncomingFriendRequests } from "@/components/peerly/IncomingFriendRequests";
+import { useFriendships } from "@/hooks/use-friendships";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,6 +52,7 @@ function computeScore(me: ProfileRow, other: ProfileRow): number {
 function MatchPage() {
   const { user, profile } = useAuth();
   const { mode } = useFeedMode();
+  const { edges } = useFriendships();
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -117,6 +120,8 @@ function MatchPage() {
         <p className="text-sm text-muted-foreground">Matched by subject, availability & goals</p>
       </header>
 
+      <IncomingFriendRequests />
+
       <div className="sticky top-16 z-30 mb-6 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
         <div className="flex flex-wrap items-center gap-3">
           <Popover>
@@ -172,7 +177,7 @@ function MatchPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map(({ profile: p, score }) => (
-            <MatchCard key={p.id} profile={p} score={score} />
+            <MatchCard key={p.id} profile={p} score={score} edge={edges[p.id] ?? null} />
           ))}
         </div>
       )}
