@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Crown, Users, Calendar, FileText, MessageSquare } from "lucide-react";
+import { ArrowLeft, Crown, Users, Calendar, FileText, MessageSquare, Lock, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { subjectChipClass } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -58,6 +58,8 @@ function CircleDetailPage() {
   const [sessionUrl, setSessionUrl] = useState("");
   const [resOpen, setResOpen] = useState(false);
   const [sessionOpen, setSessionOpen] = useState(false);
+  const [confirmJoinOpen, setConfirmJoinOpen] = useState(false);
+  const [joining, setJoining] = useState(false);
 
   const isMember = members.some((m) => m.id === user?.id);
 
@@ -91,12 +93,24 @@ function CircleDetailPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [circleId]);
 
-  const handleJoin = async () => {
+  const requestJoin = () => {
     if (!user || !circle) return;
-    if (circle.is_premium) { toast.info("Premium subscriptions coming soon"); return; }
+    setConfirmJoinOpen(true);
+  };
+
+  const confirmJoin = async () => {
+    if (!user || !circle) return;
+    if (circle.is_premium) {
+      toast.info("Premium subscriptions coming soon");
+      setConfirmJoinOpen(false);
+      return;
+    }
+    setJoining(true);
     const { error } = await supabase.from("circle_members").insert({ circle_id: circleId, user_id: user.id });
+    setJoining(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Joined circle!");
+    setConfirmJoinOpen(false);
     load();
   };
 
@@ -166,8 +180,8 @@ function CircleDetailPage() {
             </div>
           </div>
           {!isMember && (
-            <Button onClick={handleJoin}>
-              {circle.is_premium ? `Subscribe $${Number(circle.price_monthly).toFixed(0)}/mo` : "Join"}
+            <Button onClick={requestJoin} className={circle.is_premium ? "bg-gradient-to-r from-primary to-primary/70" : ""}>
+              {circle.is_premium ? <><Sparkles className="h-4 w-4" /> Subscribe ${Number(circle.price_monthly).toFixed(0)}/mo</> : "Join"}
             </Button>
           )}
         </div>
@@ -184,6 +198,36 @@ function CircleDetailPage() {
           </div>
         </div>
       </div>
+
+      {!isMember && (
+        circle.is_premium ? (
+          <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm">Premium circle — preview mode</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Subscribe for ${Number(circle.price_monthly).toFixed(0)}/mo to unlock posts, resources, members, and live sessions.
+                </p>
+                <Button size="sm" className="mt-3 bg-gradient-to-r from-primary to-primary/70" onClick={requestJoin}>
+                  <Sparkles className="h-4 w-4" /> Subscribe ${Number(circle.price_monthly).toFixed(0)}/mo
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-xl border bg-muted/30 p-4 mb-6 flex items-start gap-3">
+            <Lock className="h-4 w-4 mt-0.5 text-muted-foreground" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">You're previewing this circle</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Join to post, share resources, and schedule sessions.</p>
+            </div>
+            <Button size="sm" onClick={requestJoin}>Join</Button>
+          </div>
+        )
+      )}
 
       <Tabs defaultValue="discussion">
         <TabsList className="grid grid-cols-4 w-full">
@@ -298,6 +342,29 @@ function CircleDetailPage() {
           ))}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={confirmJoinOpen} onOpenChange={setConfirmJoinOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {circle.is_premium ? `Subscribe to ${circle.name}?` : `Join ${circle.name}?`}
+            </DialogTitle>
+            <DialogDescription>
+              {circle.is_premium ? (
+                <>You'll be charged <span className="font-semibold text-foreground">${Number(circle.price_monthly).toFixed(0)}/month</span> to access this premium circle's posts, resources, members, and live sessions. You can cancel anytime.</>
+              ) : (
+                <>You'll join this circle and gain access to discussions, shared resources, and study sessions.</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setConfirmJoinOpen(false)} disabled={joining}>Cancel</Button>
+            <Button onClick={confirmJoin} disabled={joining} className={circle.is_premium ? "bg-gradient-to-r from-primary to-primary/70" : ""}>
+              {joining ? "Please wait…" : circle.is_premium ? `Subscribe $${Number(circle.price_monthly).toFixed(0)}/mo` : "Confirm join"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
