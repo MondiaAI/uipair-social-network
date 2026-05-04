@@ -456,6 +456,18 @@ function CircleDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EmbeddedCheckoutModal
+        open={checkoutOpen}
+        onOpenChange={(o) => {
+          setCheckoutOpen(o);
+          if (!o) setCheckoutClientSecret(null);
+        }}
+        clientSecret={checkoutClientSecret}
+        title={`Subscribe to ${circle.name}`}
+        description={`$${Number(circle.price_monthly).toFixed(0)}/month — cancel anytime.`}
+        onComplete={handleCheckoutComplete}
+      />
     </div>
   );
 }
