@@ -11,7 +11,7 @@ import { CreateCircleModal } from "@/components/peerly/CreateCircleModal";
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { SUBJECTS } from "@/lib/subjects";
 import { toast } from "sonner";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/circles")({
   component: CirclesPage,
