@@ -336,6 +336,33 @@ function CircleDetailPage() {
             {leaderName}
           </div>
         </div>
+
+        {isMember && circle.is_premium && subscription && user?.id !== circle.leader_id && (
+          <div className="mt-4 pt-4 border-t flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-xs text-muted-foreground">
+              {subscription.cancel_at_period_end ? (
+                <>Subscription canceled — access ends{" "}
+                  {subscription.current_period_end
+                    ? format(new Date(subscription.current_period_end), "MMM d, yyyy")
+                    : "soon"}.
+                </>
+              ) : subscription.status === "past_due" ? (
+                <>⚠ Payment past due — Stripe is retrying. Update your card to keep access.</>
+              ) : (
+                <>Subscribed · renews{" "}
+                  {subscription.current_period_end
+                    ? format(new Date(subscription.current_period_end), "MMM d, yyyy")
+                    : "monthly"}
+                </>
+              )}
+            </div>
+            {!subscription.cancel_at_period_end && ["active","trialing","past_due"].includes(subscription.status) && (
+              <Button size="sm" variant="outline" onClick={handleCancelSubscription} disabled={canceling}>
+                {canceling ? "Canceling…" : "Cancel subscription"}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
 
       {!isMember && (
