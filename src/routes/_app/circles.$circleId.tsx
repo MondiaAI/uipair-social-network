@@ -180,8 +180,8 @@ function CircleDetailPage() {
             </div>
           </div>
           {!isMember && (
-            <Button onClick={handleJoin}>
-              {circle.is_premium ? `Subscribe $${Number(circle.price_monthly).toFixed(0)}/mo` : "Join"}
+            <Button onClick={requestJoin} className={circle.is_premium ? "bg-gradient-to-r from-primary to-primary/70" : ""}>
+              {circle.is_premium ? <><Sparkles className="h-4 w-4" /> Subscribe ${Number(circle.price_monthly).toFixed(0)}/mo</> : "Join"}
             </Button>
           )}
         </div>
