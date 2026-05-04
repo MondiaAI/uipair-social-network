@@ -174,13 +174,19 @@ function MessagesPage() {
     if (!user || !activeId) return;
     if (!draft.trim() && !attachment) return;
     setSending(true);
+    const originalDraft = draft;
+    const originalAttachment = attachment;
     let content = draft.trim();
     const file = attachment;
-    setDraft("");
-    setAttachment(null);
+    let progressTimer: ReturnType<typeof setInterval> | null = null;
     try {
       if (file) {
         setUploading(true);
+        setUploadProgress(5);
+        // Simulated progress while supabase-js uploads (no native progress event).
+        progressTimer = setInterval(() => {
+          setUploadProgress((p) => (p < 90 ? p + Math.max(1, (90 - p) * 0.15) : p));
+        }, 200);
         const path = `${user.id}/${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
         const { error: upErr } = await supabase.storage.from("resources").upload(path, file);
         if (upErr) throw upErr;
@@ -188,17 +194,24 @@ function MessagesPage() {
         if (signed?.signedUrl) {
           content = content ? `${content}\n${signed.signedUrl}` : signed.signedUrl;
         }
+        setUploadProgress(100);
       }
       const { error } = await supabase
         .from("messages")
         .insert({ conversation_id: activeId, sender_id: user.id, content });
       if (error) throw error;
+      // Only clear draft + attachment after a fully successful send
+      setDraft("");
+      setAttachment(null);
     } catch (e: any) {
       toast.error(e.message ?? "Failed to send");
-      setDraft(content);
-      if (file) setAttachment(file);
+      // Restore exactly what the user had
+      setDraft(originalDraft);
+      setAttachment(originalAttachment);
     } finally {
+      if (progressTimer) clearInterval(progressTimer);
       setUploading(false);
+      setUploadProgress(0);
       setSending(false);
     }
   };
