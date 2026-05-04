@@ -187,6 +187,24 @@ function SignupPage() {
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
                 <input
                   type="checkbox"
+              <div className="space-y-1.5 pt-1">
+                <Label>Confirm password</Label>
+                <PasswordInput
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter your password"
+                  aria-invalid={confirmPassword.length > 0 && !passwordsMatch}
+                />
+                {confirmPassword.length > 0 && (
+                  <p className={cn("text-xs", passwordsMatch ? "text-emerald-600" : "text-destructive")}>
+                    {passwordsMatch ? "Passwords match" : "Passwords don't match"}
+                  </p>
+                )}
+              </div>
+              <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
+                <input
+                  type="checkbox"
                   className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
                   checked={acceptTerms}
                   onChange={(e) => setAcceptTerms(e.target.checked)}
@@ -198,7 +216,7 @@ function SignupPage() {
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
                 </span>
               </label>
-              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms} className="w-full">Continue</Button>
+              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms || !passwordsMatch} className="w-full">Continue</Button>
             </div>
           </>
         )}
