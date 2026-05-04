@@ -171,7 +171,21 @@ function SignupPage() {
                   <SelectContent>{[1, 2, 3, 4, 5, 6].map((y) => <SelectItem key={y} value={String(y)}>Year {y}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <Button onClick={() => setStep(3)} disabled={!university || !country || !field} className="w-full">Continue</Button>
+              <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
+                <input
+                  type="checkbox"
+                  className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                />
+                <span>
+                  I agree to peerly's{" "}
+                  <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</Link>{" "}
+                  and{" "}
+                  <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
+                </span>
+              </label>
+              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms} className="w-full">Continue</Button>
             </div>
           </>
         )}
