@@ -5,6 +5,8 @@ import { useAuth } from "@/lib/auth-context";
 import { useFeedMode } from "@/lib/feed-context";
 import { PostComposer } from "@/components/peerly/PostComposer";
 import { PostCard, type FeedPost } from "@/components/peerly/PostCard";
+import { LiveSessionsRow } from "@/components/peerly/LiveSessionsRow";
+import { FeedFilters, type FeedFilter } from "@/components/peerly/FeedFilters";
 
 export const Route = createFileRoute("/_app/feed")({
   component: FeedPage,
@@ -15,23 +17,27 @@ function FeedPage() {
   const { mode } = useFeedMode();
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<FeedFilter>("all");
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
     let q = supabase
       .from("posts")
-      .select("id, user_id, content, post_type, university, created_at, profiles!posts_user_id_fkey(full_name, username, avatar_url, university)")
+      .select("id, user_id, content, post_type, university, is_live_session, created_at, profiles!posts_user_id_fkey(full_name, username, avatar_url, university)")
       .order("created_at", { ascending: false })
       .limit(50);
 
     if (mode === "campus" && profile?.university) {
       q = q.eq("university", profile.university);
     }
+    if (filter !== "all") {
+      q = q.eq("post_type", filter);
+    }
 
     const { data, error } = await q;
     if (!error && data) setPosts(data as unknown as FeedPost[]);
     setLoading(false);
-  }, [mode, profile?.university]);
+  }, [mode, profile?.university, filter]);
 
   useEffect(() => {
     loadPosts();
@@ -50,7 +56,11 @@ function FeedPage() {
         </p>
       </div>
 
+      <LiveSessionsRow />
+
       <PostComposer onPosted={loadPosts} />
+
+      <FeedFilters value={filter} onChange={setFilter} />
 
       {loading ? (
         <div className="text-center text-muted-foreground py-12">Loading feed…</div>
