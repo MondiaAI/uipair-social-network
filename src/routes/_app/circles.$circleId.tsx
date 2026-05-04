@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { EmbeddedCheckoutModal } from "@/components/peerly/EmbeddedCheckoutModal";
+import { createCircleCheckout, verifyCircleCheckout } from "@/server/payments.functions";
 import { subjectChipClass } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
