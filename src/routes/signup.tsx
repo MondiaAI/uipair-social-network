@@ -117,9 +117,29 @@ function SignupPage() {
 
       {/* Stepper */}
       <div className="flex items-center gap-2 mb-2">
-        {[1, 2, 3, 4].map((s) => (
-          <div key={s} className={cn("flex-1 h-1.5 rounded-full", s <= step ? "bg-primary" : "bg-muted")} />
-        ))}
+        {[1, 2, 3, 4].map((s) => {
+          const isDone = s < step;
+          const isActive = s === step;
+          return (
+            <div key={s} className="flex flex-1 items-center gap-2">
+              <div
+                className={cn(
+                  "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition",
+                  isDone && "bg-primary text-primary-foreground border-primary",
+                  isActive && "bg-primary text-primary-foreground border-primary ring-2 ring-primary/30",
+                  !isDone && !isActive && "bg-muted text-muted-foreground border-transparent",
+                )}
+                aria-current={isActive ? "step" : undefined}
+                aria-label={`Step ${s}${isDone ? " completed" : isActive ? " current" : ""}`}
+              >
+                {isDone ? <Check className="h-3.5 w-3.5" /> : s}
+              </div>
+              {s < 4 && (
+                <div className={cn("h-1 flex-1 rounded-full", s < step ? "bg-primary" : "bg-muted")} />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="rounded-2xl border bg-card p-6 shadow-sm">
