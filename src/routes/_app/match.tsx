@@ -120,6 +120,8 @@ function MatchPage() {
         <p className="text-sm text-muted-foreground">Matched by subject, availability & goals</p>
       </header>
 
+      <IncomingFriendRequests />
+
       <div className="sticky top-16 z-30 mb-6 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
         <div className="flex flex-wrap items-center gap-3">
           <Popover>
