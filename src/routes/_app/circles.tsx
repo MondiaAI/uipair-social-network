@@ -129,16 +129,23 @@ function CirclesPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">My Circles</h2>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
             {myCircles.map((c) => (
-              <Link
+              <div
                 key={c.id}
-                to="/circles/$circleId"
-                params={{ circleId: c.id }}
-                className="shrink-0 w-40 rounded-lg border bg-card p-3 hover:shadow-md transition"
+                className="shrink-0 w-44 rounded-lg border bg-card p-3 hover:shadow-md transition flex flex-col"
               >
-                <p className="font-semibold text-sm line-clamp-2 mb-1">{c.name}</p>
-                <p className="text-xs text-muted-foreground mb-2">{c.subject}</p>
-                <p className="text-xs text-muted-foreground">{c.member_count} members</p>
-              </Link>
+                <Link
+                  to="/circles/$circleId"
+                  params={{ circleId: c.id }}
+                  className="flex-1"
+                >
+                  <p className="font-semibold text-sm line-clamp-2 mb-1">{c.name}</p>
+                  <p className="text-xs text-muted-foreground mb-2">{c.subject}</p>
+                  <p className="text-xs text-muted-foreground">{c.member_count} members</p>
+                </Link>
+                <Button asChild size="sm" className="mt-3 h-7 w-full">
+                  <Link to="/circles/$circleId" params={{ circleId: c.id }}>Open</Link>
+                </Button>
+              </div>
             ))}
           </div>
         </section>
