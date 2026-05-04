@@ -6,6 +6,7 @@ import { useFeedMode } from "@/lib/feed-context";
 import { SUBJECTS } from "@/lib/subjects";
 import { MatchCard, type MatchProfile } from "@/components/peerly/MatchCard";
 import { IncomingFriendRequests } from "@/components/peerly/IncomingFriendRequests";
+import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { useFriendships } from "@/hooks/use-friendships";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -154,6 +155,10 @@ function MatchPage() {
       </header>
 
       <IncomingFriendRequests />
+
+      <div className="mb-4">
+        <NewMembersRow title="Just joined Peerly" />
+      </div>
 
       <div className="sticky top-16 z-30 mb-6 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
         <div className="relative mb-3">
