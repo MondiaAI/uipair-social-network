@@ -208,6 +208,17 @@ function MatchPage() {
             />
           </div>
 
+          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+            <SelectTrigger className="h-8 w-[150px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="best">Best match</SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="active">Most active</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Badge variant="secondary" className="capitalize">{mode}</Badge>
         </div>
       </div>
