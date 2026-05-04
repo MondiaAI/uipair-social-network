@@ -378,24 +378,40 @@ function MessagesPage() {
               className="border-t p-3"
             >
               {attachment && (
-                <div className="mb-2 flex items-center gap-2 rounded-lg border bg-muted/40 p-2 text-xs">
-                  {attachment.type.startsWith("image/") ? (
-                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+                <div className="mb-2 rounded-lg border bg-muted/40 p-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    {attachment.type.startsWith("image/") ? (
+                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="truncate flex-1">{attachment.name}</span>
+                    <span className="text-muted-foreground">
+                      {(attachment.size / 1024).toFixed(0)} KB
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAttachment(null)}
+                      disabled={uploading}
+                      className="rounded p-1 hover:bg-accent disabled:opacity-50"
+                      aria-label="Remove attachment"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                  {uploading && (
+                    <div className="mt-2">
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full bg-primary transition-all duration-200"
+                          style={{ width: `${Math.round(uploadProgress)}%` }}
+                        />
+                      </div>
+                      <p className="mt-1 text-[10px] text-muted-foreground">
+                        Uploading… {Math.round(uploadProgress)}%
+                      </p>
+                    </div>
                   )}
-                  <span className="truncate flex-1">{attachment.name}</span>
-                  <span className="text-muted-foreground">
-                    {(attachment.size / 1024).toFixed(0)} KB
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setAttachment(null)}
-                    className="rounded p-1 hover:bg-accent"
-                    aria-label="Remove attachment"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
                 </div>
               )}
               <div className="flex items-end gap-2">
