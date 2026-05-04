@@ -132,7 +132,11 @@ function SignupPage() {
             <form onSubmit={handleStep1} className="space-y-3">
               <div><Label>Full name</Label><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} /></div>
               <div><Label>Email</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-              <div><Label>Password</Label><PasswordInput required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+              <div className="space-y-1.5">
+                <Label>Password</Label>
+                <PasswordInput required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
+                <PasswordStrengthMeter value={password} showChecklist />
+              </div>
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
                 <input
                   type="checkbox"
