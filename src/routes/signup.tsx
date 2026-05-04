@@ -185,7 +185,6 @@ function SignupPage() {
                 </Select>
               </div>
               <div className="space-y-1.5 pt-1">
-              <div className="space-y-1.5 pt-1">
                 <Label>Confirm password</Label>
                 <PasswordInput
                   required
