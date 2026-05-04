@@ -19,14 +19,18 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
   const [description, setDescription] = useState("");
   const [campusOnly, setCampusOnly] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
+  // Global circles are premium-paid by default; campus circles are free unless toggled.
+  const [isPremium, setIsPremium] = useState(true);
   const [price, setPrice] = useState("4.99");
+  // When global, premium is enforced (cannot be turned off).
+  const premiumLocked = !campusOnly;
+  const effectivePremium = premiumLocked ? true : isPremium;
   const [schedule, setSchedule] = useState("");
   const [resourcesUrl, setResourcesUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
-    setName(""); setDescription(""); setCampusOnly(false); setIsPremium(false);
+    setName(""); setDescription(""); setCampusOnly(false); setIsPremium(true);
     setPrice("4.99"); setSchedule(""); setResourcesUrl("");
   };
 
@@ -42,8 +46,8 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
         leader_id: user.id,
         scope: campusOnly ? "campus" : "global",
         university: campusOnly ? profile?.university ?? null : null,
-        is_premium: isPremium,
-        price_monthly: isPremium ? Number(price) : null,
+        is_premium: effectivePremium,
+        price_monthly: effectivePremium ? Number(price) : null,
         meeting_schedule: schedule.trim() || null,
         resources_folder_url: resourcesUrl.trim() || null,
       })
@@ -94,11 +98,19 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div>
               <p className="text-sm font-medium">Premium circle</p>
-              <p className="text-xs text-muted-foreground">Charge a monthly subscription</p>
+              <p className="text-xs text-muted-foreground">
+                {premiumLocked
+                  ? "Global circles require a monthly subscription to join"
+                  : "Charge a monthly subscription"}
+              </p>
             </div>
-            <Switch checked={isPremium} onCheckedChange={setIsPremium} />
+            <Switch
+              checked={effectivePremium}
+              onCheckedChange={setIsPremium}
+              disabled={premiumLocked}
+            />
           </div>
-          {isPremium && (
+          {effectivePremium && (
             <div>
               <Label>Price per month (USD)</Label>
               <Input type="number" min="1" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
