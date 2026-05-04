@@ -46,6 +46,7 @@ function SignupPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   // If logged in already (e.g. after Google), jump to step 2 to finish profile
   useEffect(() => {
