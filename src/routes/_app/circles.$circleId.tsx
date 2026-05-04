@@ -58,6 +58,8 @@ function CircleDetailPage() {
   const [sessionUrl, setSessionUrl] = useState("");
   const [resOpen, setResOpen] = useState(false);
   const [sessionOpen, setSessionOpen] = useState(false);
+  const [confirmJoinOpen, setConfirmJoinOpen] = useState(false);
+  const [joining, setJoining] = useState(false);
 
   const isMember = members.some((m) => m.id === user?.id);
 
