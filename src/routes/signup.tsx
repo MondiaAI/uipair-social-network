@@ -79,12 +79,14 @@ function SignupPage() {
 
   const finish = async () => {
     if (!user) return;
+    if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
     setLoading(true);
     let avatar_url: string | null = null;
     if (avatarFile) avatar_url = await uploadToBucket("avatars", user.id, avatarFile);
     const update: any = {
       university, country, field_of_study: field, year_of_study: year, bio,
       skills, interests, onboarding_completed: true,
+      terms_accepted_at: new Date().toISOString(),
     };
     if (avatar_url) update.avatar_url = avatar_url;
     if (fullName) update.full_name = fullName;
