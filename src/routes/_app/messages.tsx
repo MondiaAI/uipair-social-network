@@ -318,7 +318,31 @@ function MessagesPage() {
                             : "bg-muted text-foreground"
                         )}
                       >
-                        <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                        {m.content.split("\n").map((line, i) =>
+                          isImageUrl(line) ? (
+                            <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
+                              <img
+                                src={line}
+                                alt="attachment"
+                                className="my-1 max-h-60 rounded-lg object-cover"
+                              />
+                            </a>
+                          ) : /^https?:\/\//i.test(line) ? (
+                            <a
+                              key={i}
+                              href={line}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block break-all underline underline-offset-2"
+                            >
+                              {line}
+                            </a>
+                          ) : (
+                            <p key={i} className="whitespace-pre-wrap break-words">
+                              {line}
+                            </p>
+                          )
+                        )}
                         <p className={cn(
                           "mt-1 text-[10px]",
                           mine ? "text-primary-foreground/70" : "text-muted-foreground"
