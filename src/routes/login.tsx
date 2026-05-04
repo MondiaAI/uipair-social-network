@@ -86,6 +86,7 @@ function LoginPage() {
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
               <PasswordInput id="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <PasswordStrengthMeter value={password} />
             </div>
             <div className="flex justify-end">
               <button type="button" className="text-xs text-muted-foreground hover:text-foreground hover:underline">
