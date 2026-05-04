@@ -73,19 +73,22 @@ export function CircleCard({
         <span className="truncate">{leaderName}</span>
       </div>
 
-      {joined ? (
-        <Button asChild variant="outline" size="sm" className="w-full">
+      <div className="flex gap-2">
+        <Button asChild size="sm" className="flex-1">
           <Link to="/circles/$circleId" params={{ circleId: circle.id }}>Open</Link>
         </Button>
-      ) : circle.is_premium ? (
-        <Button size="sm" className="w-full" onClick={() => onJoin(circle.id)}>
-          Subscribe ${Number(circle.price_monthly ?? 0).toFixed(0)}/mo
-        </Button>
-      ) : (
-        <Button size="sm" className="w-full" onClick={() => onJoin(circle.id)}>
-          Join
-        </Button>
-      )}
+        {!joined && (
+          circle.is_premium ? (
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)}>
+              Subscribe ${Number(circle.price_monthly ?? 0).toFixed(0)}/mo
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)}>
+              Join
+            </Button>
+          )
+        )}
+      </div>
     </div>
   );
 }
