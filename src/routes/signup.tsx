@@ -228,6 +228,11 @@ function SignupPage() {
       {step === 1 && (
         <p className="mt-4 text-sm text-muted-foreground">Already have an account? <Link to="/login" className="font-semibold text-primary hover:underline">Sign in</Link></p>
       )}
+      <p className="mt-2 text-center text-xs text-muted-foreground lg:text-left">
+        <Link to="/terms" className="hover:underline">Terms</Link>
+        <span className="mx-2">·</span>
+        <Link to="/privacy" className="hover:underline">Privacy</Link>
+      </p>
       </div>
     </SplitAuthLayout>
   );
