@@ -18,6 +18,7 @@ import { Route as AppLabRouteImport } from './routes/_app/lab'
 import { Route as AppGigsRouteImport } from './routes/_app/gigs'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
 import { Route as AppCirclesRouteImport } from './routes/_app/circles'
+import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
 import { Route as AppCirclesCircleIdRouteImport } from './routes/_app/circles.$circleId'
 
 const SignupRoute = SignupRouteImport.update({
@@ -64,6 +65,11 @@ const AppCirclesRoute = AppCirclesRouteImport.update({
   path: '/circles',
   getParentRoute: () => AppRoute,
 } as any)
+const AppLabProjectIdRoute = AppLabProjectIdRouteImport.update({
+  id: '/$projectId',
+  path: '/$projectId',
+  getParentRoute: () => AppLabRoute,
+} as any)
 const AppCirclesCircleIdRoute = AppCirclesCircleIdRouteImport.update({
   id: '/$circleId',
   path: '/$circleId',
@@ -77,9 +83,10 @@ export interface FileRoutesByFullPath {
   '/circles': typeof AppCirclesRouteWithChildren
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
-  '/lab': typeof AppLabRoute
+  '/lab': typeof AppLabRouteWithChildren
   '/match': typeof AppMatchRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
+  '/lab/$projectId': typeof AppLabProjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -88,9 +95,10 @@ export interface FileRoutesByTo {
   '/circles': typeof AppCirclesRouteWithChildren
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
-  '/lab': typeof AppLabRoute
+  '/lab': typeof AppLabRouteWithChildren
   '/match': typeof AppMatchRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
+  '/lab/$projectId': typeof AppLabProjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,9 +109,10 @@ export interface FileRoutesById {
   '/_app/circles': typeof AppCirclesRouteWithChildren
   '/_app/feed': typeof AppFeedRoute
   '/_app/gigs': typeof AppGigsRoute
-  '/_app/lab': typeof AppLabRoute
+  '/_app/lab': typeof AppLabRouteWithChildren
   '/_app/match': typeof AppMatchRoute
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
+  '/_app/lab/$projectId': typeof AppLabProjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/match'
     | '/circles/$circleId'
+    | '/lab/$projectId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/match'
     | '/circles/$circleId'
+    | '/lab/$projectId'
   id:
     | '__root__'
     | '/'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/_app/lab'
     | '/_app/match'
     | '/_app/circles/$circleId'
+    | '/_app/lab/$projectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -214,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCirclesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/lab/$projectId': {
+      id: '/_app/lab/$projectId'
+      path: '/$projectId'
+      fullPath: '/lab/$projectId'
+      preLoaderRoute: typeof AppLabProjectIdRouteImport
+      parentRoute: typeof AppLabRoute
+    }
     '/_app/circles/$circleId': {
       id: '/_app/circles/$circleId'
       path: '/$circleId'
@@ -236,11 +255,22 @@ const AppCirclesRouteWithChildren = AppCirclesRoute._addFileChildren(
   AppCirclesRouteChildren,
 )
 
+interface AppLabRouteChildren {
+  AppLabProjectIdRoute: typeof AppLabProjectIdRoute
+}
+
+const AppLabRouteChildren: AppLabRouteChildren = {
+  AppLabProjectIdRoute: AppLabProjectIdRoute,
+}
+
+const AppLabRouteWithChildren =
+  AppLabRoute._addFileChildren(AppLabRouteChildren)
+
 interface AppRouteChildren {
   AppCirclesRoute: typeof AppCirclesRouteWithChildren
   AppFeedRoute: typeof AppFeedRoute
   AppGigsRoute: typeof AppGigsRoute
-  AppLabRoute: typeof AppLabRoute
+  AppLabRoute: typeof AppLabRouteWithChildren
   AppMatchRoute: typeof AppMatchRoute
 }
 
@@ -248,7 +278,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCirclesRoute: AppCirclesRouteWithChildren,
   AppFeedRoute: AppFeedRoute,
   AppGigsRoute: AppGigsRoute,
-  AppLabRoute: AppLabRoute,
+  AppLabRoute: AppLabRouteWithChildren,
   AppMatchRoute: AppMatchRoute,
 }
 
