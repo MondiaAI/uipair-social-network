@@ -337,16 +337,20 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability: string[]
           avatar_url: string | null
           bio: string | null
           country: string | null
           created_at: string
           field_of_study: string | null
           full_name: string | null
+          goals: string | null
           id: string
           is_pro: boolean
           is_verified: boolean
+          last_seen_at: string
           reputation_score: number
+          skills: string[]
           stripe_account_id: string | null
           university: string | null
           updated_at: string
@@ -354,16 +358,20 @@ export type Database = {
           year_of_study: number | null
         }
         Insert: {
+          availability?: string[]
           avatar_url?: string | null
           bio?: string | null
           country?: string | null
           created_at?: string
           field_of_study?: string | null
           full_name?: string | null
+          goals?: string | null
           id: string
           is_pro?: boolean
           is_verified?: boolean
+          last_seen_at?: string
           reputation_score?: number
+          skills?: string[]
           stripe_account_id?: string | null
           university?: string | null
           updated_at?: string
@@ -371,16 +379,20 @@ export type Database = {
           year_of_study?: number | null
         }
         Update: {
+          availability?: string[]
           avatar_url?: string | null
           bio?: string | null
           country?: string | null
           created_at?: string
           field_of_study?: string | null
           full_name?: string | null
+          goals?: string | null
           id?: string
           is_pro?: boolean
           is_verified?: boolean
+          last_seen_at?: string
           reputation_score?: number
+          skills?: string[]
           stripe_account_id?: string | null
           university?: string | null
           updated_at?: string
@@ -428,6 +440,48 @@ export type Database = {
           },
         ]
       }
+      study_requests: {
+        Row: {
+          created_at: string
+          duration_minutes: number
+          id: string
+          join_url: string | null
+          message: string | null
+          proposed_at: string
+          recipient_id: string
+          sender_id: string
+          status: Database["public"]["Enums"]["study_request_status"]
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          join_url?: string | null
+          message?: string | null
+          proposed_at: string
+          recipient_id: string
+          sender_id: string
+          status?: Database["public"]["Enums"]["study_request_status"]
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          join_url?: string | null
+          message?: string | null
+          proposed_at?: string
+          recipient_id?: string
+          sender_id?: string
+          status?: Database["public"]["Enums"]["study_request_status"]
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -443,6 +497,7 @@ export type Database = {
       circle_scope: "campus" | "global"
       post_type: "research" | "partner" | "brainstorm" | "question" | "resource"
       reaction_type: "lightbulb" | "fire" | "brain" | "bookmark" | "agree"
+      study_request_status: "pending" | "accepted" | "declined" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -574,6 +629,7 @@ export const Constants = {
       circle_scope: ["campus", "global"],
       post_type: ["research", "partner", "brainstorm", "question", "resource"],
       reaction_type: ["lightbulb", "fire", "brain", "bookmark", "agree"],
+      study_request_status: ["pending", "accepted", "declined", "cancelled"],
     },
   },
 } as const
