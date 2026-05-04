@@ -102,13 +102,13 @@ function SignupPage() {
 
 
       {/* Stepper */}
-      <div className="w-full max-w-md flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-2 mb-2">
         {[1, 2, 3, 4].map((s) => (
           <div key={s} className={cn("flex-1 h-1.5 rounded-full", s <= step ? "bg-primary" : "bg-muted")} />
         ))}
       </div>
 
-      <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-sm">
+      <div className="rounded-2xl border bg-card p-6 shadow-sm">
         {step === 1 && (
           <>
             <h1 className="text-xl font-bold">Create your account</h1>
@@ -210,6 +210,7 @@ function SignupPage() {
       {step === 1 && (
         <p className="mt-4 text-sm text-muted-foreground">Already have an account? <Link to="/login" className="font-semibold text-primary hover:underline">Sign in</Link></p>
       )}
-    </div>
+      </div>
+    </SplitAuthLayout>
   );
 }
