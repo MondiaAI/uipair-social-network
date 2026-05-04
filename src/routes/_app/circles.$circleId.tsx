@@ -367,7 +367,7 @@ function CircleDetailPage() {
         </TabsContent>
 
         <TabsContent value="schedule" className="mt-4 space-y-3">
-          {isMember && (
+          {isMember ? (
             <Dialog open={sessionOpen} onOpenChange={setSessionOpen}>
               <DialogTrigger asChild><Button size="sm" variant="outline">+ Schedule session</Button></DialogTrigger>
               <DialogContent>
@@ -380,6 +380,10 @@ function CircleDetailPage() {
                 </div>
               </DialogContent>
             </Dialog>
+          ) : (
+            <div className="rounded-lg border border-dashed bg-muted/30 p-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to schedule live sessions{!isMember && " and access join links"}.
+            </div>
           )}
           {sessions.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No upcoming sessions.</p>
