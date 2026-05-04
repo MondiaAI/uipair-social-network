@@ -29,6 +29,7 @@ type Availability = (typeof AVAILABILITY_OPTS)[number];
 
 interface ProfileRow extends MatchProfile {
   availability: string[] | null;
+  country: string | null;
 }
 
 function computeScore(me: ProfileRow, other: ProfileRow): number {
