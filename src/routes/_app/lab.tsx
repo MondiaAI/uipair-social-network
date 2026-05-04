@@ -35,6 +35,7 @@ function LabPage() {
   const { user } = useAuth();
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [myProjectIds, setMyProjectIds] = useState<Set<string>>(new Set());
+  const [memberAvatars, setMemberAvatars] = useState<Record<string, MemberAvatar[]>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<ProjectCategory | "all">("all");
