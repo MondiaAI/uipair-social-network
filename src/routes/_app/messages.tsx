@@ -6,7 +6,12 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "sonner";
+
+const EMOJIS = ["😀","😂","😍","🥲","🙌","👍","🎉","🔥","💯","🤔","😎","🙏","❤️","👀","✅","🚀","📚","☕","🌙","✨"];
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +52,14 @@ function MessagesPage() {
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  const MAX_LEN = 2000;
+  const isImageUrl = (s: string) => /\.(png|jpe?g|gif|webp|avif)$/i.test(s.trim());
 
   // Apply prefill from query string once per active conversation
   useEffect(() => {
@@ -159,15 +171,63 @@ function MessagesPage() {
   );
 
   const send = async () => {
-    if (!user || !activeId || !draft.trim()) return;
+    if (!user || !activeId) return;
+    if (!draft.trim() && !attachment) return;
     setSending(true);
-    const content = draft.trim();
+    let content = draft.trim();
+    const file = attachment;
     setDraft("");
-    const { error } = await supabase
-      .from("messages")
-      .insert({ conversation_id: activeId, sender_id: user.id, content });
-    if (error) setDraft(content);
-    setSending(false);
+    setAttachment(null);
+    try {
+      if (file) {
+        setUploading(true);
+        const path = `${user.id}/${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
+        const { error: upErr } = await supabase.storage.from("resources").upload(path, file);
+        if (upErr) throw upErr;
+        const { data: signed } = await supabase.storage.from("resources").createSignedUrl(path, 60 * 60 * 24 * 7);
+        if (signed?.signedUrl) {
+          content = content ? `${content}\n${signed.signedUrl}` : signed.signedUrl;
+        }
+      }
+      const { error } = await supabase
+        .from("messages")
+        .insert({ conversation_id: activeId, sender_id: user.id, content });
+      if (error) throw error;
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to send");
+      setDraft(content);
+      if (file) setAttachment(file);
+    } finally {
+      setUploading(false);
+      setSending(false);
+    }
+  };
+
+  const onPickFile = (f: File | null) => {
+    if (!f) return;
+    if (f.size > 10 * 1024 * 1024) {
+      toast.error("File must be under 10MB");
+      return;
+    }
+    setAttachment(f);
+  };
+
+  const insertEmoji = (emoji: string) => {
+    const el = textareaRef.current;
+    const next = (val: string) => val.slice(0, MAX_LEN);
+    if (!el) {
+      setDraft((d) => next(d + emoji));
+      return;
+    }
+    const start = el.selectionStart ?? draft.length;
+    const end = el.selectionEnd ?? draft.length;
+    const updated = next(draft.slice(0, start) + emoji + draft.slice(end));
+    setDraft(updated);
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + emoji.length;
+      el.setSelectionRange(pos, pos);
+    });
   };
 
   return (
@@ -258,7 +318,31 @@ function MessagesPage() {
                             : "bg-muted text-foreground"
                         )}
                       >
-                        <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                        {m.content.split("\n").map((line, i) =>
+                          isImageUrl(line) ? (
+                            <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
+                              <img
+                                src={line}
+                                alt="attachment"
+                                className="my-1 max-h-60 rounded-lg object-cover"
+                              />
+                            </a>
+                          ) : /^https?:\/\//i.test(line) ? (
+                            <a
+                              key={i}
+                              href={line}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block break-all underline underline-offset-2"
+                            >
+                              {line}
+                            </a>
+                          ) : (
+                            <p key={i} className="whitespace-pre-wrap break-words">
+                              {line}
+                            </p>
+                          )
+                        )}
                         <p className={cn(
                           "mt-1 text-[10px]",
                           mine ? "text-primary-foreground/70" : "text-muted-foreground"
@@ -277,17 +361,100 @@ function MessagesPage() {
                 e.preventDefault();
                 send();
               }}
-              className="flex gap-2 border-t p-3"
+              className="border-t p-3"
             >
-              <Input
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder="Type a message…"
-                disabled={sending}
-              />
-              <Button type="submit" disabled={sending || !draft.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
+              {attachment && (
+                <div className="mb-2 flex items-center gap-2 rounded-lg border bg-muted/40 p-2 text-xs">
+                  {attachment.type.startsWith("image/") ? (
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span className="truncate flex-1">{attachment.name}</span>
+                  <span className="text-muted-foreground">
+                    {(attachment.size / 1024).toFixed(0)} KB
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAttachment(null)}
+                    className="rounded p-1 hover:bg-accent"
+                    aria-label="Remove attachment"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+              <div className="flex items-end gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*,application/pdf,.doc,.docx,.txt,.zip"
+                  onChange={(e) => {
+                    onPickFile(e.target.files?.[0] ?? null);
+                    e.target.value = "";
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                  aria-label="Attach file"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button type="button" size="icon" variant="ghost" disabled={sending} aria-label="Insert emoji">
+                      <Smile className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-2" align="start">
+                    <div className="grid grid-cols-8 gap-1">
+                      {EMOJIS.map((e) => (
+                        <button
+                          key={e}
+                          type="button"
+                          onClick={() => insertEmoji(e)}
+                          className="rounded p-1 text-lg hover:bg-accent"
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <div className="flex-1">
+                  <Textarea
+                    ref={textareaRef}
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value.slice(0, MAX_LEN))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        send();
+                      }
+                    }}
+                    placeholder="Type a message… (Shift+Enter for newline)"
+                    disabled={sending}
+                    rows={1}
+                    className="max-h-32 min-h-[40px] resize-none"
+                  />
+                  <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                    <span>{uploading ? "Uploading…" : "Enter to send"}</span>
+                    <span>{draft.length}/{MAX_LEN}</span>
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={sending || (!draft.trim() && !attachment)}
+                  aria-label="Send message"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </form>
           </>
         )}
