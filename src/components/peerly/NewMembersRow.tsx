@@ -3,8 +3,12 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useFeedMode } from "@/lib/feed-context";
+import { useFollows } from "@/hooks/use-follows";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Sparkles, BadgeCheck, Crown, UserPlus, UserCheck } from "lucide-react";
+import { toast } from "sonner";
 
 interface NewMember {
   id: string;
@@ -13,30 +17,31 @@ interface NewMember {
   avatar_url: string | null;
   university: string | null;
   field_of_study: string | null;
+  is_verified: boolean;
+  is_pro: boolean;
   created_at: string;
 }
 
 interface Props {
-  /** Optional title override */
   title?: string;
-  /** Limit number of members shown */
   limit?: number;
-  /** Respect campus/global toggle from FeedContext */
   scoped?: boolean;
 }
 
 export function NewMembersRow({ title = "New on Peerly", limit = 12, scoped = true }: Props) {
   const { user, profile } = useAuth();
   const { mode } = useFeedMode();
+  const { following, follow, unfollow } = useFollows();
   const [members, setMembers] = useState<NewMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       let q = supabase
         .from("profiles")
-        .select("id, full_name, username, avatar_url, university, field_of_study, created_at")
+        .select("id, full_name, username, avatar_url, university, field_of_study, is_verified, is_pro, created_at")
         .order("created_at", { ascending: false })
         .limit(limit + 1);
       if (scoped && mode === "campus" && profile?.university) {
@@ -49,6 +54,24 @@ export function NewMembersRow({ title = "New on Peerly", limit = 12, scoped = tr
     };
     load();
   }, [user?.id, profile?.university, mode, limit, scoped]);
+
+  const toggleFollow = async (id: string, name: string) => {
+    if (!user) return;
+    setBusy(id);
+    try {
+      if (following.has(id)) {
+        await unfollow(id);
+        toast.success(`Unfollowed ${name}`);
+      } else {
+        await follow(id);
+        toast.success(`Following ${name}`);
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not update follow");
+    } finally {
+      setBusy(null);
+    }
+  };
 
   if (!loading && members.length === 0) return null;
 
@@ -69,24 +92,64 @@ export function NewMembersRow({ title = "New on Peerly", limit = 12, scoped = tr
           {members.map((m) => {
             const name = m.full_name || m.username || "Student";
             const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+            const isFollowing = following.has(m.id);
             return (
-              <Link
+              <div
                 key={m.id}
-                to="/profile/$userId"
-                params={{ userId: m.id }}
-                className="group flex w-28 shrink-0 flex-col items-center rounded-lg border bg-background p-3 text-center transition hover:shadow-md"
+                className="group flex w-32 shrink-0 flex-col items-center rounded-lg border bg-background p-3 text-center transition hover:shadow-md"
               >
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={m.avatar_url ?? undefined} />
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-                <p className="mt-2 line-clamp-1 w-full text-xs font-semibold group-hover:text-primary">
-                  {name}
-                </p>
-                <p className="line-clamp-1 w-full text-[10px] text-muted-foreground">
-                  {m.field_of_study || m.university || "New member"}
-                </p>
-              </Link>
+                <Link
+                  to="/profile/$userId"
+                  params={{ userId: m.id }}
+                  className="flex flex-col items-center"
+                >
+                  <div className="relative">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={m.avatar_url ?? undefined} />
+                      <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
+                    {m.is_verified && (
+                      <BadgeCheck
+                        className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-card text-sky-500"
+                        aria-label="Verified"
+                      />
+                    )}
+                  </div>
+                  <div className="mt-2 flex w-full items-center justify-center gap-1">
+                    <p className="line-clamp-1 text-xs font-semibold group-hover:text-primary">
+                      {name}
+                    </p>
+                    {m.is_pro && (
+                      <Crown className="h-3 w-3 shrink-0 text-amber-500" aria-label="Pro" />
+                    )}
+                  </div>
+                  <p className="line-clamp-1 w-full text-[10px] text-muted-foreground">
+                    {m.field_of_study || m.university || "New member"}
+                  </p>
+                </Link>
+                {m.is_pro && (
+                  <Badge variant="outline" className="mt-1 h-4 gap-0.5 border-amber-500/40 px-1 text-[9px] text-amber-600">
+                    Pro
+                  </Badge>
+                )}
+                <Button
+                  size="sm"
+                  variant={isFollowing ? "outline" : "default"}
+                  className="mt-2 h-7 w-full px-2 text-[11px]"
+                  disabled={busy === m.id || !user}
+                  onClick={() => toggleFollow(m.id, name)}
+                >
+                  {isFollowing ? (
+                    <>
+                      <UserCheck className="h-3 w-3" /> Following
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="h-3 w-3" /> Follow
+                    </>
+                  )}
+                </Button>
+              </div>
             );
           })}
         </div>

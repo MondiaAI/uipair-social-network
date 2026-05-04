@@ -8,6 +8,8 @@ import { MatchCard, type MatchProfile } from "@/components/peerly/MatchCard";
 import { IncomingFriendRequests } from "@/components/peerly/IncomingFriendRequests";
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { useFriendships } from "@/hooks/use-friendships";
+import { useMatchDismissals } from "@/hooks/use-match-dismissals";
+import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -73,23 +75,20 @@ function MatchPage() {
   const [yearRange, setYearRange] = useState<[number, number]>([1, 6]);
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("best");
-  const [hidden, setHidden] = useState<Set<string>>(() => {
-    try {
-      const raw = localStorage.getItem("match:not_a_match");
-      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
-    } catch {
-      return new Set();
-    }
-  });
+  const { hidden, dismiss, restore, restoreAll } = useMatchDismissals();
 
-  const handleNotAMatch = (id: string) => {
-    setHidden((prev) => {
-      const next = new Set(prev);
-      next.add(id);
-      try {
-        localStorage.setItem("match:not_a_match", JSON.stringify([...next]));
-      } catch {}
-      return next;
+  const handleNotAMatch = async (id: string) => {
+    const target = profiles.find((p) => p.id === id);
+    const name = target?.full_name || target?.username || "this student";
+    await dismiss(id);
+    toast.success("Thanks — we'll improve your matches", {
+      description: `${name} won't be suggested again.`,
+      action: {
+        label: "Undo",
+        onClick: () => {
+          restore(id).catch(() => toast.error("Could not restore"));
+        },
+      },
     });
   };
 
@@ -266,8 +265,7 @@ function MatchPage() {
                   <button
                     className="underline-offset-2 hover:underline"
                     onClick={() => {
-                      setHidden(new Set());
-                      try { localStorage.removeItem("match:not_a_match"); } catch {}
+                      restoreAll().catch(() => toast.error("Could not restore"));
                     }}
                   >
                     Restore {hidden.size} hidden
