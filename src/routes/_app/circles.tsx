@@ -11,7 +11,7 @@ import { CreateCircleModal } from "@/components/peerly/CreateCircleModal";
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { SUBJECTS } from "@/lib/subjects";
 import { toast } from "sonner";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/circles")({
   component: CirclesPage,
@@ -21,6 +21,7 @@ interface CircleRow extends CircleCardData {}
 
 function CirclesPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [circles, setCircles] = useState<CircleRow[]>([]);
   const [memberships, setMemberships] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -71,7 +72,7 @@ function CirclesPage() {
     if (!user) return;
     const circle = circles.find((c) => c.id === circleId);
     if (circle?.is_premium) {
-      toast.info("Premium subscriptions coming soon");
+      navigate({ to: "/circles/$circleId", params: { circleId } });
       return;
     }
     const { error } = await supabase.from("circle_members").insert({ circle_id: circleId, user_id: user.id });
