@@ -64,6 +64,7 @@ function SignupPage() {
   const handleStep1 = async (e: FormEvent) => {
     e.preventDefault();
     if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
+    if (!passwordStrong) return toast.error("Please choose a stronger password");
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
