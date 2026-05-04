@@ -18,6 +18,13 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ChevronDown, Search } from "lucide-react";
 
 export const Route = createFileRoute("/_app/match")({
@@ -26,6 +33,7 @@ export const Route = createFileRoute("/_app/match")({
 
 const AVAILABILITY_OPTS = ["weekday", "weekend", "evenings"] as const;
 type Availability = (typeof AVAILABILITY_OPTS)[number];
+type SortKey = "best" | "newest" | "active";
 
 interface ProfileRow extends MatchProfile {
   availability: string[] | null;
