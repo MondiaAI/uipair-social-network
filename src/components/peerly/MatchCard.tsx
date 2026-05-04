@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageCircle, GraduationCap, UserPlus, Check, X, Clock } from "lucide-react";
+import { MessageCircle, GraduationCap, UserPlus, Check, X, Clock, Handshake } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MatchScoreRing } from "./MatchScoreRing";
@@ -93,18 +93,23 @@ export function MatchCard({ profile, score, edge }: Props) {
     }
   };
 
-  const handleMessage = async () => {
+  const handleMessage = async (prefill?: string) => {
     if (!user) return;
     setBusy(true);
     try {
       const conversationId = await openConversation(user.id, profile.id);
-      navigate({ to: "/messages", search: { c: conversationId } });
+      navigate({
+        to: "/messages",
+        search: prefill ? { c: conversationId, m: prefill } : { c: conversationId },
+      });
     } catch (e: any) {
       toast.error(e?.message ?? "Could not open chat");
     } finally {
       setBusy(false);
     }
   };
+
+  const partnershipTemplate = `Hey ${name.split(" ")[0]} 👋 — want to team up as study partners? I think we'd be a great match for ${profile.field_of_study ?? "our shared subjects"}.`;
 
   return (
     <div className="relative rounded-xl border bg-card p-4 shadow-sm">
@@ -149,9 +154,28 @@ export function MatchCard({ profile, score, edge }: Props) {
 
       <div className="mt-4 flex gap-2">
         {status === "none" && (
-          <Button size="sm" className="flex-1" onClick={handleConnect} disabled={busy}>
-            <UserPlus className="h-4 w-4" /> Connect
-          </Button>
+          <>
+            <Button size="sm" className="flex-1" onClick={handleConnect} disabled={busy}>
+              <UserPlus className="h-4 w-4" /> Connect
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                try {
+                  localStorage.setItem(`partnership_intro:${profile.id}`, partnershipTemplate);
+                } catch {}
+                await handleConnect();
+                toast.message("Partnership intro saved", {
+                  description: "We'll prefill your first message once they accept.",
+                });
+              }}
+              disabled={busy}
+              title="Send a study partnership intro"
+            >
+              <Handshake className="h-4 w-4" /> Partner
+            </Button>
+          </>
         )}
         {status === "outgoing_pending" && (
           <>
@@ -174,9 +198,32 @@ export function MatchCard({ profile, score, edge }: Props) {
           </>
         )}
         {status === "friends" && (
-          <Button size="sm" className="flex-1" onClick={handleMessage} disabled={busy}>
-            <MessageCircle className="h-4 w-4" /> Message
-          </Button>
+          <>
+            <Button
+              size="sm"
+              className="flex-1"
+              onClick={() => {
+                let prefill: string | undefined;
+                try {
+                  prefill = localStorage.getItem(`partnership_intro:${profile.id}`) ?? undefined;
+                  if (prefill) localStorage.removeItem(`partnership_intro:${profile.id}`);
+                } catch {}
+                handleMessage(prefill);
+              }}
+              disabled={busy}
+            >
+              <MessageCircle className="h-4 w-4" /> Message
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleMessage(partnershipTemplate)}
+              disabled={busy}
+              title="Send a study partnership pitch"
+            >
+              <Handshake className="h-4 w-4" /> Partner
+            </Button>
+          </>
         )}
       </div>
     </div>

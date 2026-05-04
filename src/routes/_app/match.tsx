@@ -18,6 +18,13 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ChevronDown, Search } from "lucide-react";
 
 export const Route = createFileRoute("/_app/match")({
@@ -26,10 +33,12 @@ export const Route = createFileRoute("/_app/match")({
 
 const AVAILABILITY_OPTS = ["weekday", "weekend", "evenings"] as const;
 type Availability = (typeof AVAILABILITY_OPTS)[number];
+type SortKey = "best" | "newest" | "active";
 
 interface ProfileRow extends MatchProfile {
   availability: string[] | null;
   country: string | null;
+  created_at?: string | null;
 }
 
 function computeScore(me: ProfileRow, other: ProfileRow): number {
@@ -62,6 +71,7 @@ function MatchPage() {
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [yearRange, setYearRange] = useState<[number, number]>([1, 6]);
   const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("best");
 
   useEffect(() => {
     if (!user) return;
@@ -69,7 +79,7 @@ function MatchPage() {
       setLoading(true);
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, username, avatar_url, university, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at")
+        .select("id, full_name, username, avatar_url, university, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at, created_at")
         .neq("id", user.id)
         .limit(100);
       setProfiles((data ?? []) as ProfileRow[]);
@@ -116,8 +126,20 @@ function MatchPage() {
         return true;
       })
       .map((p) => ({ profile: p, score: computeScore(me, p) }))
-      .sort((a, b) => b.score - a.score);
-  }, [profiles, me, mode, profile?.university, subjects, availability, yearRange, query]);
+      .sort((a, b) => {
+        if (sortKey === "newest") {
+          const ta = a.profile.created_at ? new Date(a.profile.created_at).getTime() : 0;
+          const tb = b.profile.created_at ? new Date(b.profile.created_at).getTime() : 0;
+          return tb - ta;
+        }
+        if (sortKey === "active") {
+          const ta = a.profile.last_seen_at ? new Date(a.profile.last_seen_at).getTime() : 0;
+          const tb = b.profile.last_seen_at ? new Date(b.profile.last_seen_at).getTime() : 0;
+          return tb - ta;
+        }
+        return b.score - a.score;
+      });
+  }, [profiles, me, mode, profile?.university, subjects, availability, yearRange, query, sortKey]);
 
   const toggleSubject = (s: string) =>
     setSubjects((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
@@ -185,6 +207,17 @@ function MatchPage() {
               className="flex-1"
             />
           </div>
+
+          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+            <SelectTrigger className="h-8 w-[150px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="best">Best match</SelectItem>
+              <SelectItem value="newest">Newest</SelectItem>
+              <SelectItem value="active">Most active</SelectItem>
+            </SelectContent>
+          </Select>
 
           <Badge variant="secondary" className="capitalize">{mode}</Badge>
         </div>
