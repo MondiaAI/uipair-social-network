@@ -254,6 +254,34 @@ function MatchPage() {
         </div>
       </div>
 
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+        <p className="text-muted-foreground">
+          {loading ? "Loading…" : (
+            <>
+              <span className="font-semibold text-foreground">{filtered.length}</span>{" "}
+              {filtered.length === 1 ? "match" : "matches"}
+              {hidden.size > 0 && (
+                <>
+                  {" "}·{" "}
+                  <button
+                    className="underline-offset-2 hover:underline"
+                    onClick={() => {
+                      setHidden(new Set());
+                      try { localStorage.removeItem("match:not_a_match"); } catch {}
+                    }}
+                  >
+                    Restore {hidden.size} hidden
+                  </button>
+                </>
+              )}
+            </>
+          )}
+        </p>
+        <Badge variant="outline" className="gap-1">
+          Sorted by <span className="font-semibold">{SORT_LABELS[sortKey]}</span>
+        </Badge>
+      </div>
+
       {loading ? (
         <p className="py-12 text-center text-muted-foreground">Loading partners…</p>
       ) : filtered.length === 0 ? (
@@ -261,7 +289,7 @@ function MatchPage() {
       ) : (
         <div className="space-y-3">
           {filtered.map(({ profile: p, score }) => (
-            <MatchCard key={p.id} profile={p} score={score} edge={edges[p.id] ?? null} />
+            <MatchCard key={p.id} profile={p} score={score} edge={edges[p.id] ?? null} onNotAMatch={handleNotAMatch} />
           ))}
         </div>
       )}
