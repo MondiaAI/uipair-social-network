@@ -41,7 +41,7 @@ export function AppNav() {
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-card">
-        <div className="grid grid-cols-5">
+        <div className="grid grid-cols-6">
           {tabs.map((t) => {
             const active = pathname.startsWith(t.to);
             const Icon = t.icon;
