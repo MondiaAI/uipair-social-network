@@ -234,7 +234,7 @@ function SignupPage() {
                 );
               })}
             </div>
-            <Button onClick={finish} disabled={loading || interests.length < 3} className="w-full">
+            <Button onClick={finish} disabled={loading || interests.length < 3 || !acceptTerms} className="w-full">
               {loading ? "Finishing…" : "Finish & enter peerly"}
             </Button>
           </>
