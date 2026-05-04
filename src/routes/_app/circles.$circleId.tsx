@@ -284,12 +284,16 @@ function CircleDetailPage() {
         </TabsList>
 
         <TabsContent value="discussion" className="mt-4 space-y-3">
-          {isMember && (
+          {isMember ? (
             <div className="rounded-lg border bg-card p-3 space-y-2">
               <Textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="Share something with the circle…" rows={3} />
               <div className="flex justify-end">
                 <Button size="sm" onClick={handlePost} disabled={!postContent.trim()}>Post</Button>
               </div>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed bg-muted/30 p-3 flex items-center gap-2 text-xs text-muted-foreground">
+              <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to post and comment.
             </div>
           )}
           {posts.length === 0 ? (
