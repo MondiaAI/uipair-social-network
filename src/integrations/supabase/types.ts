@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      bounties: {
+        Row: {
+          claimer_id: string | null
+          created_at: string
+          deadline: string | null
+          description: string | null
+          id: string
+          poster_id: string
+          reward_cents: number
+          status: Database["public"]["Enums"]["bounty_status"]
+          subject: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          claimer_id?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          poster_id: string
+          reward_cents: number
+          status?: Database["public"]["Enums"]["bounty_status"]
+          subject: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          claimer_id?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          poster_id?: string
+          reward_cents?: number
+          status?: Database["public"]["Enums"]["bounty_status"]
+          subject?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       circle_members: {
         Row: {
           circle_id: string
@@ -249,6 +291,96 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gig_orders: {
+        Row: {
+          amount_cents: number
+          buyer_id: string
+          created_at: string
+          gig_id: string
+          id: string
+          notes: string | null
+          seller_id: string
+          status: Database["public"]["Enums"]["gig_order_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          buyer_id: string
+          created_at?: string
+          gig_id: string
+          id?: string
+          notes?: string | null
+          seller_id: string
+          status?: Database["public"]["Enums"]["gig_order_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          buyer_id?: string
+          created_at?: string
+          gig_id?: string
+          id?: string
+          notes?: string | null
+          seller_id?: string
+          status?: Database["public"]["Enums"]["gig_order_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gigs: {
+        Row: {
+          category: Database["public"]["Enums"]["gig_category"]
+          created_at: string
+          delivery_days: number
+          description: string | null
+          id: string
+          included_items: string[]
+          is_active: boolean
+          order_count: number
+          price_cents: number
+          rating_avg: number
+          requires_file_upload: boolean
+          review_count: number
+          seller_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["gig_category"]
+          created_at?: string
+          delivery_days?: number
+          description?: string | null
+          id?: string
+          included_items?: string[]
+          is_active?: boolean
+          order_count?: number
+          price_cents: number
+          rating_avg?: number
+          requires_file_upload?: boolean
+          review_count?: number
+          seller_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["gig_category"]
+          created_at?: string
+          delivery_days?: number
+          description?: string | null
+          id?: string
+          included_items?: string[]
+          is_active?: boolean
+          order_count?: number
+          price_cents?: number
+          rating_avg?: number
+          requires_file_upload?: boolean
+          review_count?: number
+          seller_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       hackathon_banners: {
         Row: {
@@ -765,6 +897,78 @@ export type Database = {
           },
         ]
       }
+      resource_purchases: {
+        Row: {
+          amount_cents: number
+          buyer_id: string
+          created_at: string
+          id: string
+          resource_id: string
+          seller_id: string
+        }
+        Insert: {
+          amount_cents: number
+          buyer_id: string
+          created_at?: string
+          id?: string
+          resource_id: string
+          seller_id: string
+        }
+        Update: {
+          amount_cents?: number
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          resource_id?: string
+          seller_id?: string
+        }
+        Relationships: []
+      }
+      resources: {
+        Row: {
+          created_at: string
+          description: string | null
+          download_count: number
+          file_url: string | null
+          id: string
+          is_active: boolean
+          preview_url: string | null
+          price_cents: number
+          subject: string
+          title: string
+          updated_at: string
+          uploader_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          download_count?: number
+          file_url?: string | null
+          id?: string
+          is_active?: boolean
+          preview_url?: string | null
+          price_cents?: number
+          subject: string
+          title: string
+          updated_at?: string
+          uploader_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          download_count?: number
+          file_url?: string | null
+          id?: string
+          is_active?: boolean
+          preview_url?: string | null
+          price_cents?: number
+          subject?: string
+          title?: string
+          updated_at?: string
+          uploader_id?: string
+        }
+        Relationships: []
+      }
       study_requests: {
         Row: {
           created_at: string
@@ -826,8 +1030,25 @@ export type Database = {
       }
     }
     Enums: {
+      bounty_status: "open" | "claimed" | "completed" | "cancelled"
       circle_member_role: "leader" | "moderator" | "member"
       circle_scope: "campus" | "global"
+      gig_category:
+        | "tutoring"
+        | "notes"
+        | "research"
+        | "coding"
+        | "design"
+        | "translation"
+        | "proofreading"
+        | "other"
+      gig_order_status:
+        | "pending"
+        | "in_progress"
+        | "delivered"
+        | "completed"
+        | "cancelled"
+        | "refunded"
       post_type: "research" | "partner" | "brainstorm" | "question" | "resource"
       project_application_status: "pending" | "accepted" | "declined"
       project_category:
@@ -973,8 +1194,27 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      bounty_status: ["open", "claimed", "completed", "cancelled"],
       circle_member_role: ["leader", "moderator", "member"],
       circle_scope: ["campus", "global"],
+      gig_category: [
+        "tutoring",
+        "notes",
+        "research",
+        "coding",
+        "design",
+        "translation",
+        "proofreading",
+        "other",
+      ],
+      gig_order_status: [
+        "pending",
+        "in_progress",
+        "delivered",
+        "completed",
+        "cancelled",
+        "refunded",
+      ],
       post_type: ["research", "partner", "brainstorm", "question", "resource"],
       project_application_status: ["pending", "accepted", "declined"],
       project_category: ["hackathon", "research", "startup", "course", "other"],
