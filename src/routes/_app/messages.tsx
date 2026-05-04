@@ -10,7 +10,7 @@ import { Send, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
-const search = z.object({ c: z.string().uuid().optional() });
+const search = z.object({ c: z.string().uuid().optional(), m: z.string().optional() });
 
 export const Route = createFileRoute("/_app/messages")({
   validateSearch: (s) => search.parse(s),
