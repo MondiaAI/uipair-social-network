@@ -223,6 +223,11 @@ function LabPage() {
         )}
       </section>
 
+      <Button onClick={() => setCreateOpen(true)} className="w-full" size="lg">
+        <Plus className="h-5 w-5" />
+        Create New Project
+      </Button>
+
       <CreateProjectModal open={createOpen} onOpenChange={setCreateOpen} />
       <ApplyToProjectModal
         open={!!applyTo}
