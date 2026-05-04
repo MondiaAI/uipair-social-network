@@ -1,11 +1,12 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Users, Zap, FlaskConical, DollarSign, type LucideIcon } from "lucide-react";
+import { Home, Users, Zap, FlaskConical, DollarSign, MessageSquare, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs: { to: string; label: string; icon: LucideIcon }[] = [
   { to: "/feed", label: "Feed", icon: Home },
   { to: "/circles", label: "Circles", icon: Users },
   { to: "/match", label: "Match", icon: Zap },
+  { to: "/messages", label: "Chat", icon: MessageSquare },
   { to: "/lab", label: "Lab", icon: FlaskConical },
   { to: "/gigs", label: "Gigs", icon: DollarSign },
 ];
