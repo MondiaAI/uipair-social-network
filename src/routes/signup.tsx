@@ -13,6 +13,7 @@ import { Camera, Check } from "lucide-react";
 import { SUBJECTS } from "@/lib/subjects";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
+import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/signup")({
@@ -88,7 +89,7 @@ function SignupPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     await refreshProfile();
-    toast.success("Welcome to PEERLY!");
+    toast.success("Welcome to peerly!");
     navigate({ to: "/feed" });
   };
 
@@ -96,11 +97,9 @@ function SignupPage() {
     set(arr.includes(val) ? arr.filter((s) => s !== val) : [...arr, val]);
 
   return (
-    <div className="min-h-screen bg-background px-4 py-10 flex flex-col items-center">
-      <Link to="/" className="inline-flex items-center gap-2 mb-6">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">P</div>
-        <span className="text-2xl font-bold">PEERLY</span>
-      </Link>
+    <SplitAuthLayout>
+      <div className="space-y-6">
+
 
       {/* Stepper */}
       <div className="w-full max-w-md flex items-center gap-2 mb-6">
@@ -202,7 +201,7 @@ function SignupPage() {
               })}
             </div>
             <Button onClick={finish} disabled={loading || interests.length < 3} className="w-full">
-              {loading ? "Finishing…" : "Finish & enter PEERLY"}
+              {loading ? "Finishing…" : "Finish & enter peerly"}
             </Button>
           </>
         )}
