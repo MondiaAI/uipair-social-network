@@ -361,17 +361,100 @@ function MessagesPage() {
                 e.preventDefault();
                 send();
               }}
-              className="flex gap-2 border-t p-3"
+              className="border-t p-3"
             >
-              <Input
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                placeholder="Type a message…"
-                disabled={sending}
-              />
-              <Button type="submit" disabled={sending || !draft.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
+              {attachment && (
+                <div className="mb-2 flex items-center gap-2 rounded-lg border bg-muted/40 p-2 text-xs">
+                  {attachment.type.startsWith("image/") ? (
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <span className="truncate flex-1">{attachment.name}</span>
+                  <span className="text-muted-foreground">
+                    {(attachment.size / 1024).toFixed(0)} KB
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setAttachment(null)}
+                    className="rounded p-1 hover:bg-accent"
+                    aria-label="Remove attachment"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+              <div className="flex items-end gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept="image/*,application/pdf,.doc,.docx,.txt,.zip"
+                  onChange={(e) => {
+                    onPickFile(e.target.files?.[0] ?? null);
+                    e.target.value = "";
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                  aria-label="Attach file"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button type="button" size="icon" variant="ghost" disabled={sending} aria-label="Insert emoji">
+                      <Smile className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-2" align="start">
+                    <div className="grid grid-cols-8 gap-1">
+                      {EMOJIS.map((e) => (
+                        <button
+                          key={e}
+                          type="button"
+                          onClick={() => insertEmoji(e)}
+                          className="rounded p-1 text-lg hover:bg-accent"
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <div className="flex-1">
+                  <Textarea
+                    ref={textareaRef}
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value.slice(0, MAX_LEN))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        send();
+                      }
+                    }}
+                    placeholder="Type a message… (Shift+Enter for newline)"
+                    disabled={sending}
+                    rows={1}
+                    className="max-h-32 min-h-[40px] resize-none"
+                  />
+                  <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+                    <span>{uploading ? "Uploading…" : "Enter to send"}</span>
+                    <span>{draft.length}/{MAX_LEN}</span>
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={sending || (!draft.trim() && !attachment)}
+                  aria-label="Send message"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </form>
           </>
         )}
