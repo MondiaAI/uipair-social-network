@@ -25,7 +25,11 @@ export const Route = createFileRoute("/_app/lab")({
 interface ProjectRow extends ProjectCardData {
   is_public: boolean;
   progress: number;
+  updated_at?: string;
 }
+
+type MemberAvatar = { full_name: string | null; username: string | null; avatar_url: string | null };
+
 
 function LabPage() {
   const { user } = useAuth();
