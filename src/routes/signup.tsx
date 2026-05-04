@@ -50,6 +50,11 @@ function SignupPage() {
   const [avatarPreview, setAvatarPreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const passwordsMatch = password.length > 0 && password === confirmPassword;
+  const passwordStrong = evaluatePassword(password).score >= 2;
+
 
   // If logged in already (e.g. after Google), jump to step 2 to finish profile
   useEffect(() => {
