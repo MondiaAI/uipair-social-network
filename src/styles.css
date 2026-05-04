@@ -96,6 +96,30 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+
+  /* PEERLY post-type colors */
+  --post-research: oklch(0.52 0.24 295);      /* #7C3AED purple */
+  --post-research-soft: oklch(0.96 0.04 295);
+  --post-partner: oklch(0.55 0.15 158);       /* #059669 green */
+  --post-partner-soft: oklch(0.96 0.05 158);
+  --post-brainstorm: oklch(0.66 0.16 65);     /* #D97706 amber */
+  --post-brainstorm-soft: oklch(0.96 0.05 80);
+  --post-question: oklch(0.55 0.21 262);      /* #2563EB blue */
+  --post-question-soft: oklch(0.95 0.04 262);
+  --post-resource: oklch(0.55 0.15 158);
+  --post-resource-soft: oklch(0.96 0.05 158);
+
+  /* Reaction chip colors */
+  --reaction-lightbulb: oklch(0.78 0.16 90);  /* yellow */
+  --reaction-lightbulb-soft: oklch(0.96 0.06 90);
+  --reaction-fire: oklch(0.68 0.2 40);        /* orange */
+  --reaction-fire-soft: oklch(0.96 0.06 40);
+  --reaction-brain: oklch(0.55 0.22 295);     /* purple */
+  --reaction-brain-soft: oklch(0.96 0.04 295);
+  --reaction-bookmark: oklch(0.55 0.21 262);  /* blue */
+  --reaction-bookmark-soft: oklch(0.95 0.04 262);
+  --reaction-agree: oklch(0.55 0.15 158);     /* green */
+  --reaction-agree-soft: oklch(0.96 0.05 158);
 }
 
 .dark {
