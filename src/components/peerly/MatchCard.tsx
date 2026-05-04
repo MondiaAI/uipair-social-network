@@ -93,18 +93,23 @@ export function MatchCard({ profile, score, edge }: Props) {
     }
   };
 
-  const handleMessage = async () => {
+  const handleMessage = async (prefill?: string) => {
     if (!user) return;
     setBusy(true);
     try {
       const conversationId = await openConversation(user.id, profile.id);
-      navigate({ to: "/messages", search: { c: conversationId } });
+      navigate({
+        to: "/messages",
+        search: prefill ? { c: conversationId, m: prefill } : { c: conversationId },
+      });
     } catch (e: any) {
       toast.error(e?.message ?? "Could not open chat");
     } finally {
       setBusy(false);
     }
   };
+
+  const partnershipTemplate = `Hey ${name.split(" ")[0]} 👋 — want to team up as study partners? I think we'd be a great match for ${profile.field_of_study ?? "our shared subjects"}.`;
 
   return (
     <div className="relative rounded-xl border bg-card p-4 shadow-sm">
