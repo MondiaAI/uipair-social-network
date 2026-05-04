@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
+import { PasswordInput } from "@/components/peerly/PasswordInput";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
