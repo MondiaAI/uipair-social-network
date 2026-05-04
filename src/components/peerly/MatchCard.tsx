@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageCircle, GraduationCap, UserPlus, Check, X, Clock, Handshake } from "lucide-react";
+import { MessageCircle, GraduationCap, UserPlus, Check, X, Clock, Handshake, ThumbsDown } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MatchScoreRing } from "./MatchScoreRing";
@@ -32,9 +32,10 @@ interface Props {
   profile: MatchProfile;
   score: number;
   edge: FriendEdge | null;
+  onNotAMatch?: (profileId: string) => void;
 }
 
-export function MatchCard({ profile, score, edge }: Props) {
+export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
