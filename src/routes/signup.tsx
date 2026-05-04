@@ -14,6 +14,7 @@ import { SUBJECTS } from "@/lib/subjects";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
+import { PasswordInput } from "@/components/peerly/PasswordInput";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/signup")({
@@ -123,7 +124,7 @@ function SignupPage() {
             <form onSubmit={handleStep1} className="space-y-3">
               <div><Label>Full name</Label><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} /></div>
               <div><Label>Email</Label><Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-              <div><Label>Password</Label><Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+              <div><Label>Password</Label><PasswordInput required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer">
                 <input
                   type="checkbox"
