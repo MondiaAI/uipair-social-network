@@ -158,5 +158,8 @@ export function Header() {
         </div>
       </div>
     </header>
+    <NotificationPanel open={notifOpen} onOpenChange={setNotifOpen} />
+    <ProUpgradeModal open={proOpen} onOpenChange={setProOpen} />
+    </>
   );
 }
