@@ -184,9 +184,7 @@ function SignupPage() {
                   <SelectContent>{[1, 2, 3, 4, 5, 6].map((y) => <SelectItem key={y} value={String(y)}>Year {y}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
-                <input
-                  type="checkbox"
+              <div className="space-y-1.5 pt-1">
               <div className="space-y-1.5 pt-1">
                 <Label>Confirm password</Label>
                 <PasswordInput
