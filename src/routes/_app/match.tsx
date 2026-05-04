@@ -17,7 +17,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ChevronDown, Search } from "lucide-react";
 
 export const Route = createFileRoute("/_app/match")({
   component: MatchPage,
@@ -28,6 +29,7 @@ type Availability = (typeof AVAILABILITY_OPTS)[number];
 
 interface ProfileRow extends MatchProfile {
   availability: string[] | null;
+  country: string | null;
 }
 
 function computeScore(me: ProfileRow, other: ProfileRow): number {
@@ -59,6 +61,7 @@ function MatchPage() {
   const [subjects, setSubjects] = useState<string[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [yearRange, setYearRange] = useState<[number, number]>([1, 6]);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -66,7 +69,7 @@ function MatchPage() {
       setLoading(true);
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, username, avatar_url, university, field_of_study, year_of_study, skills, availability, goals, last_seen_at")
+        .select("id, full_name, username, avatar_url, university, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at")
         .neq("id", user.id)
         .limit(100);
       setProfiles((data ?? []) as ProfileRow[]);
@@ -88,9 +91,17 @@ function MatchPage() {
 
   const filtered = useMemo(() => {
     if (!me) return [];
+    const q = query.trim().toLowerCase();
     return profiles
       .filter((p) => {
         if (mode === "campus" && profile?.university && p.university !== profile.university) return false;
+        if (q) {
+          const hay = [p.full_name, p.username, p.university, p.country]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
         if (subjects.length > 0) {
           const pSubs = [p.field_of_study, ...(p.skills ?? [])].filter(Boolean) as string[];
           if (!pSubs.some((s) => subjects.includes(s))) return false;
@@ -106,7 +117,7 @@ function MatchPage() {
       })
       .map((p) => ({ profile: p, score: computeScore(me, p) }))
       .sort((a, b) => b.score - a.score);
-  }, [profiles, me, mode, profile?.university, subjects, availability, yearRange]);
+  }, [profiles, me, mode, profile?.university, subjects, availability, yearRange, query]);
 
   const toggleSubject = (s: string) =>
     setSubjects((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
@@ -123,6 +134,15 @@ function MatchPage() {
       <IncomingFriendRequests />
 
       <div className="sticky top-16 z-30 mb-6 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
+        <div className="relative mb-3">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by name, university or country…"
+            className="pl-9"
+          />
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <Popover>
             <PopoverTrigger asChild>
