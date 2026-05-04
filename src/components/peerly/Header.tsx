@@ -14,13 +14,16 @@ import {
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { NotificationPanel } from "./NotificationPanel";
+import { ProUpgradeModal } from "./ProUpgradeModal";
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
   const { mode, setMode } = useFeedMode();
   const navigate = useNavigate();
   const [unread, setUnread] = useState(0);
-
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [proOpen, setProOpen] = useState(false);
   useEffect(() => {
     if (!user) return;
     const load = async () => {
@@ -42,6 +45,7 @@ export function Header() {
     .toUpperCase();
 
   return (
+    <>
     <header className="sticky top-0 z-40 h-16 w-full border-b bg-card">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
         {/* Left: Logo */}
@@ -82,6 +86,7 @@ export function Header() {
         <div className="flex items-center gap-3">
           <button
             type="button"
+            onClick={() => setNotifOpen(true)}
             className="relative rounded-full p-2 hover:bg-muted transition-colors"
             aria-label="Notifications"
           >
@@ -112,9 +117,9 @@ export function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem disabled>View Profile</DropdownMenuItem>
-              <DropdownMenuItem disabled>Settings</DropdownMenuItem>
-              <DropdownMenuItem disabled>PEERLY Pro</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => user && navigate({ to: "/profile/$userId", params: { userId: user.id } })}>View Profile</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setProOpen(true)}>PEERLY Pro</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={async () => {
@@ -153,5 +158,8 @@ export function Header() {
         </div>
       </div>
     </header>
+    <NotificationPanel open={notifOpen} onOpenChange={setNotifOpen} />
+    <ProUpgradeModal open={proOpen} onOpenChange={setProOpen} />
+    </>
   );
 }

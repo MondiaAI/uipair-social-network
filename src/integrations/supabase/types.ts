@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      ambassador_applications: {
+        Row: {
+          created_at: string
+          earnings_cents: number
+          id: string
+          motivation: string
+          referral_code: string
+          referrals_count: number
+          social_handles: string | null
+          status: string
+          university: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          earnings_cents?: number
+          id?: string
+          motivation: string
+          referral_code?: string
+          referrals_count?: number
+          social_handles?: string | null
+          status?: string
+          university: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          earnings_cents?: number
+          id?: string
+          motivation?: string
+          referral_code?: string
+          referrals_count?: number
+          social_handles?: string | null
+          status?: string
+          university?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bounties: {
         Row: {
           claimer_id: string | null
@@ -292,6 +334,27 @@ export type Database = {
           },
         ]
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
       gig_orders: {
         Row: {
           amount_cents: number
@@ -325,6 +388,39 @@ export type Database = {
           seller_id?: string
           status?: Database["public"]["Enums"]["gig_order_status"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      gig_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          gig_id: string
+          id: string
+          order_id: string
+          rating: number
+          reviewer_id: string
+          seller_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          gig_id: string
+          id?: string
+          order_id: string
+          rating: number
+          reviewer_id: string
+          seller_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          gig_id?: string
+          id?: string
+          order_id?: string
+          rating?: number
+          reviewer_id?: string
+          seller_id?: string
         }
         Relationships: []
       }
@@ -512,14 +608,17 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           country: string | null
+          cover_url: string | null
           created_at: string
           field_of_study: string | null
           full_name: string | null
           goals: string | null
           id: string
+          interests: string[]
           is_pro: boolean
           is_verified: boolean
           last_seen_at: string
+          onboarding_completed: boolean
           reputation_score: number
           skills: string[]
           stripe_account_id: string | null
@@ -533,14 +632,17 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           country?: string | null
+          cover_url?: string | null
           created_at?: string
           field_of_study?: string | null
           full_name?: string | null
           goals?: string | null
           id: string
+          interests?: string[]
           is_pro?: boolean
           is_verified?: boolean
           last_seen_at?: string
+          onboarding_completed?: boolean
           reputation_score?: number
           skills?: string[]
           stripe_account_id?: string | null
@@ -554,14 +656,17 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           country?: string | null
+          cover_url?: string | null
           created_at?: string
           field_of_study?: string | null
           full_name?: string | null
           goals?: string | null
           id?: string
+          interests?: string[]
           is_pro?: boolean
           is_verified?: boolean
           last_seen_at?: string
+          onboarding_completed?: boolean
           reputation_score?: number
           skills?: string[]
           stripe_account_id?: string | null
