@@ -250,6 +250,45 @@ export type Database = {
           },
         ]
       }
+      hackathon_banners: {
+        Row: {
+          created_at: string
+          deadline: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          prize_amount: string | null
+          register_url: string
+          sponsor_logo_url: string | null
+          sponsor_name: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          deadline?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          prize_amount?: string | null
+          register_url: string
+          sponsor_logo_url?: string | null
+          sponsor_name: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          deadline?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          prize_amount?: string | null
+          register_url?: string
+          sponsor_logo_url?: string | null
+          sponsor_name?: string
+          title?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           content: string
@@ -401,6 +440,292 @@ export type Database = {
         }
         Relationships: []
       }
+      project_activity: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_activity_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_applications: {
+        Row: {
+          applicant_id: string
+          created_at: string
+          desired_role: Database["public"]["Enums"]["project_role"]
+          id: string
+          message: string | null
+          project_id: string
+          status: Database["public"]["Enums"]["project_application_status"]
+          updated_at: string
+        }
+        Insert: {
+          applicant_id: string
+          created_at?: string
+          desired_role?: Database["public"]["Enums"]["project_role"]
+          id?: string
+          message?: string | null
+          project_id: string
+          status?: Database["public"]["Enums"]["project_application_status"]
+          updated_at?: string
+        }
+        Update: {
+          applicant_id?: string
+          created_at?: string
+          desired_role?: Database["public"]["Enums"]["project_role"]
+          id?: string
+          message?: string | null
+          project_id?: string
+          status?: Database["public"]["Enums"]["project_application_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_applications_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          parent_id: string | null
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "project_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_comments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_files: {
+        Row: {
+          created_at: string
+          file_type: string
+          id: string
+          project_id: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_type?: string
+          id?: string
+          project_id: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_type?: string
+          id?: string
+          project_id?: string
+          title?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_files_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_members: {
+        Row: {
+          id: string
+          joined_at: string
+          project_id: string
+          role: Database["public"]["Enums"]["project_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          project_id: string
+          role?: Database["public"]["Enums"]["project_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          project_id?: string
+          role?: Database["public"]["Enums"]["project_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_tasks: {
+        Row: {
+          assignee_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          position: number
+          project_id: string
+          status: Database["public"]["Enums"]["project_task_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          position?: number
+          project_id: string
+          status?: Database["public"]["Enums"]["project_task_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assignee_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          position?: number
+          project_id?: string
+          status?: Database["public"]["Enums"]["project_task_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          category: Database["public"]["Enums"]["project_category"]
+          cover_color: string | null
+          created_at: string
+          creator_id: string
+          deadline: string | null
+          description: string | null
+          id: string
+          is_public: boolean
+          member_count: number
+          name: string
+          open_roles: Database["public"]["Enums"]["project_role"][]
+          progress: number
+          subject: string
+          team_size_limit: number
+          updated_at: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["project_category"]
+          cover_color?: string | null
+          created_at?: string
+          creator_id: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          member_count?: number
+          name: string
+          open_roles?: Database["public"]["Enums"]["project_role"][]
+          progress?: number
+          subject: string
+          team_size_limit?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["project_category"]
+          cover_color?: string | null
+          created_at?: string
+          creator_id?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          member_count?: number
+          name?: string
+          open_roles?: Database["public"]["Enums"]["project_role"][]
+          progress?: number
+          subject?: string
+          team_size_limit?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       reactions: {
         Row: {
           created_at: string
@@ -491,11 +816,34 @@ export type Database = {
         Args: { _circle_id: string; _user_id: string }
         Returns: boolean
       }
+      is_project_creator: {
+        Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_project_member: {
+        Args: { _project_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       circle_member_role: "leader" | "moderator" | "member"
       circle_scope: "campus" | "global"
       post_type: "research" | "partner" | "brainstorm" | "question" | "resource"
+      project_application_status: "pending" | "accepted" | "declined"
+      project_category:
+        | "hackathon"
+        | "research"
+        | "startup"
+        | "course"
+        | "other"
+      project_role:
+        | "creator"
+        | "designer"
+        | "coder"
+        | "researcher"
+        | "writer"
+        | "other"
+      project_task_status: "todo" | "in_progress" | "done"
       reaction_type: "lightbulb" | "fire" | "brain" | "bookmark" | "agree"
       study_request_status: "pending" | "accepted" | "declined" | "cancelled"
     }
@@ -628,6 +976,17 @@ export const Constants = {
       circle_member_role: ["leader", "moderator", "member"],
       circle_scope: ["campus", "global"],
       post_type: ["research", "partner", "brainstorm", "question", "resource"],
+      project_application_status: ["pending", "accepted", "declined"],
+      project_category: ["hackathon", "research", "startup", "course", "other"],
+      project_role: [
+        "creator",
+        "designer",
+        "coder",
+        "researcher",
+        "writer",
+        "other",
+      ],
+      project_task_status: ["todo", "in_progress", "done"],
       reaction_type: ["lightbulb", "fire", "brain", "bookmark", "agree"],
       study_request_status: ["pending", "accepted", "declined", "cancelled"],
     },
