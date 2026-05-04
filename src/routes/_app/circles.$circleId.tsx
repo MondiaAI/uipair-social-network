@@ -199,6 +199,36 @@ function CircleDetailPage() {
         </div>
       </div>
 
+      {!isMember && (
+        circle.is_premium ? (
+          <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-sm">Premium circle — preview mode</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Subscribe for ${Number(circle.price_monthly).toFixed(0)}/mo to unlock posts, resources, members, and live sessions.
+                </p>
+                <Button size="sm" className="mt-3 bg-gradient-to-r from-primary to-primary/70" onClick={requestJoin}>
+                  <Sparkles className="h-4 w-4" /> Subscribe ${Number(circle.price_monthly).toFixed(0)}/mo
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-xl border bg-muted/30 p-4 mb-6 flex items-start gap-3">
+            <Lock className="h-4 w-4 mt-0.5 text-muted-foreground" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">You're previewing this circle</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Join to post, share resources, and schedule sessions.</p>
+            </div>
+            <Button size="sm" onClick={requestJoin}>Join</Button>
+          </div>
+        )
+      )}
+
       <Tabs defaultValue="discussion">
         <TabsList className="grid grid-cols-4 w-full">
           <TabsTrigger value="discussion"><MessageSquare className="h-4 w-4 mr-1" /> Discussion</TabsTrigger>
