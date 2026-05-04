@@ -55,10 +55,11 @@ function SignupPage() {
 
   const handleStep1 = async (e: FormEvent) => {
     e.preventDefault();
+    if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: window.location.origin, data: { full_name: fullName } },
+      options: { emailRedirectTo: window.location.origin, data: { full_name: fullName, terms_accepted_at: new Date().toISOString() } },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
@@ -66,6 +67,7 @@ function SignupPage() {
   };
 
   const handleGoogle = async () => {
+    if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
     if (result.error) toast.error("Google sign-in failed");
   };
