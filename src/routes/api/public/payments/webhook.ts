@@ -1,139 +1,174 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-const STRIPE_GATEWAY = "https://connector-gateway.lovable.dev/stripe/v1";
+import { type StripeEnv, verifyWebhook } from "@/lib/stripe.server";
+import type Stripe from "stripe";
 
 /**
- * Lovable Payments webhook (Stripe via gateway).
+ * Stripe webhook for premium-circle subscriptions.
+ * URL: /api/public/payments/webhook?env=sandbox|live
  *
- * The gateway delivers normalized events. For our flow we care about:
- *   - checkout.session.completed   → grant access on first payment
- *   - subscription.created          → grant access (idempotent)
- *   - subscription.updated          → keep access in sync (status: active vs canceled)
- *   - subscription.canceled         → revoke access
- *   - transaction.payment_failed    → log only (Stripe retries via dunning)
- *
- * The webhook URL is configured to receive ?env=sandbox (test) or ?env=live.
+ * Handled events:
+ *   - checkout.session.completed     → upsert subscription + grant membership
+ *   - customer.subscription.created  → upsert subscription + grant membership
+ *   - customer.subscription.updated  → upsert subscription, sync access
+ *   - customer.subscription.deleted  → mark canceled (access until period end)
  */
 export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        let payload: any;
+        const rawEnv = new URL(request.url).searchParams.get("env");
+        if (rawEnv !== "sandbox" && rawEnv !== "live") {
+          console.error("[payments-webhook] missing/invalid env query:", rawEnv);
+          return Response.json({ received: true, ignored: "invalid env" });
+        }
+        const env: StripeEnv = rawEnv;
+
+        let event: Stripe.Event;
         try {
-          payload = await request.json();
-        } catch {
-          return new Response("Invalid JSON", { status: 400 });
+          event = await verifyWebhook(request, env);
+        } catch (err) {
+          console.error("[payments-webhook] signature verification failed", err);
+          return new Response("Invalid signature", { status: 400 });
         }
 
-        // Note: signature verification is handled by the Lovable gateway before
-        // forwarding the event to this endpoint. We still validate that the
-        // payload looks like a Stripe event with metadata we control.
-
-        const eventType: string =
-          payload?.type ?? payload?.event_type ?? payload?.event?.type ?? "unknown";
-        const data = payload?.data?.object ?? payload?.data ?? payload?.object ?? payload;
-
         try {
-          if (
-            eventType === "checkout.session.completed" ||
-            eventType === "transaction.completed"
-          ) {
-            await handleCheckoutCompleted(data);
-          } else if (
-            eventType === "customer.subscription.created" ||
-            eventType === "subscription.created" ||
-            eventType === "customer.subscription.updated" ||
-            eventType === "subscription.updated"
-          ) {
-            await handleSubscriptionUpsert(data);
-          } else if (
-            eventType === "customer.subscription.deleted" ||
-            eventType === "subscription.canceled" ||
-            eventType === "subscription.deleted"
-          ) {
-            await handleSubscriptionCanceled(data);
-          } else {
-            console.log("[payments-webhook] ignored event:", eventType);
+          switch (event.type) {
+            case "checkout.session.completed":
+              await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session, env);
+              break;
+            case "customer.subscription.created":
+            case "customer.subscription.updated":
+              await handleSubscriptionUpsert(event.data.object as Stripe.Subscription, env);
+              break;
+            case "customer.subscription.deleted":
+              await handleSubscriptionDeleted(event.data.object as Stripe.Subscription, env);
+              break;
+            default:
+              console.log("[payments-webhook] ignored event:", event.type);
           }
+          return Response.json({ received: true, handled: true });
         } catch (err) {
-          console.error("[payments-webhook] handler error", eventType, err);
-          // Return 200 so the gateway doesn't retry endlessly on logical issues.
+          console.error("[payments-webhook] handler error", event.type, err);
+          // Return 200 to avoid endless retries on logical issues.
           return Response.json({ received: true, handled: false });
         }
-
-        return Response.json({ received: true, handled: true });
       },
     },
   },
 });
 
-async function handleCheckoutCompleted(session: any) {
-  // For embedded subscriptions, line items / customer info aren't expanded by default.
-  // Trust the metadata we set when creating the session.
-  const circleId = session?.metadata?.circle_id;
-  const userId = session?.metadata?.user_id;
-  const paid = session?.payment_status === "paid" || session?.status === "complete";
+// ---- Handlers --------------------------------------------------------------
 
-  if (!circleId || !userId) {
-    console.log("[payments-webhook] checkout.session.completed missing metadata");
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session, env: StripeEnv) {
+  const circleId = session.metadata?.circle_id;
+  const userId = session.metadata?.user_id;
+  const subId = typeof session.subscription === "string"
+    ? session.subscription
+    : session.subscription?.id;
+  if (!circleId || !userId || !subId) {
+    console.warn("[payments-webhook] checkout.session.completed missing data", {
+      circleId, userId, subId,
+    });
     return;
   }
-  if (!paid) {
-    console.log("[payments-webhook] checkout not paid yet, skipping");
-    return;
-  }
+  const paid = session.payment_status === "paid" || session.status === "complete";
+  if (!paid) return;
+
+  // Insert minimal sub row immediately (status will be refined by subscription.* events).
+  await supabaseAdmin
+    .from("circle_subscriptions")
+    .upsert(
+      {
+        user_id: userId,
+        circle_id: circleId,
+        stripe_subscription_id: subId,
+        stripe_customer_id: typeof session.customer === "string"
+          ? session.customer
+          : session.customer?.id ?? "",
+        status: "active",
+        environment: env,
+      },
+      { onConflict: "stripe_subscription_id" },
+    );
 
   await grantMembership(circleId, userId);
 }
 
-async function handleSubscriptionUpsert(sub: any) {
-  const circleId = sub?.metadata?.circle_id;
-  const userId = sub?.metadata?.user_id;
-  const status = sub?.status;
-
+async function handleSubscriptionUpsert(sub: Stripe.Subscription, env: StripeEnv) {
+  const circleId = sub.metadata?.circle_id;
+  const userId = sub.metadata?.user_id;
   if (!circleId || !userId) {
-    // Some subscription.updated events come without metadata if it wasn't
-    // attached at creation; try fetching the subscription.
-    const subId = sub?.id;
-    if (subId) {
-      const fetched = await fetchSubscription(subId);
-      if (fetched) return handleSubscriptionUpsert(fetched);
-    }
-    console.log("[payments-webhook] subscription event missing metadata");
+    console.warn("[payments-webhook] subscription event missing metadata", sub.id);
     return;
   }
 
-  if (status === "active" || status === "trialing") {
+  // Period fields: dahlia/basil put them on the subscription item.
+  const item = sub.items?.data?.[0];
+  const periodStart = (item as any)?.current_period_start ?? (sub as any).current_period_start;
+  const periodEnd = (item as any)?.current_period_end ?? (sub as any).current_period_end;
+
+  await supabaseAdmin
+    .from("circle_subscriptions")
+    .upsert(
+      {
+        user_id: userId,
+        circle_id: circleId,
+        stripe_subscription_id: sub.id,
+        stripe_customer_id: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
+        status: sub.status,
+        current_period_start: periodStart ? new Date(periodStart * 1000).toISOString() : null,
+        current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+        cancel_at_period_end: sub.cancel_at_period_end ?? false,
+        environment: env,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "stripe_subscription_id" },
+    );
+
+  if (sub.status === "active" || sub.status === "trialing") {
     await grantMembership(circleId, userId);
-  } else if (
-    status === "canceled" ||
-    status === "incomplete_expired" ||
-    status === "unpaid"
-  ) {
-    await revokeMembership(circleId, userId);
+  } else if (sub.status === "canceled" || sub.status === "unpaid" || sub.status === "incomplete_expired") {
+    // For "canceled", access stays until period end — only revoke when period has passed.
+    const ended = periodEnd ? periodEnd * 1000 < Date.now() : true;
+    if (ended) await revokeMembership(circleId, userId);
   }
+  // past_due: keep access; Stripe is retrying.
 }
 
-async function handleSubscriptionCanceled(sub: any) {
-  const circleId = sub?.metadata?.circle_id;
-  const userId = sub?.metadata?.user_id;
+async function handleSubscriptionDeleted(sub: Stripe.Subscription, env: StripeEnv) {
+  const circleId = sub.metadata?.circle_id;
+  const userId = sub.metadata?.user_id;
   if (!circleId || !userId) return;
-  await revokeMembership(circleId, userId);
+
+  const item = sub.items?.data?.[0];
+  const periodEnd = (item as any)?.current_period_end ?? (sub as any).current_period_end;
+
+  await supabaseAdmin
+    .from("circle_subscriptions")
+    .update({
+      status: "canceled",
+      current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("stripe_subscription_id", sub.id)
+    .eq("environment", env);
+
+  // Revoke only if period has actually ended (immediate cancel) or no period info.
+  const ended = periodEnd ? periodEnd * 1000 < Date.now() : true;
+  if (ended) await revokeMembership(circleId, userId);
 }
 
 async function grantMembership(circleId: string, userId: string) {
   const { error } = await supabaseAdmin
     .from("circle_members")
     .insert({ circle_id: circleId, user_id: userId, role: "member" });
-  if (error && !/duplicate key|unique/i.test(error.message)) {
-    throw error;
-  }
+  if (error && !/duplicate key|unique/i.test(error.message)) throw error;
   console.log("[payments-webhook] granted access", { circleId, userId });
 }
 
 async function revokeMembership(circleId: string, userId: string) {
-  // Don't remove the leader from their own circle.
+  // Don't remove leader from their own circle.
   const { data: circle } = await supabaseAdmin
     .from("circles")
     .select("leader_id")
@@ -148,18 +183,4 @@ async function revokeMembership(circleId: string, userId: string) {
     .eq("user_id", userId);
   if (error) throw error;
   console.log("[payments-webhook] revoked access", { circleId, userId });
-}
-
-async function fetchSubscription(subId: string) {
-  const lovableKey = process.env.LOVABLE_API_KEY;
-  const stripeKey = process.env.STRIPE_SANDBOX_API_KEY ?? process.env.STRIPE_API_KEY;
-  if (!lovableKey || !stripeKey) return null;
-  const res = await fetch(`${STRIPE_GATEWAY}/subscriptions/${subId}`, {
-    headers: {
-      Authorization: `Bearer ${lovableKey}`,
-      "X-Connection-Api-Key": stripeKey,
-    },
-  });
-  if (!res.ok) return null;
-  return res.json();
 }

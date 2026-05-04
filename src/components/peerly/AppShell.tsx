@@ -1,10 +1,12 @@
 import { ReactNode } from "react";
 import { Header } from "./Header";
 import { AppNav } from "./AppNav";
+import { PaymentTestModeBanner } from "./PaymentTestModeBanner";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
+      <PaymentTestModeBanner />
       <Header />
       <div className="mx-auto flex max-w-7xl">
         <AppNav />
@@ -13,3 +15,4 @@ export function AppShell({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
