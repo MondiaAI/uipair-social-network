@@ -98,11 +98,19 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
           <div className="flex items-center justify-between rounded-lg border p-3">
             <div>
               <p className="text-sm font-medium">Premium circle</p>
-              <p className="text-xs text-muted-foreground">Charge a monthly subscription</p>
+              <p className="text-xs text-muted-foreground">
+                {premiumLocked
+                  ? "Global circles require a monthly subscription to join"
+                  : "Charge a monthly subscription"}
+              </p>
             </div>
-            <Switch checked={isPremium} onCheckedChange={setIsPremium} />
+            <Switch
+              checked={effectivePremium}
+              onCheckedChange={setIsPremium}
+              disabled={premiumLocked}
+            />
           </div>
-          {isPremium && (
+          {effectivePremium && (
             <div>
               <Label>Price per month (USD)</Label>
               <Input type="number" min="1" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
