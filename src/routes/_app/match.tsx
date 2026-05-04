@@ -73,6 +73,31 @@ function MatchPage() {
   const [yearRange, setYearRange] = useState<[number, number]>([1, 6]);
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("best");
+  const [hidden, setHidden] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem("match:not_a_match");
+      return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+    } catch {
+      return new Set();
+    }
+  });
+
+  const handleNotAMatch = (id: string) => {
+    setHidden((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      try {
+        localStorage.setItem("match:not_a_match", JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+  };
+
+  const SORT_LABELS: Record<SortKey, string> = {
+    best: "Best match",
+    newest: "Newest",
+    active: "Most active",
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -104,6 +129,7 @@ function MatchPage() {
     if (!me) return [];
     const q = query.trim().toLowerCase();
     return profiles
+      .filter((p) => !hidden.has(p.id))
       .filter((p) => {
         if (mode === "campus" && profile?.university && p.university !== profile.university) return false;
         if (q) {
