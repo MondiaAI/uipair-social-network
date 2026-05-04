@@ -122,7 +122,7 @@ function ProfilePage() {
         <div className="mt-3">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-xl font-bold">{name}</h1>
-            {profile.is_pro && <Badge className="bg-blue-600 text-white"><BadgeCheck className="h-3 w-3 mr-1" />Pro</Badge>}
+            {profile.is_pro && <Badge className="bg-primary text-primary-foreground"><BadgeCheck className="h-3 w-3 mr-1" />Pro</Badge>}
             {profile.is_verified && <Badge variant="outline" className="text-emerald-600 border-emerald-200">Verified</Badge>}
           </div>
           <p className="text-sm text-muted-foreground">@{profile.username}</p>
