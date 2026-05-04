@@ -19,8 +19,12 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
   const [description, setDescription] = useState("");
   const [campusOnly, setCampusOnly] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
+  // Global circles are premium-paid by default; campus circles are free unless toggled.
+  const [isPremium, setIsPremium] = useState(true);
   const [price, setPrice] = useState("4.99");
+  // When global, premium is enforced (cannot be turned off).
+  const premiumLocked = !campusOnly;
+  const effectivePremium = premiumLocked ? true : isPremium;
   const [schedule, setSchedule] = useState("");
   const [resourcesUrl, setResourcesUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
