@@ -14,6 +14,203 @@ export type Database = {
   }
   public: {
     Tables: {
+      circle_members: {
+        Row: {
+          circle_id: string
+          id: string
+          joined_at: string
+          role: Database["public"]["Enums"]["circle_member_role"]
+          user_id: string
+        }
+        Insert: {
+          circle_id: string
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["circle_member_role"]
+          user_id: string
+        }
+        Update: {
+          circle_id?: string
+          id?: string
+          joined_at?: string
+          role?: Database["public"]["Enums"]["circle_member_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_members_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "circles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      circle_posts: {
+        Row: {
+          circle_id: string
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          circle_id: string
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          circle_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_posts_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "circles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      circle_resources: {
+        Row: {
+          circle_id: string
+          created_at: string
+          id: string
+          resource_type: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          circle_id: string
+          created_at?: string
+          id?: string
+          resource_type?: string
+          title: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          circle_id?: string
+          created_at?: string
+          id?: string
+          resource_type?: string
+          title?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_resources_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "circles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      circle_sessions: {
+        Row: {
+          circle_id: string
+          created_at: string
+          description: string | null
+          id: string
+          join_url: string | null
+          scheduled_at: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          circle_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          join_url?: string | null
+          scheduled_at: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          circle_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          join_url?: string | null
+          scheduled_at?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_sessions_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "circles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      circles: {
+        Row: {
+          cover_color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_premium: boolean
+          leader_id: string
+          meeting_schedule: string | null
+          member_count: number
+          name: string
+          price_monthly: number | null
+          resources_folder_url: string | null
+          scope: Database["public"]["Enums"]["circle_scope"]
+          subject: string
+          university: string | null
+          updated_at: string
+        }
+        Insert: {
+          cover_color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_premium?: boolean
+          leader_id: string
+          meeting_schedule?: string | null
+          member_count?: number
+          name: string
+          price_monthly?: number | null
+          resources_folder_url?: string | null
+          scope?: Database["public"]["Enums"]["circle_scope"]
+          subject: string
+          university?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cover_color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_premium?: boolean
+          leader_id?: string
+          meeting_schedule?: string | null
+          member_count?: number
+          name?: string
+          price_monthly?: number | null
+          resources_folder_url?: string | null
+          scope?: Database["public"]["Enums"]["circle_scope"]
+          subject?: string
+          university?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -236,9 +433,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_circle_member: {
+        Args: { _circle_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      circle_member_role: "leader" | "moderator" | "member"
+      circle_scope: "campus" | "global"
       post_type: "research" | "partner" | "brainstorm" | "question" | "resource"
       reaction_type: "lightbulb" | "fire" | "brain" | "bookmark" | "agree"
     }
@@ -368,6 +570,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      circle_member_role: ["leader", "moderator", "member"],
+      circle_scope: ["campus", "global"],
       post_type: ["research", "partner", "brainstorm", "question", "resource"],
       reaction_type: ["lightbulb", "fire", "brain", "bookmark", "agree"],
     },
