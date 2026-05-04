@@ -14,6 +14,7 @@ import { SUBJECTS } from "@/lib/subjects";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
+import { PasswordInput } from "@/components/peerly/PasswordInput";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/signup")({
