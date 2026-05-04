@@ -61,6 +61,7 @@ function MatchPage() {
   const [subjects, setSubjects] = useState<string[]>([]);
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [yearRange, setYearRange] = useState<[number, number]>([1, 6]);
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     if (!user) return;
