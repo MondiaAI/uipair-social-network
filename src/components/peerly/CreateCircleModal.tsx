@@ -46,8 +46,8 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
         leader_id: user.id,
         scope: campusOnly ? "campus" : "global",
         university: campusOnly ? profile?.university ?? null : null,
-        is_premium: isPremium,
-        price_monthly: isPremium ? Number(price) : null,
+        is_premium: effectivePremium,
+        price_monthly: effectivePremium ? Number(price) : null,
         meeting_schedule: schedule.trim() || null,
         resources_folder_url: resourcesUrl.trim() || null,
       })
