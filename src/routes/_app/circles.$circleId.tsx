@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { EmbeddedCheckoutModal } from "@/components/peerly/EmbeddedCheckoutModal";
+import { createCircleCheckout, verifyCircleCheckout } from "@/server/payments.functions";
 import { subjectChipClass } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -60,6 +62,8 @@ function CircleDetailPage() {
   const [sessionOpen, setSessionOpen] = useState(false);
   const [confirmJoinOpen, setConfirmJoinOpen] = useState(false);
   const [joining, setJoining] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
 
   const isMember = members.some((m) => m.id === user?.id);
 
@@ -147,8 +151,17 @@ function CircleDetailPage() {
   const confirmJoin = async () => {
     if (!user || !circle) return;
     if (circle.is_premium) {
-      toast.info("Premium subscriptions coming soon");
-      setConfirmJoinOpen(false);
+      setJoining(true);
+      try {
+        const { clientSecret } = await createCircleCheckout({ data: { circleId: circle.id } });
+        setCheckoutClientSecret(clientSecret);
+        setConfirmJoinOpen(false);
+        setCheckoutOpen(true);
+      } catch (err: any) {
+        toast.error(err?.message ?? "Could not start checkout");
+      } finally {
+        setJoining(false);
+      }
       return;
     }
     setJoining(true);
@@ -157,6 +170,22 @@ function CircleDetailPage() {
     if (error) { toast.error(error.message); return; }
     toast.success("Joined circle!");
     setConfirmJoinOpen(false);
+    load();
+  };
+
+  const handleCheckoutComplete = async () => {
+    // Belt-and-suspenders: try the verify path immediately so access unlocks
+    // even if the webhook is slightly delayed. Realtime/polling will also catch it.
+    try {
+      const sessionId = new URLSearchParams(window.location.search).get("checkout_session_id");
+      if (sessionId) {
+        await verifyCircleCheckout({ data: { sessionId } });
+      }
+    } catch (err) {
+      console.warn("verify after checkout failed (webhook will still grant)", err);
+    }
+    setCheckoutOpen(false);
+    setCheckoutClientSecret(null);
     load();
   };
 
@@ -427,6 +456,18 @@ function CircleDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <EmbeddedCheckoutModal
+        open={checkoutOpen}
+        onOpenChange={(o) => {
+          setCheckoutOpen(o);
+          if (!o) setCheckoutClientSecret(null);
+        }}
+        clientSecret={checkoutClientSecret}
+        title={`Subscribe to ${circle.name}`}
+        description={`$${Number(circle.price_monthly).toFixed(0)}/month — cancel anytime.`}
+        onComplete={handleCheckoutComplete}
+      />
     </div>
   );
 }
