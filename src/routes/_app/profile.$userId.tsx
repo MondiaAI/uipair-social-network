@@ -58,8 +58,8 @@ function ProfilePage() {
     if (!user || !isMe) return;
     const url = await uploadToBucket(kind === "avatar" ? "avatars" : "covers", user.id, file);
     if (!url) return toast.error("Upload failed");
-    const field = kind === "avatar" ? "avatar_url" : "cover_url";
-    await supabase.from("profiles").update({ [field]: url }).eq("id", user.id);
+    const update = kind === "avatar" ? { avatar_url: url } : { cover_url: url };
+    await supabase.from("profiles").update(update).eq("id", user.id);
     await refreshProfile();
     load();
   };
