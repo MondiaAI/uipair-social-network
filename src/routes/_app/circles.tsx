@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard";
 import { CreateCircleModal } from "@/components/peerly/CreateCircleModal";
+import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { SUBJECTS } from "@/lib/subjects";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
@@ -117,6 +118,10 @@ function CirclesPage() {
             {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="mb-6">
+        <NewMembersRow title="New students to connect with" />
       </div>
 
       {myCircles.length > 0 && (

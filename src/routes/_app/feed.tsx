@@ -7,6 +7,7 @@ import { PostComposer } from "@/components/peerly/PostComposer";
 import { PostCard, type FeedPost } from "@/components/peerly/PostCard";
 import { LiveSessionsRow } from "@/components/peerly/LiveSessionsRow";
 import { FeedFilters, type FeedFilter } from "@/components/peerly/FeedFilters";
+import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 
 export const Route = createFileRoute("/_app/feed")({
   component: FeedPage,
@@ -57,6 +58,8 @@ function FeedPage() {
       </div>
 
       <LiveSessionsRow />
+
+      <NewMembersRow />
 
       <PostComposer onPosted={loadPosts} />
 
