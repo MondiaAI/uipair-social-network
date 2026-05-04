@@ -91,9 +91,17 @@ function MatchPage() {
 
   const filtered = useMemo(() => {
     if (!me) return [];
+    const q = query.trim().toLowerCase();
     return profiles
       .filter((p) => {
         if (mode === "campus" && profile?.university && p.university !== profile.university) return false;
+        if (q) {
+          const hay = [p.full_name, p.username, p.university, p.country]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
         if (subjects.length > 0) {
           const pSubs = [p.field_of_study, ...(p.skills ?? [])].filter(Boolean) as string[];
           if (!pSubs.some((s) => subjects.includes(s))) return false;
@@ -109,7 +117,7 @@ function MatchPage() {
       })
       .map((p) => ({ profile: p, score: computeScore(me, p) }))
       .sort((a, b) => b.score - a.score);
-  }, [profiles, me, mode, profile?.university, subjects, availability, yearRange]);
+  }, [profiles, me, mode, profile?.university, subjects, availability, yearRange, query]);
 
   const toggleSubject = (s: string) =>
     setSubjects((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
