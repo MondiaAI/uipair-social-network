@@ -15,6 +15,8 @@ import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
 import { PasswordInput } from "@/components/peerly/PasswordInput";
+import { PasswordStrengthMeter } from "@/components/peerly/PasswordStrengthMeter";
+import { evaluatePassword } from "@/lib/password-strength";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/signup")({
