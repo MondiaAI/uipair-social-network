@@ -342,6 +342,29 @@ function CircleDetailPage() {
           ))}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={confirmJoinOpen} onOpenChange={setConfirmJoinOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {circle.is_premium ? `Subscribe to ${circle.name}?` : `Join ${circle.name}?`}
+            </DialogTitle>
+            <DialogDescription>
+              {circle.is_premium ? (
+                <>You'll be charged <span className="font-semibold text-foreground">${Number(circle.price_monthly).toFixed(0)}/month</span> to access this premium circle's posts, resources, members, and live sessions. You can cancel anytime.</>
+              ) : (
+                <>You'll join this circle and gain access to discussions, shared resources, and study sessions.</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => setConfirmJoinOpen(false)} disabled={joining}>Cancel</Button>
+            <Button onClick={confirmJoin} disabled={joining} className={circle.is_premium ? "bg-gradient-to-r from-primary to-primary/70" : ""}>
+              {joining ? "Please wait…" : circle.is_premium ? `Subscribe $${Number(circle.price_monthly).toFixed(0)}/mo` : "Confirm join"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
