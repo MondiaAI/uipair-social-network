@@ -38,6 +38,7 @@ type SortKey = "best" | "newest" | "active";
 interface ProfileRow extends MatchProfile {
   availability: string[] | null;
   country: string | null;
+  created_at?: string | null;
 }
 
 function computeScore(me: ProfileRow, other: ProfileRow): number {
