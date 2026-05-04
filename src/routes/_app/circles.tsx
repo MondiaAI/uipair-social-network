@@ -72,7 +72,7 @@ function CirclesPage() {
     if (!user) return;
     const circle = circles.find((c) => c.id === circleId);
     if (circle?.is_premium) {
-      toast.info("Premium subscriptions coming soon");
+      navigate({ to: "/circles/$circleId", params: { circleId } });
       return;
     }
     const { error } = await supabase.from("circle_members").insert({ circle_id: circleId, user_id: user.id });
