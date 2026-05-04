@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -48,16 +49,10 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen grid place-items-center bg-background px-4 py-12">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center">
-          <Link to="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-lg">
-              P
-            </div>
-            <span className="text-2xl font-bold tracking-tight">PEERLY</span>
-          </Link>
-          <h1 className="mt-6 text-2xl font-bold">Welcome back</h1>
+    <SplitAuthLayout>
+      <div className="space-y-6">
+        <div className="text-center lg:text-left">
+          <h1 className="text-3xl font-bold tracking-tight">Welcome back</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Sign in to connect with students worldwide.
           </p>
@@ -90,6 +85,11 @@ function LoginPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
+            <div className="flex justify-end">
+              <button type="button" className="text-xs text-muted-foreground hover:text-foreground hover:underline">
+                Forgot password?
+              </button>
+            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in…" : "Sign in"}
             </Button>
@@ -103,6 +103,6 @@ function LoginPage() {
           </Link>
         </p>
       </div>
-    </div>
+    </SplitAuthLayout>
   );
 }
