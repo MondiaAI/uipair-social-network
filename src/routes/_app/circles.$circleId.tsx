@@ -93,6 +93,52 @@ function CircleDetailPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [circleId]);
 
+  // Realtime + polling: auto-grant access when membership is created
+  // (e.g., after a Stripe subscription webhook inserts the membership row).
+  useEffect(() => {
+    if (!user || !circleId || isMember) return;
+
+    const channel = supabase
+      .channel(`circle-membership-${circleId}-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "circle_members",
+          filter: `circle_id=eq.${circleId}`,
+        },
+        (payload) => {
+          const row = payload.new as { user_id?: string };
+          if (row.user_id === user.id) {
+            toast.success("Access granted — welcome to the circle!");
+            load();
+          }
+        }
+      )
+      .subscribe();
+
+    // Polling fallback every 15s in case realtime drops or webhook is delayed
+    const poll = setInterval(async () => {
+      const { data } = await supabase
+        .from("circle_members")
+        .select("user_id")
+        .eq("circle_id", circleId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (data) {
+        toast.success("Access granted — welcome to the circle!");
+        load();
+      }
+    }, 15000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(poll);
+    };
+    // eslint-disable-next-line
+  }, [user?.id, circleId, isMember]);
+
   const requestJoin = () => {
     if (!user || !circle) return;
     setConfirmJoinOpen(true);
