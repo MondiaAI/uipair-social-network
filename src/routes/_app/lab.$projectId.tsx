@@ -289,35 +289,88 @@ function ProjectDetailPage() {
               <Button onClick={addTask} disabled={!newTaskTitle.trim()}><Plus className="h-4 w-4" />Add</Button>
             </Card>
           )}
+          <p className="text-xs text-muted-foreground">Tip: drag a task card between columns to update its status.</p>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-            {TASK_COLUMNS.map((col) => (
-              <div key={col.status} className="rounded-lg bg-muted/40 p-3">
-                <h3 className="mb-2 text-sm font-semibold">{col.label} <span className="text-muted-foreground">({tasks.filter((t) => t.status === col.status).length})</span></h3>
-                <div className="space-y-2">
-                  {tasks.filter((t) => t.status === col.status).map((t) => (
-                    <Card key={t.id} className="p-2.5">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm">{t.title}</p>
-                        {(isMember) && (
-                          <button onClick={() => deleteTask(t.id)} className="text-muted-foreground hover:text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
-                        )}
-                      </div>
-                      {isMember && (
-                        <Select value={t.status} onValueChange={(v) => moveTask(t.id, v as TaskRow["status"])}>
-                          <SelectTrigger className="mt-2 h-7 text-xs"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            {TASK_COLUMNS.map((c) => <SelectItem key={c.status} value={c.status}>{c.label}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    </Card>
-                  ))}
-                  {tasks.filter((t) => t.status === col.status).length === 0 && (
-                    <p className="text-xs text-muted-foreground">No tasks</p>
+            {TASK_COLUMNS.map((col) => {
+              const colTasks = tasks.filter((t) => t.status === col.status);
+              return (
+                <div
+                  key={col.status}
+                  onDragOver={(e) => { if (isMember) { e.preventDefault(); setDragOverCol(col.status); } }}
+                  onDragLeave={() => setDragOverCol((c) => (c === col.status ? null : c))}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOverCol(null);
+                    if (!isMember || !draggingId) return;
+                    const t = tasks.find((x) => x.id === draggingId);
+                    if (t && t.status !== col.status) moveTask(draggingId, col.status);
+                    setDraggingId(null);
+                  }}
+                  className={cn(
+                    "rounded-lg bg-muted/40 p-3 transition",
+                    dragOverCol === col.status && "ring-2 ring-primary/60 bg-primary/5",
                   )}
+                >
+                  <h3 className="mb-2 text-sm font-semibold">
+                    {col.label} <span className="text-muted-foreground">({colTasks.length})</span>
+                  </h3>
+                  <div className="space-y-2 min-h-[40px]">
+                    {colTasks.map((t) => {
+                      const assignee = members.find((m) => m.user_id === t.assignee_id)?.profile;
+                      return (
+                        <Card
+                          key={t.id}
+                          draggable={isMember}
+                          onDragStart={() => setDraggingId(t.id)}
+                          onDragEnd={() => { setDraggingId(null); setDragOverCol(null); }}
+                          className={cn(
+                            "p-2.5 cursor-grab active:cursor-grabbing transition",
+                            draggingId === t.id && "opacity-50",
+                          )}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm">{t.title}</p>
+                            {isMember && (
+                              <button onClick={() => deleteTask(t.id)} className="text-muted-foreground hover:text-destructive">
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                          <div className="mt-2 flex items-center justify-between gap-2">
+                            {assignee ? (
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <Avatar className="h-5 w-5">
+                                  <AvatarImage src={assignee.avatar_url ?? undefined} />
+                                  <AvatarFallback className="text-[9px]">
+                                    {(assignee.full_name ?? assignee.username ?? "?").slice(0, 2).toUpperCase()}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="truncate text-xs text-muted-foreground">
+                                  {assignee.full_name || assignee.username}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-muted-foreground">Unassigned</span>
+                            )}
+                            {isMember && (
+                              <Select value={t.status} onValueChange={(v) => moveTask(t.id, v as TaskRow["status"])}>
+                                <SelectTrigger className="h-6 w-[110px] text-[11px]"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {TASK_COLUMNS.map((c) => <SelectItem key={c.status} value={c.status}>{c.label}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          </div>
+                        </Card>
+                      );
+                    })}
+                    {colTasks.length === 0 && (
+                      <p className="text-xs text-muted-foreground">Drop tasks here</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </TabsContent>
 
