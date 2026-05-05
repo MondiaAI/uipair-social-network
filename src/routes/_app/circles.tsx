@@ -95,10 +95,16 @@ function CirclesPage() {
     const q = search.trim().toLowerCase();
     return circles.filter((c) => {
       if (subjectFilter !== "all" && c.subject !== subjectFilter) return false;
+      if (mode === "campus") {
+        if (c.scope !== "campus") return false;
+        if (userUniversity && c.university && c.university !== userUniversity) return false;
+      } else {
+        if (c.scope !== "global") return false;
+      }
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q);
     });
-  }, [circles, search, subjectFilter]);
+  }, [circles, search, subjectFilter, mode, userUniversity]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
