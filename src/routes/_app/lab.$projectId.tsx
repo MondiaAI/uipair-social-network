@@ -337,7 +337,38 @@ function ProjectDetailPage() {
                             )}
                           </div>
                           <div className="mt-2 flex items-center justify-between gap-2">
-                            {assignee ? (
+                            {isMember ? (
+                              <Select
+                                value={t.assignee_id ?? "unassigned"}
+                                onValueChange={(v) => updateAssignee(t.id, v === "unassigned" ? null : v)}
+                              >
+                                <SelectTrigger className="h-7 px-1.5 gap-1.5 border-0 bg-transparent hover:bg-accent w-auto min-w-0 max-w-[140px]">
+                                  {assignee ? (
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <Avatar className="h-5 w-5">
+                                        <AvatarImage src={assignee.avatar_url ?? undefined} />
+                                        <AvatarFallback className="text-[9px]">
+                                          {(assignee.full_name ?? assignee.username ?? "?").slice(0, 2).toUpperCase()}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                      <span className="truncate text-xs text-muted-foreground">
+                                        {assignee.full_name || assignee.username}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <span className="text-[11px] text-muted-foreground">Unassigned</span>
+                                  )}
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                                  {members.map((m) => (
+                                    <SelectItem key={m.user_id} value={m.user_id}>
+                                      {m.profile?.full_name || m.profile?.username || "Member"}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : assignee ? (
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <Avatar className="h-5 w-5">
                                   <AvatarImage src={assignee.avatar_url ?? undefined} />
