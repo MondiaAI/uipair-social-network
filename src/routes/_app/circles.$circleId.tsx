@@ -504,9 +504,9 @@ function CircleDetailPage() {
               <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to post and comment.
             </div>
           )}
-          {posts.length === 0 ? (
+          {visiblePosts.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No posts yet.</p>
-          ) : posts.map((p) => {
+          ) : visiblePosts.map((p) => {
             const author = profileMap.get(p.user_id);
             const name = author?.full_name || author?.username || "Member";
             const init = name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
