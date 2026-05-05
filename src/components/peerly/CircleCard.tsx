@@ -97,12 +97,14 @@ export function CircleCard({
         </Button>
         {!joined && (
           circle.is_premium ? (
-            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)}>
-              <Sparkles className="h-3.5 w-3.5" /> Subscribe ${price}/mo
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)} disabled={joining}>
+              {joining ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+              {joining ? "Joining…" : `Subscribe $${price}/mo`}
             </Button>
           ) : (
-            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)}>
-              Join free
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)} disabled={joining}>
+              {joining && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {joining ? "Joining…" : "Join free"}
             </Button>
           )
         )}
