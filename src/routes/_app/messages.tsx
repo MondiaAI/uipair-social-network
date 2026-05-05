@@ -185,12 +185,38 @@ function MessagesPage() {
     };
   }, [user]);
 
+  // Load muted conversations from Supabase + subscribe to changes
+  useEffect(() => {
+    if (!user) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from("conversation_mutes")
+        .select("conversation_id")
+        .eq("user_id", user.id);
+      const map: Record<string, boolean> = {};
+      (data ?? []).forEach((r: { conversation_id: string }) => { map[r.conversation_id] = true; });
+      setMuted(map);
+    };
+    load();
+    const channel = supabase
+      .channel(`mutes:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "conversation_mutes", filter: `user_id=eq.${user.id}` },
+        () => load()
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   // Load active conversation messages + subscribe
   useEffect(() => {
     if (!activeId) {
       setMessages([]);
       return;
     }
+    // Clear unread badge immediately when opening a conversation
+    setConversations((prev) => prev.map((c) => c.id === activeId ? { ...c, unread: 0 } : c));
     const load = async () => {
       const { data } = await supabase
         .from("messages")
