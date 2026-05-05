@@ -52,12 +52,14 @@ function CircleDetailPage() {
   const [leader, setLeader] = useState<ProfileLite | null>(null);
   const [members, setMembers] = useState<ProfileLite[]>([]);
   const [posts, setPosts] = useState<PostRow[]>([]);
+  const [postComments, setPostComments] = useState<Record<string, PostCommentRow[]>>({});
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [resources, setResources] = useState<ResourceRow[]>([]);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [profileMap, setProfileMap] = useState<Map<string, ProfileLite>>(new Map());
   const [loading, setLoading] = useState(true);
   const [postContent, setPostContent] = useState("");
-  const [postKind, setPostKind] = useState<"discussion" | "research" | "partner" | "question" | "resource">("discussion");
+  const [postKind, setPostKind] = useState<PostKind>("discussion");
   const [resTitle, setResTitle] = useState("");
   const [resUrl, setResUrl] = useState("");
   const [sessionTitle, setSessionTitle] = useState("");
