@@ -288,10 +288,23 @@ function CircleDetailPage() {
 
   const handlePost = async () => {
     if (!user || !postContent.trim()) return;
-    const prefix = postKind === "discussion" ? "" : `[${postKind[0].toUpperCase()}${postKind.slice(1)}] `;
-    const { error } = await supabase.from("circle_posts").insert({ circle_id: circleId, user_id: user.id, content: prefix + postContent.trim() });
+    const { error } = await supabase.from("circle_posts").insert({
+      circle_id: circleId, user_id: user.id, content: postContent.trim(), post_type: postKind,
+    });
     if (error) { toast.error(error.message); return; }
     setPostContent(""); setPostKind("discussion");
+    load();
+  };
+
+  const handleAddComment = async (postId: string) => {
+    if (!user) return;
+    const text = (commentDrafts[postId] ?? "").trim();
+    if (!text) return;
+    const { error } = await supabase.from("circle_post_comments").insert({
+      post_id: postId, circle_id: circleId, user_id: user.id, content: text,
+    });
+    if (error) { toast.error(error.message); return; }
+    setCommentDrafts((d) => ({ ...d, [postId]: "" }));
     load();
   };
 
