@@ -266,20 +266,51 @@ function MessagesPage() {
     <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-5xl gap-4 px-4 py-6">
       {/* Sidebar */}
       <aside className="flex w-72 flex-col rounded-xl border bg-card shadow-sm">
-        <div className="border-b p-4">
-          <h1 className="text-lg font-bold">Messages</h1>
+        <div className="border-b p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-bold">Messages</h1>
+            {(() => {
+              const total = conversations.reduce((s, c) => s + (c.unread ?? 0), 0);
+              return total > 0 ? (
+                <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
+                  {total} new
+                </span>
+              ) : null;
+            })()}
+          </div>
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search conversations…"
+            className="h-9"
+          />
         </div>
         <div className="flex-1 overflow-y-auto">
-          {conversations.length === 0 ? (
-            <div className="p-6 text-center text-sm text-muted-foreground">
-              <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-40" />
-              No conversations yet. Connect with a study partner first.
-            </div>
-          ) : (
-            conversations.map((c) => {
+          {(() => {
+            const q = search.trim().toLowerCase();
+            const filtered = q
+              ? conversations.filter((c) => {
+                  const name = (c.other?.full_name || c.other?.username || "").toLowerCase();
+                  const preview = (c.preview ?? "").toLowerCase();
+                  return name.includes(q) || preview.includes(q);
+                })
+              : conversations;
+            if (conversations.length === 0) {
+              return (
+                <div className="p-6 text-center text-sm text-muted-foreground">
+                  <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-40" />
+                  No conversations yet. Connect with a study partner first.
+                </div>
+              );
+            }
+            if (filtered.length === 0) {
+              return <div className="p-6 text-center text-sm text-muted-foreground">No matches</div>;
+            }
+            return filtered.map((c) => {
               const name = c.other?.full_name || c.other?.username || "Student";
               const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
               const isActive = c.id === activeId;
+              const unread = c.unread ?? 0;
               return (
                 <button
                   key={c.id}
@@ -294,15 +325,22 @@ function MessagesPage() {
                     <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={cn("truncate text-sm", unread > 0 ? "font-bold" : "font-medium")}>{name}</p>
+                      {unread > 0 && (
+                        <span className="shrink-0 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                          {unread}
+                        </span>
+                      )}
+                    </div>
+                    <p className={cn("truncate text-xs", unread > 0 ? "text-foreground" : "text-muted-foreground")}>
                       {c.preview ?? "Say hi 👋"}
                     </p>
                   </div>
                 </button>
               );
-            })
-          )}
+            });
+          })()}
         </div>
       </aside>
 
