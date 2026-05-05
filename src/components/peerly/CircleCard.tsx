@@ -31,10 +31,12 @@ export function CircleCard({
   circle,
   joined,
   onJoin,
+  joining = false,
 }: {
   circle: CircleCardData;
   joined: boolean;
   onJoin: (id: string) => void;
+  joining?: boolean;
 }) {
   const leaderName = circle.leader?.full_name || circle.leader?.username || "Unknown";
   const leaderInitials = leaderName.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
