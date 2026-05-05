@@ -130,12 +130,13 @@ export type Database = {
           },
         ]
       }
-      circle_posts: {
+      circle_post_comments: {
         Row: {
           circle_id: string
           content: string
           created_at: string
           id: string
+          post_id: string
           user_id: string
         }
         Insert: {
@@ -143,6 +144,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          post_id: string
           user_id: string
         }
         Update: {
@@ -150,6 +152,42 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "circle_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      circle_posts: {
+        Row: {
+          circle_id: string
+          content: string
+          created_at: string
+          id: string
+          post_type: Database["public"]["Enums"]["circle_post_kind"]
+          user_id: string
+        }
+        Insert: {
+          circle_id: string
+          content: string
+          created_at?: string
+          id?: string
+          post_type?: Database["public"]["Enums"]["circle_post_kind"]
+          user_id: string
+        }
+        Update: {
+          circle_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          post_type?: Database["public"]["Enums"]["circle_post_kind"]
           user_id?: string
         }
         Relationships: [
@@ -1335,6 +1373,12 @@ export type Database = {
     Enums: {
       bounty_status: "open" | "claimed" | "completed" | "cancelled"
       circle_member_role: "leader" | "moderator" | "member"
+      circle_post_kind:
+        | "discussion"
+        | "research"
+        | "partner"
+        | "question"
+        | "resource"
       circle_scope: "campus" | "global"
       friend_request_status: "pending" | "accepted" | "declined" | "canceled"
       gig_category:
@@ -1503,6 +1547,13 @@ export const Constants = {
     Enums: {
       bounty_status: ["open", "claimed", "completed", "cancelled"],
       circle_member_role: ["leader", "moderator", "member"],
+      circle_post_kind: [
+        "discussion",
+        "research",
+        "partner",
+        "question",
+        "resource",
+      ],
       circle_scope: ["campus", "global"],
       friend_request_status: ["pending", "accepted", "declined", "canceled"],
       gig_category: [
