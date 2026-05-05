@@ -38,8 +38,10 @@ interface CircleDetail {
   leader_id: string;
 }
 
+type PostKind = "discussion" | "research" | "partner" | "question" | "resource";
 interface ProfileLite { id: string; full_name: string | null; username: string | null; avatar_url: string | null; }
-interface PostRow { id: string; content: string; created_at: string; user_id: string; }
+interface PostRow { id: string; content: string; created_at: string; user_id: string; post_type: PostKind; }
+interface PostCommentRow { id: string; post_id: string; user_id: string; content: string; created_at: string; }
 interface ResourceRow { id: string; title: string; url: string; resource_type: string; created_at: string; user_id: string; }
 interface SessionRow { id: string; title: string; description: string | null; scheduled_at: string; join_url: string | null; user_id: string; }
 
