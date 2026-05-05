@@ -101,6 +101,8 @@ function ProjectDetailPage() {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newFileTitle, setNewFileTitle] = useState("");
   const [newFileUrl, setNewFileUrl] = useState("");
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<TaskRow["status"] | null>(null);
 
   const isMember = !!user && members.some((m) => m.user_id === user.id);
   const isCreator = !!user && project?.creator_id === user.id;
