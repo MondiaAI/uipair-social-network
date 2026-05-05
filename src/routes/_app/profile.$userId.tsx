@@ -114,13 +114,13 @@ function ProfilePage() {
               </label>
             )}
           </div>
-          <div className="flex gap-2 mb-1">
+          <div className="flex flex-wrap gap-2 mb-1">
             {!isMe && user && (
               <>
                 <Button size="sm" variant={following ? "outline" : "default"} onClick={toggleFollow}>
                   {following ? "Following" : "Follow"}
                 </Button>
-                <Button size="sm" variant="outline" disabled>Message</Button>
+                <FriendActions otherId={userId} otherName={name} />
               </>
             )}
             {isMe && <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>}
