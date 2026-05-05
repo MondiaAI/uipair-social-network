@@ -252,6 +252,21 @@ function FriendActions({ otherId, otherName }: { otherId: string; otherName: str
     try { await fn(); } catch (e: any) { toast.error(e?.message ?? errMsg); } finally { setBusy(false); }
   };
 
+  // Auto-open chat once the request is accepted (set when user clicked "Message" on a non-friend)
+  useEffect(() => {
+    if (status !== "friends") return;
+    let flagged = false;
+    try { flagged = localStorage.getItem(`auto_open_chat:${otherId}`) === "1"; } catch {}
+    if (!flagged) return;
+    try { localStorage.removeItem(`auto_open_chat:${otherId}`); } catch {}
+    (async () => {
+      try {
+        const id = await openConversation(user.id, otherId);
+        navigate({ to: "/messages", search: { c: id } });
+      } catch {}
+    })();
+  }, [status, otherId, user.id, navigate]);
+
   if (status === "friends") {
     return (
       <Button size="sm" disabled={busy} onClick={() => wrap(async () => {
