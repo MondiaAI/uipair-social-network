@@ -58,6 +58,17 @@ function MessagesPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
+  const [muted, setMuted] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("muted_conversations") ?? "{}"); } catch { return {}; }
+  });
+  const persistMuted = (next: Record<string, boolean>) => {
+    setMuted(next);
+    try { localStorage.setItem("muted_conversations", JSON.stringify(next)); } catch {}
+  };
+  const toggleMute = (id: string) => persistMuted({ ...muted, [id]: !muted[id] });
+  const activeIdRef = useRef<string | undefined>(activeId);
+  useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
