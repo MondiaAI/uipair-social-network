@@ -426,12 +426,27 @@ function MessagesPage() {
                   {(active.other?.full_name || active.other?.username || "S").slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">
                   {active.other?.full_name || active.other?.username || "Student"}
                 </p>
-                <p className="text-xs text-muted-foreground">Private chat</p>
+                <p className="text-xs text-muted-foreground">
+                  {muted[active.id] ? "Notifications muted" : "Private chat"}
+                </p>
               </div>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  toggleMute(active.id);
+                  toast.message(muted[active.id] ? "Notifications unmuted" : "Notifications muted");
+                }}
+                title={muted[active.id] ? "Unmute notifications" : "Mute notifications"}
+                aria-label={muted[active.id] ? "Unmute notifications" : "Mute notifications"}
+              >
+                {muted[active.id] ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
+              </Button>
             </header>
 
             <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto p-4">
