@@ -76,10 +76,25 @@ function SignupPage() {
     setStep(2);
   };
 
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const googleSubmittingRef = useRef(false);
+
   const handleGoogle = async () => {
     if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) toast.error("Google sign-in failed");
+    if (googleSubmittingRef.current || googleLoading) return;
+    googleSubmittingRef.current = true;
+    setGoogleLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      if (result.error) {
+        toast.error("Google sign-in failed");
+        return;
+      }
+      if (result.redirected) return; // keep spinner; browser will redirect
+    } finally {
+      googleSubmittingRef.current = false;
+      setGoogleLoading(false);
+    }
   };
 
   const onPickAvatar = (file: File) => {
