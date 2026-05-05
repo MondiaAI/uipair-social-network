@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth-context";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
 import { PasswordInput } from "@/components/peerly/PasswordInput";
+import { Loader2 } from "lucide-react";
 
 
 export const Route = createFileRoute("/login")({
@@ -17,33 +18,37 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false);
+  const navigatedRef = useRef(false);
 
+  // Wait for Supabase auth hydration to finish before redirecting,
+  // so we never flash a sign-out state on /login.
   useEffect(() => {
-    if (user) navigate({ to: "/feed" });
-  }, [user, navigate]);
+    if (authLoading) return;
+    if (user && !navigatedRef.current) {
+      navigatedRef.current = true;
+      navigate({ to: "/feed", replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   const handleEmailLogin = async (e: FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (submittingRef.current || loading) return;
+    submittingRef.current = true;
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      submittingRef.current = false;
       setLoading(false);
       toast.error(error.message);
       return;
     }
-    // Session is now persisted in localStorage by the Supabase client.
-    // Wait for the session to be fully set before navigating so the
-    // route guard doesn't redirect us back to /login.
-    if (data.session) {
-      navigate({ to: "/feed", replace: true });
-    }
-    // Keep loading=true; the useEffect on `user` will navigate as soon as
-    // AuthProvider picks up the new session, preventing a flash back here.
+    // Keep loading=true; the useEffect on `user` will navigate once the
+    // AuthProvider picks up the hydrated session, preventing a flash.
   };
 
   const handleGoogle = async () => {
