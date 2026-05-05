@@ -588,9 +588,15 @@ function CircleDetailPage() {
               <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to upload resources.
             </div>
           )}
-          {resources.length === 0 ? (
+          {isPremiumLocked ? (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-6 text-center text-sm">
+              <Lock className="h-5 w-5 mx-auto mb-2 text-primary" />
+              <p className="font-medium">{resources.length} premium {resources.length === 1 ? "resource is" : "resources are"} locked</p>
+              <p className="text-xs text-muted-foreground mt-1">Subscribe to download materials shared by this circle.</p>
+            </div>
+          ) : visibleResources.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No resources yet.</p>
-          ) : resources.map((r) => (
+          ) : visibleResources.map((r) => (
             <a key={r.id} href={r.url} target="_blank" rel="noopener noreferrer" className="block rounded-lg border bg-card p-3 hover:shadow-sm transition">
               <p className="font-medium text-sm">{r.title}</p>
               <p className="text-xs text-muted-foreground truncate">{r.url}</p>
