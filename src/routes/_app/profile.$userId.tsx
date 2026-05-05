@@ -134,8 +134,21 @@ function ProfilePage() {
           )}
           {profile.bio && <p className="mt-2 text-sm">{profile.bio}</p>}
           {profile.skills?.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {profile.skills.map((s: string) => <Badge key={s} variant="secondary">{s}</Badge>)}
+            <div className="mt-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Skills</p>
+              <div className="flex flex-wrap gap-1.5">
+                {profile.skills.map((s: string) => <Badge key={s} variant="secondary">{s}</Badge>)}
+              </div>
+            </div>
+          )}
+          {profile.interests?.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">Interests</p>
+              <div className="flex flex-wrap gap-1.5">
+                {profile.interests.map((s: string) => (
+                  <Badge key={s} variant="outline" className="border-primary/30 bg-primary/5 text-primary">{s}</Badge>
+                ))}
+              </div>
             </div>
           )}
         </div>
