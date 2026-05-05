@@ -252,6 +252,21 @@ function FriendActions({ otherId, otherName }: { otherId: string; otherName: str
     try { await fn(); } catch (e: any) { toast.error(e?.message ?? errMsg); } finally { setBusy(false); }
   };
 
+  // Auto-open chat once the request is accepted (set when user clicked "Message" on a non-friend)
+  useEffect(() => {
+    if (status !== "friends") return;
+    let flagged = false;
+    try { flagged = localStorage.getItem(`auto_open_chat:${otherId}`) === "1"; } catch {}
+    if (!flagged) return;
+    try { localStorage.removeItem(`auto_open_chat:${otherId}`); } catch {}
+    (async () => {
+      try {
+        const id = await openConversation(user.id, otherId);
+        navigate({ to: "/messages", search: { c: id } });
+      } catch {}
+    })();
+  }, [status, otherId, user.id, navigate]);
+
   if (status === "friends") {
     return (
       <Button size="sm" disabled={busy} onClick={() => wrap(async () => {
@@ -283,11 +298,20 @@ function FriendActions({ otherId, otherName }: { otherId: string; otherName: str
     );
   }
   return (
-    <Button size="sm" disabled={busy} onClick={() => wrap(async () => {
-      await sendFriendRequest(user.id, otherId);
-      toast.success(`Friend request sent to ${otherName}`);
-    }, "Could not send request")}>
-      <UserPlus className="h-4 w-4" /> Connect
-    </Button>
+    <>
+      <Button size="sm" disabled={busy} onClick={() => wrap(async () => {
+        await sendFriendRequest(user.id, otherId);
+        toast.success(`Friend request sent to ${otherName}`);
+      }, "Could not send request")}>
+        <UserPlus className="h-4 w-4" /> Connect
+      </Button>
+      <Button size="sm" variant="outline" disabled={busy} onClick={() => wrap(async () => {
+        await sendFriendRequest(user.id, otherId);
+        try { localStorage.setItem(`auto_open_chat:${otherId}`, "1"); } catch {}
+        toast.message("Request sent", { description: `We'll open the chat with ${otherName} as soon as they accept.` });
+      }, "Could not send request")}>
+        <MessageCircle className="h-4 w-4" /> Message
+      </Button>
+    </>
   );
 }
