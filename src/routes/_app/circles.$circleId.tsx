@@ -55,6 +55,7 @@ function CircleDetailPage() {
   const [profileMap, setProfileMap] = useState<Map<string, ProfileLite>>(new Map());
   const [loading, setLoading] = useState(true);
   const [postContent, setPostContent] = useState("");
+  const [postKind, setPostKind] = useState<"discussion" | "research" | "partner" | "question" | "resource">("discussion");
   const [resTitle, setResTitle] = useState("");
   const [resUrl, setResUrl] = useState("");
   const [sessionTitle, setSessionTitle] = useState("");
