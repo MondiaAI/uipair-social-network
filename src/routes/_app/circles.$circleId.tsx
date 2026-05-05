@@ -80,6 +80,13 @@ function CircleDetailPage() {
 
   const stripeEnv = getStripeEnvironment();
   const isMember = members.some((m) => m.id === user?.id);
+  // Premium gating: non-subscribed users see a limited preview only.
+  const isPremiumLocked = !!circle?.is_premium && !isMember;
+  const PREVIEW_POST_LIMIT = 2;
+  const visiblePosts = isPremiumLocked ? posts.slice(0, PREVIEW_POST_LIMIT) : posts;
+  const visibleResources = isPremiumLocked ? [] : resources;
+  const visibleSessions = isPremiumLocked ? [] : sessions;
+  const hiddenPostsCount = Math.max(posts.length - visiblePosts.length, 0);
 
   const load = async () => {
     setLoading(true);
