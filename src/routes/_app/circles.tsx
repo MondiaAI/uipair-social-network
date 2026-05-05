@@ -152,12 +152,28 @@ function CirclesPage() {
       )}
 
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Discover</h2>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Discover</h2>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            {mode === "campus" ? (
+              <><GraduationCap className="h-3.5 w-3.5" /> Campus{userUniversity ? ` · ${userUniversity}` : ""}</>
+            ) : (
+              <><Globe className="h-3.5 w-3.5" /> Global circles</>
+            )}
+          </div>
+        </div>
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading circles…</p>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>No circles found. Be the first to create one!</p>
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            {mode === "campus" ? (
+              <p>
+                No campus circles{userUniversity ? ` for ${userUniversity}` : ""} yet.
+                {" "}Switch to <span className="font-medium">Global</span> in the header or create one.
+              </p>
+            ) : (
+              <p>No global circles match your filters. Be the first to create one!</p>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
