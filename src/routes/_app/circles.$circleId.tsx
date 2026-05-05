@@ -562,6 +562,12 @@ function CircleDetailPage() {
               </div>
             );
           })}
+          {isPremiumLocked && hiddenPostsCount > 0 && (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-center text-sm">
+              <Lock className="h-4 w-4 inline mr-1 text-primary" />
+              {hiddenPostsCount} more {hiddenPostsCount === 1 ? "post is" : "posts are"} locked — subscribe to read the full discussion.
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="resources" className="mt-4 space-y-3">
