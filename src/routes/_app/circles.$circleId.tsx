@@ -80,6 +80,13 @@ function CircleDetailPage() {
 
   const stripeEnv = getStripeEnvironment();
   const isMember = members.some((m) => m.id === user?.id);
+  // Premium gating: non-subscribed users see a limited preview only.
+  const isPremiumLocked = !!circle?.is_premium && !isMember;
+  const PREVIEW_POST_LIMIT = 2;
+  const visiblePosts = isPremiumLocked ? posts.slice(0, PREVIEW_POST_LIMIT) : posts;
+  const visibleResources = isPremiumLocked ? [] : resources;
+  const visibleSessions = isPremiumLocked ? [] : sessions;
+  const hiddenPostsCount = Math.max(posts.length - visiblePosts.length, 0);
 
   const load = async () => {
     setLoading(true);
@@ -497,9 +504,9 @@ function CircleDetailPage() {
               <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to post and comment.
             </div>
           )}
-          {posts.length === 0 ? (
+          {visiblePosts.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No posts yet.</p>
-          ) : posts.map((p) => {
+          ) : visiblePosts.map((p) => {
             const author = profileMap.get(p.user_id);
             const name = author?.full_name || author?.username || "Member";
             const init = name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
@@ -555,6 +562,12 @@ function CircleDetailPage() {
               </div>
             );
           })}
+          {isPremiumLocked && hiddenPostsCount > 0 && (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-center text-sm">
+              <Lock className="h-4 w-4 inline mr-1 text-primary" />
+              {hiddenPostsCount} more {hiddenPostsCount === 1 ? "post is" : "posts are"} locked — subscribe to read the full discussion.
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="resources" className="mt-4 space-y-3">
@@ -575,9 +588,15 @@ function CircleDetailPage() {
               <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to upload resources.
             </div>
           )}
-          {resources.length === 0 ? (
+          {isPremiumLocked ? (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-6 text-center text-sm">
+              <Lock className="h-5 w-5 mx-auto mb-2 text-primary" />
+              <p className="font-medium">{resources.length} premium {resources.length === 1 ? "resource is" : "resources are"} locked</p>
+              <p className="text-xs text-muted-foreground mt-1">Subscribe to download materials shared by this circle.</p>
+            </div>
+          ) : visibleResources.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No resources yet.</p>
-          ) : resources.map((r) => (
+          ) : visibleResources.map((r) => (
             <a key={r.id} href={r.url} target="_blank" rel="noopener noreferrer" className="block rounded-lg border bg-card p-3 hover:shadow-sm transition">
               <p className="font-medium text-sm">{r.title}</p>
               <p className="text-xs text-muted-foreground truncate">{r.url}</p>
@@ -627,9 +646,15 @@ function CircleDetailPage() {
               <Lock className="h-3.5 w-3.5" /> Read-only preview — {circle.is_premium ? "subscribe" : "join"} to schedule live sessions{!isMember && " and access join links"}.
             </div>
           )}
-          {sessions.length === 0 ? (
+          {isPremiumLocked ? (
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-6 text-center text-sm">
+              <Lock className="h-5 w-5 mx-auto mb-2 text-primary" />
+              <p className="font-medium">{sessions.length} live {sessions.length === 1 ? "session is" : "sessions are"} locked</p>
+              <p className="text-xs text-muted-foreground mt-1">Subscribe to view the schedule and join links.</p>
+            </div>
+          ) : visibleSessions.length === 0 ? (
             <p className="text-center text-muted-foreground py-8 text-sm">No upcoming sessions.</p>
-          ) : sessions.map((s) => (
+          ) : visibleSessions.map((s) => (
             <div key={s.id} className="rounded-lg border bg-card p-3 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="font-medium text-sm">{s.title}</p>
