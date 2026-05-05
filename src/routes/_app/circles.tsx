@@ -18,10 +18,13 @@ export const Route = createFileRoute("/_app/circles")({
   component: CirclesPage,
 });
 
-interface CircleRow extends CircleCardData {}
+interface CircleRow extends CircleCardData {
+  university: string | null;
+}
 
 function CirclesPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { mode } = useFeedMode();
   const navigate = useNavigate();
   const [circles, setCircles] = useState<CircleRow[]>([]);
   const [memberships, setMemberships] = useState<Set<string>>(new Set());
@@ -30,11 +33,13 @@ function CirclesPage() {
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
 
+  const userUniversity = profile?.university ?? null;
+
   const load = async () => {
     setLoading(true);
     const { data: rows } = await supabase
       .from("circles")
-      .select("id,name,subject,description,scope,is_premium,price_monthly,member_count,leader_id")
+      .select("id,name,subject,description,scope,is_premium,price_monthly,member_count,leader_id,university")
       .order("created_at", { ascending: false });
 
     const leaderIds = Array.from(new Set((rows ?? []).map((r) => r.leader_id)));
@@ -53,6 +58,7 @@ function CirclesPage() {
         is_premium: r.is_premium,
         price_monthly: r.price_monthly as number | null,
         member_count: r.member_count,
+        university: r.university,
         leader: leaderMap.get(r.leader_id) ?? null,
       })),
     );
