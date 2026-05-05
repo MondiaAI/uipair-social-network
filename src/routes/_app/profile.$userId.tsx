@@ -7,9 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Camera, Star, BadgeCheck, GraduationCap } from "lucide-react";
+import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock } from "lucide-react";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
+import {
+  deriveStatus,
+  sendFriendRequest,
+  respondToRequest,
+  cancelRequest,
+  openConversation,
+} from "@/lib/friends";
+import { useFriendships } from "@/hooks/use-friendships";
 import { PostCard } from "@/components/peerly/PostCard";
 import { GigCard } from "@/components/peerly/GigCard";
 import { ResourceCard } from "@/components/peerly/ResourceCard";
