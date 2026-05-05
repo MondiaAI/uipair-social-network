@@ -7,9 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Camera, Star, BadgeCheck, GraduationCap } from "lucide-react";
+import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock } from "lucide-react";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
+import {
+  deriveStatus,
+  sendFriendRequest,
+  respondToRequest,
+  cancelRequest,
+  openConversation,
+} from "@/lib/friends";
+import { useFriendships } from "@/hooks/use-friendships";
 import { PostCard } from "@/components/peerly/PostCard";
 import { GigCard } from "@/components/peerly/GigCard";
 import { ResourceCard } from "@/components/peerly/ResourceCard";
@@ -106,13 +114,13 @@ function ProfilePage() {
               </label>
             )}
           </div>
-          <div className="flex gap-2 mb-1">
+          <div className="flex flex-wrap gap-2 mb-1">
             {!isMe && user && (
               <>
                 <Button size="sm" variant={following ? "outline" : "default"} onClick={toggleFollow}>
                   {following ? "Following" : "Follow"}
                 </Button>
-                <Button size="sm" variant="outline" disabled>Message</Button>
+                <FriendActions otherId={userId} otherName={name} />
               </>
             )}
             {isMe && <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>}
@@ -229,3 +237,57 @@ function Empty({ msg }: { msg: string }) {
 }
 // suppress unused
 void PostCard;
+
+function FriendActions({ otherId, otherName }: { otherId: string; otherName: string }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { edges } = useFriendships();
+  const [busy, setBusy] = useState(false);
+  if (!user) return null;
+  const edge = edges[otherId] ?? null;
+  const status = deriveStatus(edge, user.id);
+
+  const wrap = async (fn: () => Promise<void>, errMsg: string) => {
+    setBusy(true);
+    try { await fn(); } catch (e: any) { toast.error(e?.message ?? errMsg); } finally { setBusy(false); }
+  };
+
+  if (status === "friends") {
+    return (
+      <Button size="sm" disabled={busy} onClick={() => wrap(async () => {
+        const id = await openConversation(user.id, otherId);
+        navigate({ to: "/messages", search: { c: id } });
+      }, "Could not open chat")}>
+        <MessageCircle className="h-4 w-4" /> Message
+      </Button>
+    );
+  }
+  if (status === "outgoing_pending") {
+    return (
+      <>
+        <Button size="sm" variant="outline" disabled><Clock className="h-4 w-4" /> Request sent</Button>
+        <Button size="sm" variant="ghost" disabled={busy} onClick={() => wrap(async () => { if (edge) await cancelRequest(edge.id); }, "Could not cancel")}>Cancel</Button>
+      </>
+    );
+  }
+  if (status === "incoming_pending") {
+    return (
+      <>
+        <Button size="sm" disabled={busy} onClick={() => wrap(async () => { if (edge) await respondToRequest(edge.id, true); toast.success(`Connected with ${otherName}`); }, "Could not accept")}>
+          <Check className="h-4 w-4" /> Accept
+        </Button>
+        <Button size="sm" variant="outline" disabled={busy} onClick={() => wrap(async () => { if (edge) await respondToRequest(edge.id, false); }, "Could not decline")}>
+          <X className="h-4 w-4" /> Decline
+        </Button>
+      </>
+    );
+  }
+  return (
+    <Button size="sm" disabled={busy} onClick={() => wrap(async () => {
+      await sendFriendRequest(user.id, otherId);
+      toast.success(`Friend request sent to ${otherName}`);
+    }, "Could not send request")}>
+      <UserPlus className="h-4 w-4" /> Connect
+    </Button>
+  );
+}
