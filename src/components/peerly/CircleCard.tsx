@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Crown, Lock, MessageSquare, Sparkles, Users } from "lucide-react";
+import { Crown, Loader2, Lock, MessageSquare, Sparkles, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,10 +31,12 @@ export function CircleCard({
   circle,
   joined,
   onJoin,
+  joining = false,
 }: {
   circle: CircleCardData;
   joined: boolean;
   onJoin: (id: string) => void;
+  joining?: boolean;
 }) {
   const leaderName = circle.leader?.full_name || circle.leader?.username || "Unknown";
   const leaderInitials = leaderName.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
@@ -95,12 +97,14 @@ export function CircleCard({
         </Button>
         {!joined && (
           circle.is_premium ? (
-            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)}>
-              <Sparkles className="h-3.5 w-3.5" /> Subscribe ${price}/mo
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)} disabled={joining}>
+              {joining ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+              {joining ? "Joining…" : `Subscribe $${price}/mo`}
             </Button>
           ) : (
-            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)}>
-              Join free
+            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)} disabled={joining}>
+              {joining && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {joining ? "Joining…" : "Join free"}
             </Button>
           )
         )}
@@ -170,12 +174,15 @@ export function CircleCard({
               <Button
                 className="bg-gradient-to-r from-primary to-primary/70"
                 onClick={() => { setPreviewOpen(false); onJoin(circle.id); }}
+                disabled={joining}
               >
-                <Sparkles className="h-4 w-4" /> Subscribe ${price}/mo
+                {joining ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                {joining ? "Joining…" : `Subscribe $${price}/mo`}
               </Button>
             ) : (
-              <Button onClick={() => { setPreviewOpen(false); onJoin(circle.id); }}>
-                Join free
+              <Button onClick={() => { setPreviewOpen(false); onJoin(circle.id); }} disabled={joining}>
+                {joining && <Loader2 className="h-4 w-4 animate-spin" />}
+                {joining ? "Joining…" : "Join free"}
               </Button>
             )}
           </DialogFooter>

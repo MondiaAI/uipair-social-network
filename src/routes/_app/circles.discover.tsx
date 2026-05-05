@@ -28,6 +28,7 @@ function DiscoverCirclesPage() {
   const navigate = useNavigate();
   const [circles, setCircles] = useState<CircleRow[]>([]);
   const [memberships, setMemberships] = useState<Set<string>>(new Set());
+  const [joiningIds, setJoiningIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
@@ -75,16 +76,25 @@ function DiscoverCirclesPage() {
 
   const handleJoin = async (circleId: string) => {
     if (!user) return;
+    if (joiningIds.has(circleId) || memberships.has(circleId)) return;
     const circle = circles.find((c) => c.id === circleId);
     if (circle?.is_premium) {
       navigate({ to: "/circles/$circleId", params: { circleId } });
       return;
     }
-    const { error } = await supabase.from("circle_members").insert({ circle_id: circleId, user_id: user.id });
-    if (error) { toast.error(error.message); return; }
-    toast.success("Joined circle!");
+    setJoiningIds((p) => new Set(p).add(circleId));
     setMemberships((prev) => new Set(prev).add(circleId));
     setCircles((prev) => prev.map((c) => c.id === circleId ? { ...c, member_count: c.member_count + 1 } : c));
+    const { error } = await supabase.from("circle_members").insert({ circle_id: circleId, user_id: user.id });
+    if (error) {
+      setMemberships((prev) => { const n = new Set(prev); n.delete(circleId); return n; });
+      setCircles((prev) => prev.map((c) => c.id === circleId ? { ...c, member_count: Math.max(0, c.member_count - 1) } : c));
+      setJoiningIds((p) => { const n = new Set(p); n.delete(circleId); return n; });
+      toast.error(error.message || "Failed to join circle");
+      return;
+    }
+    setJoiningIds((p) => { const n = new Set(p); n.delete(circleId); return n; });
+    toast.success("Joined circle!");
     navigate({ to: "/circles/$circleId", params: { circleId } });
   };
 
@@ -231,7 +241,7 @@ function DiscoverCirclesPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filtered.map((c) => (
-            <CircleCard key={c.id} circle={c} joined={memberships.has(c.id)} onJoin={handleJoin} />
+            <CircleCard key={c.id} circle={c} joined={memberships.has(c.id)} joining={joiningIds.has(c.id)} onJoin={handleJoin} />
           ))}
         </div>
       )}
