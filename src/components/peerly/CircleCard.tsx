@@ -149,7 +149,14 @@ export function CircleCard({
             )}
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-2">
+          <DialogFooter className="gap-2 sm:gap-2 flex-wrap">
+            {circle.leader?.id && (
+              <Button variant="outline" asChild onClick={() => setPreviewOpen(false)}>
+                <Link to="/profile/$userId" params={{ userId: circle.leader.id }}>
+                  <MessageSquare className="h-4 w-4" /> Connect with leader
+                </Link>
+              </Button>
+            )}
             <Button variant="outline" asChild onClick={() => setPreviewOpen(false)}>
               <Link to="/circles/$circleId" params={{ circleId: circle.id }}>
                 View full page
