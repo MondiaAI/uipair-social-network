@@ -28,14 +28,22 @@ function LoginPage() {
 
   const handleEmailLogin = async (e: FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      setLoading(false);
       toast.error(error.message);
       return;
     }
-    navigate({ to: "/feed" });
+    // Session is now persisted in localStorage by the Supabase client.
+    // Wait for the session to be fully set before navigating so the
+    // route guard doesn't redirect us back to /login.
+    if (data.session) {
+      navigate({ to: "/feed", replace: true });
+    }
+    // Keep loading=true; the useEffect on `user` will navigate as soon as
+    // AuthProvider picks up the new session, preventing a flash back here.
   };
 
   const handleGoogle = async () => {
