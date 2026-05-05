@@ -503,14 +503,55 @@ function CircleDetailPage() {
             const author = profileMap.get(p.user_id);
             const name = author?.full_name || author?.username || "Member";
             const init = name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
+            const KIND_META: Record<PostKind, { label: string; cls: string }> = {
+              discussion: { label: "Discussion", cls: "bg-muted text-foreground" },
+              research: { label: "Research", cls: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
+              partner: { label: "Partner", cls: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+              question: { label: "Question", cls: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
+              resource: { label: "Resource", cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+            };
+            const kind = KIND_META[p.post_type] ?? KIND_META.discussion;
+            const cmts = postComments[p.id] ?? [];
             return (
               <div key={p.id} className="rounded-lg border bg-card p-3">
                 <div className="flex items-center gap-2 mb-2">
                   <Avatar className="h-7 w-7"><AvatarImage src={author?.avatar_url ?? undefined} /><AvatarFallback className="text-xs">{init}</AvatarFallback></Avatar>
                   <span className="text-sm font-medium">{name}</span>
+                  <Badge variant="outline" className={cn("text-[10px]", kind.cls)}>{kind.label}</Badge>
                   <span className="text-xs text-muted-foreground">· {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</span>
                 </div>
                 <p className="text-sm whitespace-pre-wrap">{p.content}</p>
+
+                {(cmts.length > 0 || isMember) && (
+                  <div className="mt-3 pt-3 border-t space-y-2">
+                    {cmts.map((c) => {
+                      const ca = profileMap.get(c.user_id);
+                      const cname = ca?.full_name || ca?.username || "Member";
+                      const cinit = cname.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
+                      return (
+                        <div key={c.id} className="flex gap-2">
+                          <Avatar className="h-6 w-6"><AvatarImage src={ca?.avatar_url ?? undefined} /><AvatarFallback className="text-[10px]">{cinit}</AvatarFallback></Avatar>
+                          <div className="flex-1 rounded-md bg-muted/50 px-2.5 py-1.5">
+                            <p className="text-xs"><span className="font-medium">{cname}</span> <span className="text-muted-foreground">· {formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span></p>
+                            <p className="text-sm whitespace-pre-wrap">{c.content}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {isMember && (
+                      <div className="flex gap-2">
+                        <Input
+                          value={commentDrafts[p.id] ?? ""}
+                          onChange={(e) => setCommentDrafts((d) => ({ ...d, [p.id]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddComment(p.id); } }}
+                          placeholder="Write a comment…"
+                          className="h-8 text-sm"
+                        />
+                        <Button size="sm" onClick={() => handleAddComment(p.id)} disabled={!(commentDrafts[p.id] ?? "").trim()}>Reply</Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
