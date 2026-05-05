@@ -66,7 +66,7 @@ function MessagesPage() {
   useEffect(() => {
     if (prefill) {
       setDraft(prefill);
-      navigate({ search: (prev) => ({ ...prev, m: undefined }), replace: true });
+      navigate({ search: (prev: Record<string, unknown>) => ({ ...prev, m: undefined }), replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill, activeId]);
