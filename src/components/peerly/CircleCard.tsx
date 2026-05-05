@@ -174,12 +174,15 @@ export function CircleCard({
               <Button
                 className="bg-gradient-to-r from-primary to-primary/70"
                 onClick={() => { setPreviewOpen(false); onJoin(circle.id); }}
+                disabled={joining}
               >
-                <Sparkles className="h-4 w-4" /> Subscribe ${price}/mo
+                {joining ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                {joining ? "Joining…" : `Subscribe $${price}/mo`}
               </Button>
             ) : (
-              <Button onClick={() => { setPreviewOpen(false); onJoin(circle.id); }}>
-                Join free
+              <Button onClick={() => { setPreviewOpen(false); onJoin(circle.id); }} disabled={joining}>
+                {joining && <Loader2 className="h-4 w-4 animate-spin" />}
+                {joining ? "Joining…" : "Join free"}
               </Button>
             )}
           </DialogFooter>
