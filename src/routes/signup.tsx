@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, FormEvent } from "react";
+import { useState, useEffect, useRef, FormEvent } from "react";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/lib/auth-context";
@@ -75,10 +76,25 @@ function SignupPage() {
     setStep(2);
   };
 
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const googleSubmittingRef = useRef(false);
+
   const handleGoogle = async () => {
     if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) toast.error("Google sign-in failed");
+    if (googleSubmittingRef.current || googleLoading) return;
+    googleSubmittingRef.current = true;
+    setGoogleLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+      if (result.error) {
+        toast.error("Google sign-in failed");
+        return;
+      }
+      if (result.redirected) return; // keep spinner; browser will redirect
+    } finally {
+      googleSubmittingRef.current = false;
+      setGoogleLoading(false);
+    }
   };
 
   const onPickAvatar = (file: File) => {
@@ -147,7 +163,16 @@ function SignupPage() {
           <>
             <h1 className="text-xl font-bold">Create your account</h1>
             <p className="text-sm text-muted-foreground mb-4">Step 1 of 4</p>
-            <Button variant="outline" className="w-full mb-3" onClick={handleGoogle}>Continue with Google</Button>
+            <Button
+              variant="outline"
+              className="w-full mb-3"
+              onClick={handleGoogle}
+              disabled={googleLoading || loading}
+              aria-busy={googleLoading}
+            >
+              {googleLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {googleLoading ? "Connecting…" : "Continue with Google"}
+            </Button>
             <div className="relative my-3"><div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div><div className="relative flex justify-center text-xs"><span className="bg-card px-2 text-muted-foreground">or</span></div></div>
             <form onSubmit={handleStep1} className="space-y-3">
               <div><Label>Full name</Label><Input required value={fullName} onChange={(e) => setFullName(e.target.value)} /></div>
