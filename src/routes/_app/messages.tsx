@@ -138,7 +138,31 @@ function MessagesPage() {
     const channel = supabase
       .channel(`conv_list:${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => load())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => load())
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          const m = payload.new as MessageRow;
+          // Optimistically bump unread + preview without a full reload
+          setConversations((prev) => {
+            const idx = prev.findIndex((c) => c.id === m.conversation_id);
+            if (idx === -1) { load(); return prev; }
+            const next = [...prev];
+            const isMine = m.sender_id === user.id;
+            const isActive = activeIdRef.current === m.conversation_id;
+            const inc = isMine || isActive ? 0 : 1;
+            next[idx] = {
+              ...next[idx],
+              preview: m.content,
+              last_message_at: m.created_at,
+              unread: (next[idx].unread ?? 0) + inc,
+            };
+            // Re-sort by last_message_at desc
+            next.sort((a, b) => (a.last_message_at < b.last_message_at ? 1 : -1));
+            return next;
+          });
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
