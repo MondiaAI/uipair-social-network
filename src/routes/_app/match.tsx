@@ -28,7 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search, History, Check, Clock, X } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_app/match")({
   component: MatchPage,
