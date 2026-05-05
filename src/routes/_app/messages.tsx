@@ -34,6 +34,7 @@ interface ConversationRow {
     avatar_url: string | null;
   };
   preview?: string;
+  unread?: number;
 }
 
 interface MessageRow {
@@ -42,6 +43,7 @@ interface MessageRow {
   sender_id: string;
   content: string;
   created_at: string;
+  read_at?: string | null;
 }
 
 function MessagesPage() {
