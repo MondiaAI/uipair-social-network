@@ -144,8 +144,8 @@ function DiscoverCirclesPage() {
 
           <div className="flex rounded-md border p-0.5 bg-background">
             {([
-              { v: "all", label: "All" },
-              { v: "free", label: "Free" },
+              { v: "all", label: "All", icon: null },
+              { v: "free", label: "Free", icon: null },
               { v: "premium", label: "Premium", icon: Sparkles },
             ] as const).map(({ v, label, icon: Icon }) => (
               <button

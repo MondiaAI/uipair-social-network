@@ -24,6 +24,7 @@ import { Route as AppCirclesRouteImport } from './routes/_app/circles'
 import { Route as AppAmbassadorRouteImport } from './routes/_app/ambassador'
 import { Route as AppProfileUserIdRouteImport } from './routes/_app/profile.$userId'
 import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
+import { Route as AppCirclesDiscoverRouteImport } from './routes/_app/circles.discover'
 import { Route as AppCirclesCircleIdRouteImport } from './routes/_app/circles.$circleId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -101,6 +102,11 @@ const AppLabProjectIdRoute = AppLabProjectIdRouteImport.update({
   path: '/$projectId',
   getParentRoute: () => AppLabRoute,
 } as any)
+const AppCirclesDiscoverRoute = AppCirclesDiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
+  getParentRoute: () => AppCirclesRoute,
+} as any)
 const AppCirclesCircleIdRoute = AppCirclesCircleIdRouteImport.update({
   id: '/$circleId',
   path: '/$circleId',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/match': typeof AppMatchRoute
   '/messages': typeof AppMessagesRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
+  '/circles/discover': typeof AppCirclesDiscoverRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/match': typeof AppMatchRoute
   '/messages': typeof AppMessagesRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
+  '/circles/discover': typeof AppCirclesDiscoverRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/_app/match': typeof AppMatchRoute
   '/_app/messages': typeof AppMessagesRoute
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
+  '/_app/circles/discover': typeof AppCirclesDiscoverRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/match'
     | '/messages'
     | '/circles/$circleId'
+    | '/circles/discover'
     | '/lab/$projectId'
     | '/profile/$userId'
     | '/api/public/payments/webhook'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/match'
     | '/messages'
     | '/circles/$circleId'
+    | '/circles/discover'
     | '/lab/$projectId'
     | '/profile/$userId'
     | '/api/public/payments/webhook'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/_app/match'
     | '/_app/messages'
     | '/_app/circles/$circleId'
+    | '/_app/circles/discover'
     | '/_app/lab/$projectId'
     | '/_app/profile/$userId'
     | '/api/public/payments/webhook'
@@ -344,6 +356,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLabProjectIdRouteImport
       parentRoute: typeof AppLabRoute
     }
+    '/_app/circles/discover': {
+      id: '/_app/circles/discover'
+      path: '/discover'
+      fullPath: '/circles/discover'
+      preLoaderRoute: typeof AppCirclesDiscoverRouteImport
+      parentRoute: typeof AppCirclesRoute
+    }
     '/_app/circles/$circleId': {
       id: '/_app/circles/$circleId'
       path: '/$circleId'
@@ -363,10 +382,12 @@ declare module '@tanstack/react-router' {
 
 interface AppCirclesRouteChildren {
   AppCirclesCircleIdRoute: typeof AppCirclesCircleIdRoute
+  AppCirclesDiscoverRoute: typeof AppCirclesDiscoverRoute
 }
 
 const AppCirclesRouteChildren: AppCirclesRouteChildren = {
   AppCirclesCircleIdRoute: AppCirclesCircleIdRoute,
+  AppCirclesDiscoverRoute: AppCirclesDiscoverRoute,
 }
 
 const AppCirclesRouteWithChildren = AppCirclesRoute._addFileChildren(
