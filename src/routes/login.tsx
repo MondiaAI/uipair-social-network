@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
 import { PasswordInput } from "@/components/peerly/PasswordInput";
-import { PasswordStrengthMeter } from "@/components/peerly/PasswordStrengthMeter";
+
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
