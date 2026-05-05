@@ -125,6 +125,7 @@ function ProjectDetailPage() {
     (m ?? []).forEach((x) => userIds.add(x.user_id));
     (a ?? []).forEach((x) => userIds.add(x.user_id));
     (c ?? []).forEach((x) => userIds.add(x.user_id));
+    (t ?? []).forEach((x) => { if (x.assignee_id) userIds.add(x.assignee_id); });
 
     const { data: profiles } = userIds.size
       ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", Array.from(userIds))
