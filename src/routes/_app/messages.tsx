@@ -95,15 +95,19 @@ function MessagesPage() {
         .in("id", otherIds);
       const byId = new Map((profs ?? []).map((p) => [p.id, p]));
 
-      // Fetch latest message preview per conversation
+      // Fetch latest message preview + unread counts per conversation
       const { data: previews } = await supabase
         .from("messages")
-        .select("conversation_id, content, created_at")
+        .select("conversation_id, content, created_at, sender_id, read_at")
         .in("conversation_id", list.map((c) => c.id))
         .order("created_at", { ascending: false });
       const previewBy = new Map<string, string>();
+      const unreadBy = new Map<string, number>();
       (previews ?? []).forEach((m) => {
         if (!previewBy.has(m.conversation_id)) previewBy.set(m.conversation_id, m.content);
+        if (m.sender_id !== user.id && !m.read_at) {
+          unreadBy.set(m.conversation_id, (unreadBy.get(m.conversation_id) ?? 0) + 1);
+        }
       });
 
       setConversations(
@@ -113,6 +117,7 @@ function MessagesPage() {
             ...c,
             other: byId.get(otherId) as ConversationRow["other"],
             preview: previewBy.get(c.id),
+            unread: unreadBy.get(c.id) ?? 0,
           };
         })
       );
