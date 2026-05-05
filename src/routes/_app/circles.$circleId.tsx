@@ -409,7 +409,41 @@ function CircleDetailPage() {
         <TabsContent value="discussion" className="mt-4 space-y-3">
           {isMember ? (
             <div className="rounded-lg border bg-card p-3 space-y-2">
-              <Textarea value={postContent} onChange={(e) => setPostContent(e.target.value)} placeholder="Share something with the circle…" rows={3} />
+              <div className="flex flex-wrap gap-1.5">
+                {([
+                  { k: "discussion", label: "Discussion", Icon: MessageSquare },
+                  { k: "research", label: "Research", Icon: Beaker },
+                  { k: "partner", label: "Find partner", Icon: Handshake },
+                  { k: "question", label: "Question", Icon: HelpCircle },
+                  { k: "resource", label: "Resource", Icon: BookOpen },
+                ] as const).map(({ k, label, Icon }) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setPostKind(k)}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition",
+                      postKind === k
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground hover:bg-accent",
+                    )}
+                  >
+                    <Icon className="h-3 w-3" /> {label}
+                  </button>
+                ))}
+              </div>
+              <Textarea
+                value={postContent}
+                onChange={(e) => setPostContent(e.target.value)}
+                placeholder={
+                  postKind === "research" ? "Share a paper, finding, or research direction…"
+                  : postKind === "partner" ? "Looking for a study partner — what are you working on?"
+                  : postKind === "question" ? "Ask the circle a question…"
+                  : postKind === "resource" ? "Describe the resource and paste a link…"
+                  : "Share something with the circle…"
+                }
+                rows={3}
+              />
               <div className="flex justify-end">
                 <Button size="sm" onClick={handlePost} disabled={!postContent.trim()}>Post</Button>
               </div>
