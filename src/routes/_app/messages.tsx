@@ -143,10 +143,20 @@ function MessagesPage() {
     const load = async () => {
       const { data } = await supabase
         .from("messages")
-        .select("id, conversation_id, sender_id, content, created_at")
+        .select("id, conversation_id, sender_id, content, created_at, read_at")
         .eq("conversation_id", activeId)
         .order("created_at", { ascending: true });
       setMessages((data ?? []) as MessageRow[]);
+      // Mark incoming unread messages as read
+      if (user) {
+        await supabase
+          .from("messages")
+          .update({ read_at: new Date().toISOString() })
+          .eq("conversation_id", activeId)
+          .neq("sender_id", user.id)
+          .is("read_at", null);
+        setConversations((prev) => prev.map((c) => c.id === activeId ? { ...c, unread: 0 } : c));
+      }
     };
     load();
 
