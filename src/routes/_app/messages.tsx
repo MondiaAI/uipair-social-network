@@ -58,15 +58,31 @@ function MessagesPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
-  const [muted, setMuted] = useState<Record<string, boolean>>(() => {
-    if (typeof window === "undefined") return {};
-    try { return JSON.parse(localStorage.getItem("muted_conversations") ?? "{}"); } catch { return {}; }
-  });
-  const persistMuted = (next: Record<string, boolean>) => {
-    setMuted(next);
-    try { localStorage.setItem("muted_conversations", JSON.stringify(next)); } catch {}
+  const [muted, setMuted] = useState<Record<string, boolean>>({});
+  const persistMuted = async (id: string, next: boolean) => {
+    setMuted((prev) => ({ ...prev, [id]: next }));
+    if (!user) return;
+    if (next) {
+      const { error } = await supabase
+        .from("conversation_mutes")
+        .upsert({ user_id: user.id, conversation_id: id }, { onConflict: "user_id,conversation_id" });
+      if (error) {
+        setMuted((prev) => ({ ...prev, [id]: !next }));
+        toast.error(error.message);
+      }
+    } else {
+      const { error } = await supabase
+        .from("conversation_mutes")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("conversation_id", id);
+      if (error) {
+        setMuted((prev) => ({ ...prev, [id]: !next }));
+        toast.error(error.message);
+      }
+    }
   };
-  const toggleMute = (id: string) => persistMuted({ ...muted, [id]: !muted[id] });
+  const toggleMute = (id: string) => persistMuted(id, !muted[id]);
   const activeIdRef = useRef<string | undefined>(activeId);
   useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
