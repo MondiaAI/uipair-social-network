@@ -257,9 +257,10 @@ function CircleDetailPage() {
 
   const handlePost = async () => {
     if (!user || !postContent.trim()) return;
-    const { error } = await supabase.from("circle_posts").insert({ circle_id: circleId, user_id: user.id, content: postContent.trim() });
+    const prefix = postKind === "discussion" ? "" : `[${postKind[0].toUpperCase()}${postKind.slice(1)}] `;
+    const { error } = await supabase.from("circle_posts").insert({ circle_id: circleId, user_id: user.id, content: prefix + postContent.trim() });
     if (error) { toast.error(error.message); return; }
-    setPostContent("");
+    setPostContent(""); setPostKind("discussion");
     load();
   };
 
