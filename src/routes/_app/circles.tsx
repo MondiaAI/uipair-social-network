@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, GraduationCap, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { useFeedMode } from "@/lib/feed-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,10 +18,13 @@ export const Route = createFileRoute("/_app/circles")({
   component: CirclesPage,
 });
 
-interface CircleRow extends CircleCardData {}
+interface CircleRow extends CircleCardData {
+  university: string | null;
+}
 
 function CirclesPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const { mode } = useFeedMode();
   const navigate = useNavigate();
   const [circles, setCircles] = useState<CircleRow[]>([]);
   const [memberships, setMemberships] = useState<Set<string>>(new Set());
@@ -29,11 +33,13 @@ function CirclesPage() {
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [createOpen, setCreateOpen] = useState(false);
 
+  const userUniversity = profile?.university ?? null;
+
   const load = async () => {
     setLoading(true);
     const { data: rows } = await supabase
       .from("circles")
-      .select("id,name,subject,description,scope,is_premium,price_monthly,member_count,leader_id")
+      .select("id,name,subject,description,scope,is_premium,price_monthly,member_count,leader_id,university")
       .order("created_at", { ascending: false });
 
     const leaderIds = Array.from(new Set((rows ?? []).map((r) => r.leader_id)));
@@ -52,6 +58,7 @@ function CirclesPage() {
         is_premium: r.is_premium,
         price_monthly: r.price_monthly as number | null,
         member_count: r.member_count,
+        university: r.university,
         leader: leaderMap.get(r.leader_id) ?? null,
       })),
     );
@@ -88,10 +95,16 @@ function CirclesPage() {
     const q = search.trim().toLowerCase();
     return circles.filter((c) => {
       if (subjectFilter !== "all" && c.subject !== subjectFilter) return false;
+      if (mode === "campus") {
+        if (c.scope !== "campus") return false;
+        if (userUniversity && c.university && c.university !== userUniversity) return false;
+      } else {
+        if (c.scope !== "global") return false;
+      }
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q);
     });
-  }, [circles, search, subjectFilter]);
+  }, [circles, search, subjectFilter, mode, userUniversity]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
@@ -139,12 +152,28 @@ function CirclesPage() {
       )}
 
       <section>
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-3">Discover</h2>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Discover</h2>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            {mode === "campus" ? (
+              <><GraduationCap className="h-3.5 w-3.5" /> Campus{userUniversity ? ` · ${userUniversity}` : ""}</>
+            ) : (
+              <><Globe className="h-3.5 w-3.5" /> Global circles</>
+            )}
+          </div>
+        </div>
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading circles…</p>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>No circles found. Be the first to create one!</p>
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            {mode === "campus" ? (
+              <p>
+                No campus circles{userUniversity ? ` for ${userUniversity}` : ""} yet.
+                {" "}Switch to <span className="font-medium">Global</span> in the header or create one.
+              </p>
+            ) : (
+              <p>No global circles match your filters. Be the first to create one!</p>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
