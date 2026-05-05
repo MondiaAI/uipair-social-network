@@ -24,7 +24,7 @@ export interface CircleCardData {
   is_premium: boolean;
   price_monthly: number | null;
   member_count: number;
-  leader: { full_name: string | null; username: string | null; avatar_url: string | null } | null;
+  leader: { id?: string; full_name: string | null; username: string | null; avatar_url: string | null } | null;
 }
 
 export function CircleCard({
