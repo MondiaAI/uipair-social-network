@@ -302,10 +302,10 @@ function MessagesPage() {
       {/* Sidebar */}
       <aside className="flex w-72 flex-col rounded-xl border bg-card shadow-sm">
         <div className="border-b p-4 space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <h1 className="text-lg font-bold">Messages</h1>
             {(() => {
-              const total = conversations.reduce((s, c) => s + (c.unread ?? 0), 0);
+              const total = conversations.reduce((s, c) => s + (muted[c.id] ? 0 : (c.unread ?? 0)), 0);
               return total > 0 ? (
                 <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
                   {total} new
@@ -313,12 +313,38 @@ function MessagesPage() {
               ) : null;
             })()}
           </div>
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search conversations…"
-            className="h-9"
-          />
+          <div className="flex items-center gap-2">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search conversations…"
+              className="h-9 flex-1"
+            />
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 shrink-0"
+              title="Mark all as read"
+              disabled={!user || conversations.every((c) => (c.unread ?? 0) === 0)}
+              onClick={async () => {
+                if (!user) return;
+                const ids = conversations.filter((c) => (c.unread ?? 0) > 0).map((c) => c.id);
+                if (ids.length === 0) return;
+                const { error } = await supabase
+                  .from("messages")
+                  .update({ read_at: new Date().toISOString() })
+                  .in("conversation_id", ids)
+                  .neq("sender_id", user.id)
+                  .is("read_at", null);
+                if (error) { toast.error(error.message); return; }
+                setConversations((prev) => prev.map((c) => ({ ...c, unread: 0 })));
+                toast.success("All conversations marked as read");
+              }}
+            >
+              <CheckCheck className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {(() => {
