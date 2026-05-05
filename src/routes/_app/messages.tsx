@@ -58,15 +58,31 @@ function MessagesPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
-  const [muted, setMuted] = useState<Record<string, boolean>>(() => {
-    if (typeof window === "undefined") return {};
-    try { return JSON.parse(localStorage.getItem("muted_conversations") ?? "{}"); } catch { return {}; }
-  });
-  const persistMuted = (next: Record<string, boolean>) => {
-    setMuted(next);
-    try { localStorage.setItem("muted_conversations", JSON.stringify(next)); } catch {}
+  const [muted, setMuted] = useState<Record<string, boolean>>({});
+  const persistMuted = async (id: string, next: boolean) => {
+    setMuted((prev) => ({ ...prev, [id]: next }));
+    if (!user) return;
+    if (next) {
+      const { error } = await supabase
+        .from("conversation_mutes")
+        .upsert({ user_id: user.id, conversation_id: id }, { onConflict: "user_id,conversation_id" });
+      if (error) {
+        setMuted((prev) => ({ ...prev, [id]: !next }));
+        toast.error(error.message);
+      }
+    } else {
+      const { error } = await supabase
+        .from("conversation_mutes")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("conversation_id", id);
+      if (error) {
+        setMuted((prev) => ({ ...prev, [id]: !next }));
+        toast.error(error.message);
+      }
+    }
   };
-  const toggleMute = (id: string) => persistMuted({ ...muted, [id]: !muted[id] });
+  const toggleMute = (id: string) => persistMuted(id, !muted[id]);
   const activeIdRef = useRef<string | undefined>(activeId);
   useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -169,12 +185,38 @@ function MessagesPage() {
     };
   }, [user]);
 
+  // Load muted conversations from Supabase + subscribe to changes
+  useEffect(() => {
+    if (!user) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from("conversation_mutes")
+        .select("conversation_id")
+        .eq("user_id", user.id);
+      const map: Record<string, boolean> = {};
+      (data ?? []).forEach((r: { conversation_id: string }) => { map[r.conversation_id] = true; });
+      setMuted(map);
+    };
+    load();
+    const channel = supabase
+      .channel(`mutes:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "conversation_mutes", filter: `user_id=eq.${user.id}` },
+        () => load()
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   // Load active conversation messages + subscribe
   useEffect(() => {
     if (!activeId) {
       setMessages([]);
       return;
     }
+    // Clear unread badge immediately when opening a conversation
+    setConversations((prev) => prev.map((c) => c.id === activeId ? { ...c, unread: 0 } : c));
     const load = async () => {
       const { data } = await supabase
         .from("messages")
