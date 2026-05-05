@@ -387,14 +387,20 @@ function MessagesPage() {
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className={cn("truncate text-sm", unread > 0 ? "font-bold" : "font-medium")}>{name}</p>
+                      <p className={cn("truncate text-sm flex items-center gap-1", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
+                        {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground" />}
+                        {name}
+                      </p>
                       {unread > 0 && (
-                        <span className="shrink-0 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                        <span className={cn(
+                          "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                          muted[c.id] ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
+                        )}>
                           {unread}
                         </span>
                       )}
                     </div>
-                    <p className={cn("truncate text-xs", unread > 0 ? "text-foreground" : "text-muted-foreground")}>
+                    <p className={cn("truncate text-xs", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
                       {c.preview ?? "Say hi 👋"}
                     </p>
                   </div>
