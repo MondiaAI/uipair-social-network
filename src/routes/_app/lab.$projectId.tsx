@@ -182,6 +182,12 @@ function ProjectDetailPage() {
     if (error) { toast.error(error.message); load(); }
   };
 
+  const updateAssignee = async (id: string, assigneeId: string | null) => {
+    setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, assignee_id: assigneeId } : t)));
+    const { error } = await supabase.from("project_tasks").update({ assignee_id: assigneeId }).eq("id", id);
+    if (error) { toast.error(error.message); load(); }
+  };
+
   const deleteTask = async (id: string) => {
     setTasks((ts) => ts.filter((t) => t.id !== id));
     await supabase.from("project_tasks").delete().eq("id", id);
