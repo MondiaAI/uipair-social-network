@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
+    // Wait for Supabase to fully hydrate + revalidate the session before
+    // rendering protected content. Prevents a flash of signed-out UI.
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) {
       throw redirect({ to: "/login" });
     }
   },
