@@ -51,16 +51,28 @@ function LoginPage() {
     // AuthProvider picks up the hydrated session, preventing a flash.
   };
 
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const googleSubmittingRef = useRef(false);
+
   const handleGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error("Google sign-in failed");
-      return;
+    if (googleSubmittingRef.current || googleLoading) return;
+    googleSubmittingRef.current = true;
+    setGoogleLoading(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        toast.error("Google sign-in failed");
+        return;
+      }
+      if (result.redirected) return; // browser will redirect; keep spinner
+      navigate({ to: "/feed", replace: true });
+    } finally {
+      // Only release the lock if we did NOT redirect (otherwise navigation handles it)
+      googleSubmittingRef.current = false;
+      setGoogleLoading(false);
     }
-    if (result.redirected) return;
-    navigate({ to: "/feed" });
   };
 
   return (
