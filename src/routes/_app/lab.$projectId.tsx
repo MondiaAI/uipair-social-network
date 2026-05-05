@@ -51,6 +51,7 @@ interface TaskRow {
   status: "todo" | "in_progress" | "done";
   position: number;
   user_id: string;
+  assignee_id: string | null;
 }
 
 interface ActivityRow {
