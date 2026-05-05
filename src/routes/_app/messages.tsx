@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
@@ -58,6 +58,17 @@ function MessagesPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
+  const [muted, setMuted] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("muted_conversations") ?? "{}"); } catch { return {}; }
+  });
+  const persistMuted = (next: Record<string, boolean>) => {
+    setMuted(next);
+    try { localStorage.setItem("muted_conversations", JSON.stringify(next)); } catch {}
+  };
+  const toggleMute = (id: string) => persistMuted({ ...muted, [id]: !muted[id] });
+  const activeIdRef = useRef<string | undefined>(activeId);
+  useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
@@ -127,7 +138,31 @@ function MessagesPage() {
     const channel = supabase
       .channel(`conv_list:${user.id}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => load())
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => load())
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          const m = payload.new as MessageRow;
+          // Optimistically bump unread + preview without a full reload
+          setConversations((prev) => {
+            const idx = prev.findIndex((c) => c.id === m.conversation_id);
+            if (idx === -1) { load(); return prev; }
+            const next = [...prev];
+            const isMine = m.sender_id === user.id;
+            const isActive = activeIdRef.current === m.conversation_id;
+            const inc = isMine || isActive ? 0 : 1;
+            next[idx] = {
+              ...next[idx],
+              preview: m.content,
+              last_message_at: m.created_at,
+              unread: (next[idx].unread ?? 0) + inc,
+            };
+            // Re-sort by last_message_at desc
+            next.sort((a, b) => (a.last_message_at < b.last_message_at ? 1 : -1));
+            return next;
+          });
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -267,10 +302,10 @@ function MessagesPage() {
       {/* Sidebar */}
       <aside className="flex w-72 flex-col rounded-xl border bg-card shadow-sm">
         <div className="border-b p-4 space-y-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <h1 className="text-lg font-bold">Messages</h1>
             {(() => {
-              const total = conversations.reduce((s, c) => s + (c.unread ?? 0), 0);
+              const total = conversations.reduce((s, c) => s + (muted[c.id] ? 0 : (c.unread ?? 0)), 0);
               return total > 0 ? (
                 <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
                   {total} new
@@ -278,12 +313,38 @@ function MessagesPage() {
               ) : null;
             })()}
           </div>
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search conversations…"
-            className="h-9"
-          />
+          <div className="flex items-center gap-2">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search conversations…"
+              className="h-9 flex-1"
+            />
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 shrink-0"
+              title="Mark all as read"
+              disabled={!user || conversations.every((c) => (c.unread ?? 0) === 0)}
+              onClick={async () => {
+                if (!user) return;
+                const ids = conversations.filter((c) => (c.unread ?? 0) > 0).map((c) => c.id);
+                if (ids.length === 0) return;
+                const { error } = await supabase
+                  .from("messages")
+                  .update({ read_at: new Date().toISOString() })
+                  .in("conversation_id", ids)
+                  .neq("sender_id", user.id)
+                  .is("read_at", null);
+                if (error) { toast.error(error.message); return; }
+                setConversations((prev) => prev.map((c) => ({ ...c, unread: 0 })));
+                toast.success("All conversations marked as read");
+              }}
+            >
+              <CheckCheck className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {(() => {
@@ -326,14 +387,20 @@ function MessagesPage() {
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className={cn("truncate text-sm", unread > 0 ? "font-bold" : "font-medium")}>{name}</p>
+                      <p className={cn("truncate text-sm flex items-center gap-1", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
+                        {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground" />}
+                        {name}
+                      </p>
                       {unread > 0 && (
-                        <span className="shrink-0 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                        <span className={cn(
+                          "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                          muted[c.id] ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
+                        )}>
                           {unread}
                         </span>
                       )}
                     </div>
-                    <p className={cn("truncate text-xs", unread > 0 ? "text-foreground" : "text-muted-foreground")}>
+                    <p className={cn("truncate text-xs", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
                       {c.preview ?? "Say hi 👋"}
                     </p>
                   </div>
@@ -359,12 +426,27 @@ function MessagesPage() {
                   {(active.other?.full_name || active.other?.username || "S").slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">
                   {active.other?.full_name || active.other?.username || "Student"}
                 </p>
-                <p className="text-xs text-muted-foreground">Private chat</p>
+                <p className="text-xs text-muted-foreground">
+                  {muted[active.id] ? "Notifications muted" : "Private chat"}
+                </p>
               </div>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={() => {
+                  toggleMute(active.id);
+                  toast.message(muted[active.id] ? "Notifications unmuted" : "Notifications muted");
+                }}
+                title={muted[active.id] ? "Unmute notifications" : "Mute notifications"}
+                aria-label={muted[active.id] ? "Unmute notifications" : "Mute notifications"}
+              >
+                {muted[active.id] ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
+              </Button>
             </header>
 
             <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto p-4">
