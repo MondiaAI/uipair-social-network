@@ -103,9 +103,36 @@ function CircleDetailPage() {
       supabase.from("circle_resources").select("*").eq("circle_id", circleId).order("created_at", { ascending: false }),
       supabase.from("circle_sessions").select("*").eq("circle_id", circleId).order("scheduled_at"),
     ]);
-    setPosts((p ?? []) as PostRow[]);
+    const postsList = (p ?? []) as PostRow[];
+    setPosts(postsList);
     setResources((r ?? []) as ResourceRow[]);
     setSessions((s ?? []) as SessionRow[]);
+
+    // Load comments for these posts
+    const postIds = postsList.map((x) => x.id);
+    if (postIds.length) {
+      const { data: cmts } = await supabase
+        .from("circle_post_comments")
+        .select("*")
+        .in("post_id", postIds)
+        .order("created_at");
+      const grouped: Record<string, PostCommentRow[]> = {};
+      const extraIds = new Set<string>();
+      (cmts ?? []).forEach((c) => {
+        (grouped[c.post_id] ||= []).push(c as PostCommentRow);
+        extraIds.add(c.user_id);
+      });
+      setPostComments(grouped);
+      // Fetch any commenter profiles not already in pMap
+      const missing = Array.from(extraIds).filter((id) => !pMap.has(id));
+      if (missing.length) {
+        const { data: extra } = await supabase.from("profiles").select("id,full_name,username,avatar_url").in("id", missing);
+        (extra ?? []).forEach((pr) => pMap.set(pr.id, pr as ProfileLite));
+        setProfileMap(new Map(pMap));
+      }
+    } else {
+      setPostComments({});
+    }
     setLoading(false);
   };
 
