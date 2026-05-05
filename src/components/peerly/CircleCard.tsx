@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Crown, Lock, Sparkles, Users } from "lucide-react";
+import { Crown, Lock, MessageSquare, Sparkles, Users } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,7 @@ export interface CircleCardData {
   is_premium: boolean;
   price_monthly: number | null;
   member_count: number;
-  leader: { full_name: string | null; username: string | null; avatar_url: string | null } | null;
+  leader: { id?: string; full_name: string | null; username: string | null; avatar_url: string | null } | null;
 }
 
 export function CircleCard({
@@ -149,7 +149,14 @@ export function CircleCard({
             )}
           </div>
 
-          <DialogFooter className="gap-2 sm:gap-2">
+          <DialogFooter className="gap-2 sm:gap-2 flex-wrap">
+            {circle.leader?.id && (
+              <Button variant="outline" asChild onClick={() => setPreviewOpen(false)}>
+                <Link to="/profile/$userId" params={{ userId: circle.leader.id }}>
+                  <MessageSquare className="h-4 w-4" /> Connect with leader
+                </Link>
+              </Button>
+            )}
             <Button variant="outline" asChild onClick={() => setPreviewOpen(false)}>
               <Link to="/circles/$circleId" params={{ circleId: circle.id }}>
                 View full page
