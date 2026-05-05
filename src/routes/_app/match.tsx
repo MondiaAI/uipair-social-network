@@ -293,6 +293,53 @@ function MatchPage() {
           ))}
         </div>
       )}
+
+      {!loading && Object.keys(edges).length > 0 && (
+        <section className="mt-10">
+          <div className="mb-3 flex items-center gap-2">
+            <History className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold">Match history</h2>
+          </div>
+          <div className="rounded-xl border bg-card divide-y">
+            {Object.entries(edges).map(([otherId, edge]) => {
+              const p = profiles.find((x) => x.id === otherId);
+              if (!p) return null;
+              const name = p.full_name || p.username || "Student";
+              const init = name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
+              const isOutgoing = edge.sender_id === user?.id;
+              const meta =
+                edge.status === "accepted"
+                  ? { label: "Connected", cls: "text-emerald-600", Icon: Check }
+                  : edge.status === "pending"
+                  ? { label: isOutgoing ? "Request sent" : "Request received", cls: "text-amber-600", Icon: Clock }
+                  : { label: "Declined", cls: "text-muted-foreground", Icon: X };
+              const MetaIcon = meta.Icon;
+              return (
+                <Link
+                  key={otherId}
+                  to="/profile/$userId"
+                  params={{ userId: otherId }}
+                  className="flex items-center gap-3 p-3 hover:bg-accent/40 transition"
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={p.avatar_url ?? undefined} />
+                    <AvatarFallback className="text-xs">{init}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {p.field_of_study || p.university || "—"}
+                    </p>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 text-xs font-medium ${meta.cls}`}>
+                    <MetaIcon className="h-3.5 w-3.5" /> {meta.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
