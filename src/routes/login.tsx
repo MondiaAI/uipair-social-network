@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
 import { PasswordInput } from "@/components/peerly/PasswordInput";
-import { PasswordStrengthMeter } from "@/components/peerly/PasswordStrengthMeter";
+
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -28,14 +28,22 @@ function LoginPage() {
 
   const handleEmailLogin = async (e: FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      setLoading(false);
       toast.error(error.message);
       return;
     }
-    navigate({ to: "/feed" });
+    // Session is now persisted in localStorage by the Supabase client.
+    // Wait for the session to be fully set before navigating so the
+    // route guard doesn't redirect us back to /login.
+    if (data.session) {
+      navigate({ to: "/feed", replace: true });
+    }
+    // Keep loading=true; the useEffect on `user` will navigate as soon as
+    // AuthProvider picks up the new session, preventing a flash back here.
   };
 
   const handleGoogle = async () => {
@@ -78,15 +86,29 @@ function LoginPage() {
             </div>
           </div>
 
-          <form onSubmit={handleEmailLogin} className="space-y-3">
+          <form onSubmit={handleEmailLogin} className="space-y-3" autoComplete="on">
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="username"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
-              <PasswordInput id="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-              <PasswordStrengthMeter value={password} />
+              <PasswordInput
+                id="password"
+                name="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             <div className="flex justify-end">
               <button type="button" className="text-xs text-muted-foreground hover:text-foreground hover:underline">
