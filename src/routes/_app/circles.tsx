@@ -87,6 +87,7 @@ function CirclesPage() {
     toast.success("Joined circle!");
     setMemberships((prev) => new Set(prev).add(circleId));
     setCircles((prev) => prev.map((c) => c.id === circleId ? { ...c, member_count: c.member_count + 1 } : c));
+    navigate({ to: "/circles/$circleId", params: { circleId } });
   };
 
   const myCircles = useMemo(() => circles.filter((c) => memberships.has(c.id)), [circles, memberships]);
