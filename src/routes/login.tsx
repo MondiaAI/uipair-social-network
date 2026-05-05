@@ -120,8 +120,12 @@ function LoginPage() {
                 Forgot password?
               </button>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in…" : "Sign in"}
+            <Button type="submit" className="w-full" disabled={loading || authLoading} aria-busy={loading}>
+              {loading ? (
+                <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Signing in…</>
+              ) : (
+                "Sign in"
+              )}
             </Button>
           </form>
         </div>
