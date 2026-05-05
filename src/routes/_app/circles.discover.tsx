@@ -28,6 +28,7 @@ function DiscoverCirclesPage() {
   const navigate = useNavigate();
   const [circles, setCircles] = useState<CircleRow[]>([]);
   const [memberships, setMemberships] = useState<Set<string>>(new Set());
+  const [joiningIds, setJoiningIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
