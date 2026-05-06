@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { MessageCircle, GraduationCap, UserPlus, Check, X, Clock, Handshake, ThumbsDown } from "lucide-react";
+import { MessageCircle, GraduationCap, UserPlus, Check, X, Clock, Handshake, ThumbsDown, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MatchScoreRing } from "./MatchScoreRing";
 import { useAuth } from "@/lib/auth-context";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   deriveStatus,
@@ -226,6 +226,14 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
             </Button>
           </>
         )}
+      </div>
+
+      <div className="mt-2">
+        <Button asChild size="sm" variant="ghost" className="w-full text-muted-foreground hover:text-foreground">
+          <Link to="/profile/$userId" params={{ userId: profile.id }}>
+            <User className="h-4 w-4" /> View profile
+          </Link>
+        </Button>
       </div>
 
       {onNotAMatch && status !== "friends" && (
