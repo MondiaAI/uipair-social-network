@@ -13,6 +13,7 @@ import { Beaker, HelpCircle, Handshake, BookOpen } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { EmbeddedCheckoutModal } from "@/components/peerly/EmbeddedCheckoutModal";
+import { CircleCreatorPanel } from "@/components/peerly/CircleCreatorPanel";
 import { createCircleCheckout, verifyCircleCheckout, cancelCircleSubscription } from "@/server/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { subjectChipClass } from "@/lib/subjects";
