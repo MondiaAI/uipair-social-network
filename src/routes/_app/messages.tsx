@@ -25,12 +25,34 @@ import {
   type KeyPair,
   type DecryptResult,
 } from "@/lib/e2ee";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { logClientError } from "@/lib/client-logger";
 
 const search = z.object({ c: z.string().uuid().optional(), m: z.string().optional() });
 
+function MessagesPageBoundary() {
+  return (
+    <ErrorBoundary label="MessagesPage">
+      <MessagesPage />
+    </ErrorBoundary>
+  );
+}
+
 export const Route = createFileRoute("/_app/messages")({
   validateSearch: (s) => search.parse(s),
-  component: MessagesPage,
+  component: MessagesPageBoundary,
+  errorComponent: ({ error, reset }) => {
+    logClientError("MessagesRoute.errorComponent", error);
+    return (
+      <div className="m-4 rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm">
+        <p className="font-semibold text-destructive">Failed to load messages.</p>
+        <pre className="mt-2 max-h-40 overflow-auto rounded bg-muted p-2 text-[11px]">{error.message}</pre>
+        <button onClick={reset} className="mt-3 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
+          Try again
+        </button>
+      </div>
+    );
+  },
 });
 
 interface ConversationRow {
