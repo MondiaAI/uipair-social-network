@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Handshake, MessageSquare, Lightbulb, Package, CheckCircle2, Trophy, Users, Radio, DollarSign, Megaphone, Pin } from "lucide-react";
 import { timeAgo } from "@/lib/gig-meta";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "@tanstack/react-router";
 
 const ICONS: Record<string, { icon: typeof Handshake; color: string }> = {
   partner_request: { icon: Handshake, color: "text-blue-600" },
@@ -22,10 +23,24 @@ const ICONS: Record<string, { icon: typeof Handshake; color: string }> = {
   announcement_updated: { icon: Megaphone, color: "text-primary" },
 };
 
-type N = { id: string; type: string; content: string; is_read: boolean; created_at: string };
+const ANNOUNCEMENT_TYPES = new Set([
+  "announcement_new",
+  "announcement_pinned",
+  "announcement_updated",
+]);
+
+type N = {
+  id: string;
+  type: string;
+  content: string;
+  is_read: boolean;
+  created_at: string;
+  related_id: string | null;
+};
 
 export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [items, setItems] = useState<N[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -34,7 +49,7 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     setLoading(true);
     const { data } = await supabase
       .from("notifications")
-      .select("id,type,content,is_read,created_at")
+      .select("id,type,content,is_read,created_at,related_id")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(50);
@@ -42,14 +57,57 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     setLoading(false);
   };
 
+  // Mark all unread as read whenever the panel opens.
   useEffect(() => {
-    if (open) load();
+    if (!open || !user) return;
+    (async () => {
+      await load();
+      const { data: unread } = await supabase
+        .from("notifications")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_read", false);
+      if (unread && unread.length > 0) {
+        await supabase
+          .from("notifications")
+          .update({ is_read: true })
+          .eq("user_id", user.id)
+          .eq("is_read", false);
+        setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      }
+    })();
   }, [open, user]);
 
   const markAll = async () => {
     if (!user) return;
     await supabase.from("notifications").update({ is_read: true }).eq("user_id", user.id).eq("is_read", false);
     setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
+  };
+
+  const handleClick = async (n: N) => {
+    // Mark this one as read (if it isn't already)
+    if (!n.is_read) {
+      setItems((prev) => prev.map((x) => x.id === n.id ? { ...x, is_read: true } : x));
+      await supabase.from("notifications").update({ is_read: true }).eq("id", n.id);
+    }
+
+    // Deep-link announcement notifications to the exact item on the circle page.
+    if (ANNOUNCEMENT_TYPES.has(n.type) && n.related_id) {
+      const { data: ann } = await supabase
+        .from("circle_announcements")
+        .select("circle_id")
+        .eq("id", n.related_id)
+        .maybeSingle();
+      if (ann?.circle_id) {
+        onOpenChange(false);
+        navigate({
+          to: "/circles/$circleId",
+          params: { circleId: ann.circle_id },
+          hash: `announcement-${n.related_id}`,
+        });
+        return;
+      }
+    }
   };
 
   return (
@@ -71,14 +129,26 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
             {items.map((n) => {
               const meta = ICONS[n.type] ?? { icon: Lightbulb, color: "text-muted-foreground" };
               const Icon = meta.icon;
+              const clickable = ANNOUNCEMENT_TYPES.has(n.type) && !!n.related_id;
               return (
-                <li key={n.id} className={cn("flex gap-3 py-3", !n.is_read && "bg-accent/30 -mx-2 px-2 rounded")}>
-                  <div className={cn("mt-0.5", meta.color)}><Icon className="h-5 w-5" /></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm">{n.content}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{timeAgo(n.created_at)}</p>
-                  </div>
-                  {!n.is_read && <span className="mt-2 h-2 w-2 rounded-full bg-primary shrink-0" />}
+                <li key={n.id}>
+                  <button
+                    type="button"
+                    onClick={() => handleClick(n)}
+                    className={cn(
+                      "w-full text-left flex gap-3 py-3 transition-colors",
+                      !n.is_read && "bg-accent/30 -mx-2 px-2 rounded",
+                      clickable && "hover:bg-accent/40 -mx-2 px-2 rounded cursor-pointer",
+                      !clickable && "cursor-default",
+                    )}
+                  >
+                    <div className={cn("mt-0.5", meta.color)}><Icon className="h-5 w-5" /></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm">{n.content}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{timeAgo(n.created_at)}</p>
+                    </div>
+                    {!n.is_read && <span className="mt-2 h-2 w-2 rounded-full bg-primary shrink-0" />}
+                  </button>
                 </li>
               );
             })}
