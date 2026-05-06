@@ -555,9 +555,10 @@ function MessagesPage() {
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className={cn("truncate text-sm flex items-center gap-1", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
+                      <p className={cn("truncate text-sm flex items-center gap-1 min-w-0", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
                         {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground" />}
-                        {name}
+                        <span className="truncate">{name}</span>
+                        <StatusBadge status={encStatusFor(c)} compact />
                       </p>
                       {unread > 0 && (
                         <span className={cn(
