@@ -573,8 +573,9 @@ function MessagesPage() {
         }
         setUploadProgress(100);
       }
-      // E2EE required: never send plaintext. Block until keys are ready.
-      let payload: string;
+      // Encrypt when both keys are available; otherwise send plaintext so
+      // delivery is never blocked.
+      let payload: string = content;
       let recipientPub = counterpartPub;
       if (!recipientPub) {
         const conv = conversations.find((c) => c.id === activeId);
@@ -582,13 +583,9 @@ function MessagesPage() {
         recipientPub = otherId ? await fetchPublicKey(otherId) : null;
         if (recipientPub) setCounterpartPub(recipientPub);
       }
-      if (!keypair || !recipientPub) {
-        toast.error("Can't send: end-to-end encryption keys aren't available for this chat yet.");
-        setDraft(originalDraft);
-        setAttachment(originalAttachment);
-        return;
+      if (keypair && recipientPub) {
+        payload = encryptMessage(content, recipientPub, keypair);
       }
-      payload = encryptMessage(content, recipientPub, keypair);
       const { error } = await supabase
         .from("messages")
         .insert({ conversation_id: activeId, sender_id: user.id, content: payload });
@@ -792,28 +789,22 @@ function MessagesPage() {
 
             <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto p-4">
               {(() => {
-                const visible = messages.filter((m) => isEncrypted(m.content));
-                const hiddenCount = messages.length - visible.length;
-                if (visible.length === 0) {
+                if (messages.length === 0) {
                   return (
                     <p className="py-8 text-center text-sm text-muted-foreground">
-                      {hiddenCount > 0
-                        ? `${hiddenCount} unencrypted message${hiddenCount === 1 ? "" : "s"} hidden.`
-                        : "No messages yet. Send the first one!"}
+                      No messages yet. Send the first one!
                     </p>
                   );
                 }
                 return (
                   <>
-                    {hiddenCount > 0 && (
-                      <p className="text-center text-[11px] text-muted-foreground">
-                        {hiddenCount} unencrypted message{hiddenCount === 1 ? "" : "s"} hidden
-                      </p>
-                    )}
-                    {visible.map((m) => {
+                    {messages.map((m) => {
                       const mine = m.sender_id === user?.id;
-                      const decrypted = decryptContent(m.content);
-                      const displayText = decrypted.ok ? decrypted.plaintext : "";
+                      const encrypted = isEncrypted(m.content);
+                      const decrypted = encrypted
+                        ? decryptContent(m.content)
+                        : { ok: true as const, plaintext: m.content };
+                      const displayText = decrypted.ok ? decrypted.plaintext : m.content;
                       const showFallback = !decrypted.ok;
                       return (
                         <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
