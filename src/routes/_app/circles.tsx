@@ -32,6 +32,16 @@ function CirclesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
+  const [inviteInput, setInviteInput] = useState("");
+
+  const handleJoinByInvite = () => {
+    const raw = inviteInput.trim();
+    if (!raw) return;
+    const match = raw.match(/\/invite\/([A-Za-z0-9_-]+)/);
+    const token = match ? match[1] : raw.replace(/^\/+|\/+$/g, "");
+    if (!token) { toast.error("Invalid invite link or token"); return; }
+    navigate({ to: "/invite/$token", params: { token } });
+  };
   
 
   const userUniversity = profile?.university ?? null;
