@@ -165,7 +165,7 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
         </div>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         {status === "none" && (
           <>
             <Button size="sm" className="flex-1" onClick={handleConnect} disabled={busy}>
@@ -174,19 +174,19 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
             <Button
               size="sm"
               variant="outline"
-              onClick={async () => {
-                try {
-                  localStorage.setItem(`partnership_intro:${profile.id}`, partnershipTemplate);
-                } catch {}
-                await handleConnect();
-                toast.message("Partnership intro saved", {
-                  description: "We'll prefill your first message once they accept.",
-                });
-              }}
+              onClick={handleConnect}
               disabled={busy}
-              title="Send a study partnership intro"
+              title="Send a study partnership request"
             >
               <Handshake className="h-4 w-4" /> Partner
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate({ to: "/circles" })}
+              title="Find a circle to join together"
+            >
+              <Users className="h-4 w-4" /> Join
             </Button>
           </>
         )}
@@ -215,14 +215,7 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
             <Button
               size="sm"
               className="flex-1"
-              onClick={() => {
-                let prefill: string | undefined;
-                try {
-                  prefill = localStorage.getItem(`partnership_intro:${profile.id}`) ?? undefined;
-                  if (prefill) localStorage.removeItem(`partnership_intro:${profile.id}`);
-                } catch {}
-                handleMessage(prefill);
-              }}
+              onClick={() => handleMessage()}
               disabled={busy}
             >
               <MessageCircle className="h-4 w-4" /> Message
@@ -230,11 +223,19 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => handleMessage(partnershipTemplate)}
+              onClick={() => handleMessage()}
               disabled={busy}
-              title="Send a study partnership pitch"
+              title="Open chat to discuss study partnership"
             >
               <Handshake className="h-4 w-4" /> Partner
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate({ to: "/circles" })}
+              title="Find a circle to join together"
+            >
+              <Users className="h-4 w-4" /> Join
             </Button>
           </>
         )}
