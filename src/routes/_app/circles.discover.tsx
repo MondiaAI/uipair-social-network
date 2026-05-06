@@ -74,6 +74,32 @@ function DiscoverCirclesPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user?.id]);
 
+  // Realtime: sync card states when membership changes anywhere.
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`discover-membership-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "circle_members", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new as { circle_id: string };
+          setMemberships((prev) => new Set(prev).add(row.circle_id));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "circle_members", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.old as { circle_id: string };
+          setMemberships((prev) => { const n = new Set(prev); n.delete(row.circle_id); return n; });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
+
+
   const handleJoin = async (circleId: string) => {
     if (!user) return;
     if (joiningIds.has(circleId) || memberships.has(circleId)) return;
