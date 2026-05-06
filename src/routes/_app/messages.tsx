@@ -328,9 +328,37 @@ function MessagesPage() {
     const otherId = conv ? (conv.user_a === user.id ? conv.user_b : conv.user_a) : null;
     if (!otherId) { setCounterpartPub(null); return; }
     let cancelled = false;
-    fetchPublicKey(otherId).then((pk) => { if (!cancelled) setCounterpartPub(pk); });
+    fetchPublicKey(otherId).then((pk) => {
+      if (cancelled) return;
+      setCounterpartPub(pk);
+      setPeerKeyStatus((prev) => ({ ...prev, [otherId]: !!pk }));
+    });
     return () => { cancelled = true; };
   }, [activeId, user, conversations]);
+
+  // Bulk-fetch peer key presence for the conversation list (for sidebar badges)
+  useEffect(() => {
+    if (!user || conversations.length === 0) return;
+    const otherIds = Array.from(new Set(
+      conversations.map((c) => (c.user_a === user.id ? c.user_b : c.user_a))
+    )).filter((id) => !(id in peerKeyStatus));
+    if (otherIds.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, public_key")
+        .in("id", otherIds);
+      if (cancelled) return;
+      const update: Record<string, boolean> = {};
+      otherIds.forEach((id) => { update[id] = false; });
+      (data ?? []).forEach((r: { id: string; public_key: string | null }) => {
+        update[r.id] = !!r.public_key;
+      });
+      setPeerKeyStatus((prev) => ({ ...prev, ...update }));
+    })();
+    return () => { cancelled = true; };
+  }, [conversations, user]);
 
 
   // Auto-scroll
