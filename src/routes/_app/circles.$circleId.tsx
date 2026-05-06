@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Crown, Users, Calendar, FileText, MessageSquare, Lock, Sparkles } from "lucide-react";
+import { ArrowLeft, Crown, Users, Calendar, FileText, MessageSquare, Lock, Sparkles, LinkIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
