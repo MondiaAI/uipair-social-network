@@ -80,6 +80,7 @@ function CircleDetailPage() {
     current_period_end: string | null;
   } | null>(null);
   const [canceling, setCanceling] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   const stripeEnv = getStripeEnvironment();
   const isMember = members.some((m) => m.id === user?.id);
