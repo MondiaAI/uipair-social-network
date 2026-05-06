@@ -31,6 +31,20 @@ function InviteRedeemPage() {
         const { data: c } = await supabase
           .from("circles").select("name").eq("id", inv.circle_id).maybeSingle();
         setCircleName(c?.name ?? null);
+
+        // If already a member, skip redemption and go straight to the circle.
+        const { data: existing } = await supabase
+          .from("circle_members")
+          .select("circle_id")
+          .eq("circle_id", inv.circle_id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (existing) {
+          setStatus("ok");
+          toast.info("You're already a member of this circle");
+          navigate({ to: "/circles/$circleId", params: { circleId: inv.circle_id } });
+          return;
+        }
       }
 
       const { data, error } = await supabase.rpc("redeem_circle_invite", { _token: token });

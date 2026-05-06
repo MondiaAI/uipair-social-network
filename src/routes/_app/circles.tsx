@@ -32,6 +32,16 @@ function CirclesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
+  const [inviteInput, setInviteInput] = useState("");
+
+  const handleJoinByInvite = () => {
+    const raw = inviteInput.trim();
+    if (!raw) return;
+    const match = raw.match(/\/invite\/([A-Za-z0-9_-]+)/);
+    const token = match ? match[1] : raw.replace(/^\/+|\/+$/g, "");
+    if (!token) { toast.error("Invalid invite link or token"); return; }
+    navigate({ to: "/invite/$token", params: { token } });
+  };
   
 
   const userUniversity = profile?.university ?? null;
@@ -182,6 +192,18 @@ function CirclesPage() {
             {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="rounded-xl border bg-card p-3 mb-6 flex flex-col sm:flex-row gap-2 sm:items-center">
+        <div className="text-sm font-medium shrink-0">Have an invite?</div>
+        <Input
+          placeholder="Paste invite link or token…"
+          value={inviteInput}
+          onChange={(e) => setInviteInput(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") handleJoinByInvite(); }}
+          className="flex-1"
+        />
+        <Button onClick={handleJoinByInvite} disabled={!inviteInput.trim()}>Join</Button>
       </div>
 
       <div className="mb-6">
