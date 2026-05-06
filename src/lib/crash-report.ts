@@ -19,12 +19,16 @@ export async function submitCrashReport(payload: CrashReportPayload) {
   const row = {
     user_id: userData?.user?.id ?? null,
     label: payload.label,
-    route: payload.route ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : null),
+    route:
+      payload.route ??
+      (typeof window !== "undefined" ? window.location.pathname + window.location.search : null),
     error_name: payload.errorName ?? null,
     message: payload.message,
     stack: payload.stack ?? null,
     component_stack: payload.componentStack ?? null,
     context: (payload.context ?? {}) as never,
+    user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+  };
   const { data, error } = await supabase
     .from("crash_reports")
     .insert([row])
