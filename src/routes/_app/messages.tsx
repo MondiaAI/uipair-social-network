@@ -352,7 +352,10 @@ function MessagesPage() {
           setCounterpartPub(pk);
           payload = encryptMessage(content, pk, keypair);
         } else {
-          toast.warning("Recipient hasn't set up encryption yet — sending unencrypted.");
+          toast.error("Can't send — encryption isn't ready yet. Please try again in a moment.");
+          setDraft(originalDraft);
+          setAttachment(originalAttachment);
+          return;
         }
       }
       const { error } = await supabase
