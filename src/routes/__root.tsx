@@ -28,34 +28,50 @@ function NotFoundComponent() {
   );
 }
 
+const SITE_URL = "https://project--6fc24415-9315-4655-9213-fe093e352f40.lovable.app";
+
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#534AB7" },
-      { title: "UiPair — Find your pair. Build your future." },
-      { name: "description", content: "Connect, collaborate, and grow with university students worldwide." },
-      { property: "og:title", content: "UiPair — Find your pair. Build your future." },
-      { property: "og:description", content: "Connect, collaborate, and grow with university students worldwide." },
-      { property: "og:type", content: "website" },
-      { property: "og:image", content: "/og-image.png" },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "UiPair — Find your pair. Build your future." },
-      { name: "twitter:description", content: "Connect, collaborate, and grow with university students worldwide." },
-      { name: "twitter:image", content: "/og-image.png" },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/svg+xml", href: faviconUrl },
-      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
-      { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
-      { rel: "apple-touch-icon", href: "/icon-192.png" },
-      { rel: "manifest", href: "/manifest.json" },
-    ],
-  }),
+  head: ({ match }) => {
+    const path = match.pathname || "/";
+    const canonical = `${SITE_URL}${path === "/" ? "" : path}`;
+    const ogImage = `${SITE_URL}/og-image.png`;
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { name: "theme-color", content: "#534AB7" },
+        { name: "robots", content: "index, follow" },
+        { title: "UiPair — Find your pair. Build your future." },
+        { name: "description", content: "Connect, collaborate, and grow with university students worldwide." },
+        { property: "og:title", content: "UiPair — Find your pair. Build your future." },
+        { property: "og:description", content: "Connect, collaborate, and grow with university students worldwide." },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: canonical },
+        { property: "og:site_name", content: "UiPair" },
+        { property: "og:image", content: ogImage },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:url", content: canonical },
+        { name: "twitter:title", content: "UiPair — Find your pair. Build your future." },
+        { name: "twitter:description", content: "Connect, collaborate, and grow with university students worldwide." },
+        { name: "twitter:image", content: ogImage },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "canonical", href: canonical },
+        { rel: "icon", type: "image/svg+xml", href: faviconUrl },
+        { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
+        { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },
+        { rel: "apple-touch-icon", sizes: "60x60", href: "/apple-touch-icon-60.png" },
+        { rel: "apple-touch-icon", sizes: "76x76", href: "/apple-touch-icon-76.png" },
+        { rel: "apple-touch-icon", sizes: "120x120", href: "/apple-touch-icon-120.png" },
+        { rel: "apple-touch-icon", sizes: "152x152", href: "/apple-touch-icon-152.png" },
+        { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon-180.png" },
+        { rel: "manifest", href: "/manifest.json" },
+      ],
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
