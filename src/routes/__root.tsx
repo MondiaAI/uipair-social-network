@@ -1,7 +1,9 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth-context";
 import { FeedProvider } from "@/lib/feed-context";
 import { Toaster } from "@/components/ui/sonner";
+import { installGlobalErrorLogger } from "@/lib/client-logger";
 
 import appCss from "../styles.css?url";
 import faviconUrl from "@/assets/favicon.svg?url";
