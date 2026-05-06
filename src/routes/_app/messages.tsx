@@ -468,6 +468,36 @@ function MessagesPage() {
       sending,
       uploading,
       searchQuery: search,
+      // Scroll/viewport diagnostics — captured at snapshot time so a crash
+      // log lets us reproduce the exact rendered window of messages.
+      scroll: (() => {
+        const el = scrollerRef.current;
+        if (!el) return null;
+        const { scrollTop, clientHeight, scrollHeight } = el;
+        // Estimate visible message index range by walking child nodes and
+        // checking which ones intersect the viewport.
+        const children = Array.from(el.children) as HTMLElement[];
+        let firstVisible = -1;
+        let lastVisible = -1;
+        for (let i = 0; i < children.length; i++) {
+          const c = children[i];
+          const top = c.offsetTop - el.offsetTop;
+          const bottom = top + c.offsetHeight;
+          if (bottom >= scrollTop && top <= scrollTop + clientHeight) {
+            if (firstVisible === -1) firstVisible = i;
+            lastVisible = i;
+          }
+        }
+        return {
+          scrollTop,
+          clientHeight,
+          scrollHeight,
+          atBottom: scrollTop + clientHeight >= scrollHeight - 4,
+          firstVisibleChildIndex: firstVisible,
+          lastVisibleChildIndex: lastVisible,
+          renderedChildCount: children.length,
+        };
+      })(),
     };
   }, [user, activeId, prefill, conversations, messages, keypair, counterpartPub, peerKeyStatus, muted, draft, attachment, sending, uploading, search]);
 
