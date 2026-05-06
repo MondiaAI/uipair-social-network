@@ -537,25 +537,18 @@ function MessagesPage() {
         }
         setUploadProgress(100);
       }
-      // E2EE: encrypt to recipient before insert. Falls back to plaintext only
-      // if we genuinely have no key for the other party (very rare — first
-      // message before they ever opened the app).
+      // E2EE: encrypt when keys are available; otherwise send as plaintext
+      // so messaging always works (recipient may not have set up keys yet).
       let payload = content;
       if (keypair && counterpartPub) {
         payload = encryptMessage(content, counterpartPub, keypair);
       } else {
-        // Try to fetch the counterpart key on-demand
         const conv = conversations.find((c) => c.id === activeId);
         const otherId = conv ? (conv.user_a === user.id ? conv.user_b : conv.user_a) : null;
         const pk = otherId ? await fetchPublicKey(otherId) : null;
         if (pk && keypair) {
           setCounterpartPub(pk);
           payload = encryptMessage(content, pk, keypair);
-        } else {
-          toast.error("Can't send — encryption isn't ready yet. Please try again in a moment.");
-          setDraft(originalDraft);
-          setAttachment(originalAttachment);
-          return;
         }
       }
       const { error } = await supabase
