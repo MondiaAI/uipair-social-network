@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { MessageCircle, GraduationCap, UserPlus, Check, X, Clock, Handshake, ThumbsDown, User } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MatchScoreRing } from "./MatchScoreRing";
