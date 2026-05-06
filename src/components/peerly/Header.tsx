@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { NotificationPanel } from "./NotificationPanel";
 import { ProUpgradeModal } from "./ProUpgradeModal";
 import { PeerlyLogo } from "./PeerlyLogo";
+import { toast } from "sonner";
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
