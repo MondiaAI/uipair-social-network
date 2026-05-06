@@ -47,13 +47,13 @@ export function CircleCard({
   return (
     <div className="rounded-xl border bg-card p-4 shadow-sm transition hover:shadow-md flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
-        <button
-          type="button"
-          onClick={() => setPreviewOpen(true)}
+        <Link
+          to="/circles/$circleId"
+          params={{ circleId: circle.id }}
           className="font-semibold text-base leading-snug hover:underline line-clamp-2 text-left"
         >
           {circle.name}
-        </button>
+        </Link>
         {circle.is_premium && <Lock className="h-4 w-4 text-muted-foreground shrink-0" />}
       </div>
 
@@ -91,23 +91,48 @@ export function CircleCard({
         <span className="truncate">{leaderName}</span>
       </div>
 
-      <div className="flex gap-2">
-        <Button size="sm" className="flex-1" onClick={() => setPreviewOpen(true)}>
-          Open
+      <div className="flex flex-wrap gap-2 mt-auto">
+        <Button size="sm" variant="outline" asChild className="flex-1 min-w-[120px]">
+          <Link to="/circles/$circleId" params={{ circleId: circle.id }}>
+            View full page
+          </Link>
         </Button>
-        {!joined && (
-          circle.is_premium ? (
-            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)} disabled={joining}>
-              {joining ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-              {joining ? "Joining…" : `Subscribe $${price}/mo`}
-            </Button>
-          ) : (
-            <Button size="sm" variant="outline" className="flex-1" onClick={() => onJoin(circle.id)} disabled={joining}>
-              {joining && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              {joining ? "Joining…" : "Join free"}
-            </Button>
-          )
+        {joined ? (
+          <Button size="sm" asChild className="flex-1 min-w-[120px]">
+            <Link to="/circles/$circleId" params={{ circleId: circle.id }}>
+              Open circle
+            </Link>
+          </Button>
+        ) : circle.is_premium ? (
+          <Button
+            size="sm"
+            className="flex-1 min-w-[120px] bg-gradient-to-r from-primary to-primary/70"
+            onClick={() => onJoin(circle.id)}
+            disabled={joining}
+          >
+            {joining ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            {joining ? "Subscribing…" : `Subscribe $${price}/mo`}
+          </Button>
+        ) : (
+          <Button
+            size="sm"
+            className="flex-1 min-w-[120px]"
+            onClick={() => onJoin(circle.id)}
+            disabled={joining}
+          >
+            {joining && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            {joining ? "Joining…" : "Join free"}
+          </Button>
         )}
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={() => setPreviewOpen(true)}
+          className="px-3"
+          aria-label="Preview"
+        >
+          Preview
+        </Button>
       </div>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
