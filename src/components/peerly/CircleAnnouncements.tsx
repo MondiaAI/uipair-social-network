@@ -166,6 +166,23 @@ export function CircleAnnouncements({
     toast.success(next ? "Pinned" : "Unpinned");
   };
 
+  // After items load, scroll to and briefly highlight an announcement linked from the URL hash.
+  const [highlightedId, setHighlightedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (loading || items.length === 0) return;
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
+    const match = hash.match(/^#announcement-([0-9a-f-]+)/i);
+    if (!match) return;
+    const id = match[1];
+    if (!items.some((a) => a.id === id)) return;
+    setHighlightedId(id);
+    requestAnimationFrame(() => {
+      document.getElementById(`announcement-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    const t = setTimeout(() => setHighlightedId(null), 2500);
+    return () => clearTimeout(t);
+  }, [loading, items]);
+
   if (loading) return null;
   if (!isLeader && items.length === 0) return null;
 
