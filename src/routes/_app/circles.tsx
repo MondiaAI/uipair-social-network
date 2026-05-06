@@ -201,8 +201,6 @@ function CirclesPage() {
           </div>
         )}
       </section>
-
-      <CreateCircleModal open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) load(); }} />
     </div>
   );
 }
