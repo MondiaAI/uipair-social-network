@@ -228,6 +228,14 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
         )}
       </div>
 
+      <div className="mt-2">
+        <Button asChild size="sm" variant="ghost" className="w-full text-muted-foreground hover:text-foreground">
+          <Link to="/profile/$userId" params={{ userId: profile.id }}>
+            <User className="h-4 w-4" /> View profile
+          </Link>
+        </Button>
+      </div>
+
       {onNotAMatch && status !== "friends" && (
         <div className="mt-2 flex justify-end">
           <Button
