@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { UiPairLogo } from "@/components/UiPair/UiPairLogo";
+import { UiPairLogo } from "@/components/peerly/UiPairLogo";
 
 export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,

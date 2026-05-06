@@ -14,9 +14,9 @@ import { Camera, Check } from "lucide-react";
 import { SUBJECTS } from "@/lib/subjects";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
-import { SplitAuthLayout } from "@/components/UiPair/SplitAuthLayout";
-import { PasswordInput } from "@/components/UiPair/PasswordInput";
-import { PasswordStrengthMeter } from "@/components/UiPair/PasswordStrengthMeter";
+import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
+import { PasswordInput } from "@/components/peerly/PasswordInput";
+import { PasswordStrengthMeter } from "@/components/peerly/PasswordStrengthMeter";
 import { evaluatePassword } from "@/lib/password-strength";
 import { cn } from "@/lib/utils";
 
