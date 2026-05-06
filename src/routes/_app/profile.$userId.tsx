@@ -7,15 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock } from "lucide-react";
+import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send } from "lucide-react";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import {
   deriveStatus,
   sendFriendRequest,
   respondToRequest,
   cancelRequest,
   openConversation,
+  startConversationWithMessage,
 } from "@/lib/friends";
 import { useFriendships } from "@/hooks/use-friendships";
 import { PostCard } from "@/components/peerly/PostCard";
@@ -269,12 +272,12 @@ function FriendActions({ otherId, otherName }: { otherId: string; otherName: str
 
   if (status === "friends") {
     return (
-      <Button size="sm" disabled={busy} onClick={() => wrap(async () => {
-        const id = await openConversation(user.id, otherId);
-        navigate({ to: "/messages", search: { c: id } });
-      }, "Could not open chat")}>
-        <MessageCircle className="h-4 w-4" /> Message
-      </Button>
+      <StartConversationButton
+        meId={user.id}
+        otherId={otherId}
+        otherName={otherName}
+        onOpened={(id) => navigate({ to: "/messages", search: { c: id } })}
+      />
     );
   }
   if (status === "outgoing_pending") {
@@ -313,5 +316,72 @@ function FriendActions({ otherId, otherName }: { otherId: string; otherName: str
         <MessageCircle className="h-4 w-4" /> Message
       </Button>
     </>
+  );
+}
+
+function StartConversationButton({
+  meId,
+  otherId,
+  otherName,
+  onOpened,
+}: {
+  meId: string;
+  otherId: string;
+  otherName: string;
+  onOpened: (conversationId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const send = async () => {
+    const content = text.trim();
+    if (!content) return;
+    setSending(true);
+    try {
+      const id = await startConversationWithMessage(meId, otherId, content);
+      toast.success(`Message sent to ${otherName}`);
+      setText("");
+      setOpen(false);
+      onOpened(id);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not send message");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button size="sm">
+          <MessageCircle className="h-4 w-4" /> Message
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-80 space-y-2">
+        <p className="text-sm font-medium">Start a conversation with {otherName}</p>
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={`Say hi to ${otherName}…`}
+          rows={3}
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              send();
+            }
+          }}
+        />
+        <div className="flex justify-end gap-2">
+          <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={sending}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={send} disabled={sending || !text.trim()}>
+            <Send className="h-4 w-4" /> Send
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
