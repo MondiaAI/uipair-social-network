@@ -6,7 +6,8 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
@@ -71,6 +72,37 @@ function MessagesPage() {
   const [muted, setMuted] = useState<Record<string, boolean>>({});
   const [keypair, setKeypair] = useState<KeyPair | null>(null);
   const [counterpartPub, setCounterpartPub] = useState<Uint8Array | null>(null);
+  // Map of otherUserId -> whether they have published a public key
+  const [peerKeyStatus, setPeerKeyStatus] = useState<Record<string, boolean>>({});
+
+  type EncStatus = "ready" | "pending" | "failed";
+  const encStatusFor = (c: ConversationRow): EncStatus => {
+    if (!keypair) return "failed";
+    const otherId = c.user_a === user?.id ? c.user_b : c.user_a;
+    return peerKeyStatus[otherId] ? "ready" : "pending";
+  };
+
+  const StatusBadge = ({ status, compact = false }: { status: EncStatus; compact?: boolean }) => {
+    const map = {
+      ready: { Icon: ShieldCheck, label: "Encrypted", desc: "Messages are end-to-end encrypted.", cls: "text-emerald-600" },
+      pending: { Icon: ShieldQuestion, label: "Pending", desc: "Recipient hasn't set up encryption yet.", cls: "text-amber-600" },
+      failed: { Icon: ShieldAlert, label: "Unavailable", desc: "Encryption keys aren't ready on this device.", cls: "text-destructive" },
+    } as const;
+    const { Icon, label, desc, cls } = map[status];
+    return (
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className={cn("inline-flex items-center gap-1 shrink-0", cls)} aria-label={`Encryption: ${label}`}>
+              <Icon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+              {!compact && <span className="text-xs font-medium">{label}</span>}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>{desc}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   // Bootstrap this device's E2EE keypair and publish public key to profile.
   useEffect(() => {
@@ -296,9 +328,37 @@ function MessagesPage() {
     const otherId = conv ? (conv.user_a === user.id ? conv.user_b : conv.user_a) : null;
     if (!otherId) { setCounterpartPub(null); return; }
     let cancelled = false;
-    fetchPublicKey(otherId).then((pk) => { if (!cancelled) setCounterpartPub(pk); });
+    fetchPublicKey(otherId).then((pk) => {
+      if (cancelled) return;
+      setCounterpartPub(pk);
+      setPeerKeyStatus((prev) => ({ ...prev, [otherId]: !!pk }));
+    });
     return () => { cancelled = true; };
   }, [activeId, user, conversations]);
+
+  // Bulk-fetch peer key presence for the conversation list (for sidebar badges)
+  useEffect(() => {
+    if (!user || conversations.length === 0) return;
+    const otherIds = Array.from(new Set(
+      conversations.map((c) => (c.user_a === user.id ? c.user_b : c.user_a))
+    )).filter((id) => !(id in peerKeyStatus));
+    if (otherIds.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, public_key")
+        .in("id", otherIds);
+      if (cancelled) return;
+      const update: Record<string, boolean> = {};
+      otherIds.forEach((id) => { update[id] = false; });
+      (data ?? []).forEach((r: { id: string; public_key: string | null }) => {
+        update[r.id] = !!r.public_key;
+      });
+      setPeerKeyStatus((prev) => ({ ...prev, ...update }));
+    })();
+    return () => { cancelled = true; };
+  }, [conversations, user]);
 
 
   // Auto-scroll
@@ -495,9 +555,10 @@ function MessagesPage() {
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className={cn("truncate text-sm flex items-center gap-1", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
+                      <p className={cn("truncate text-sm flex items-center gap-1 min-w-0", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
                         {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground" />}
-                        {name}
+                        <span className="truncate">{name}</span>
+                        <StatusBadge status={encStatusFor(c)} compact />
                       </p>
                       {unread > 0 && (
                         <span className={cn(
@@ -542,6 +603,7 @@ function MessagesPage() {
                   {muted[active.id] ? "Notifications muted" : "Private chat"}
                 </p>
               </div>
+              <StatusBadge status={encStatusFor(active)} />
               <Button
                 type="button"
                 size="icon"
