@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { PeerlyLogo, UiPairMark } from "./PeerlyLogo";
+import { PeerlyLogo, PeerlyMark } from "./PeerlyLogo";
 import { Link } from "@tanstack/react-router";
 
 const CAPTIONS: { title: string; body: string }[] = [
@@ -33,7 +33,7 @@ export function SplitAuthLayout({ children }: { children: ReactNode }) {
             {CAPTIONS.map((c) => (
               <li key={c.title} className="flex gap-3">
                 <span className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/10">
-                  <UiPairMark size={20} variant="dark" />
+                  <PeerlyMark size={20} variant="dark" />
                 </span>
                 <div>
                   <p className="font-medium text-[#EEEDFE]">{c.title}</p>
