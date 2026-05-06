@@ -87,7 +87,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
       return;
     }
     if (invitees.length) {
-      const rows = invitees.map((uid) => ({ project_id: data.id, user_id: uid, role: "member" as const }));
+      const rows = invitees.map((uid) => ({ project_id: data.id, user_id: uid, role: "other" as const }));
       const { error: memErr } = await supabase.from("project_members").insert(rows);
       if (memErr) {
         toast.error(`Project created, but couldn't add some teammates: ${memErr.message}`);
