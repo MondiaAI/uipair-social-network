@@ -573,8 +573,9 @@ function MessagesPage() {
         }
         setUploadProgress(100);
       }
-      // E2EE required: never send plaintext. Block until keys are ready.
-      let payload: string;
+      // Encrypt when both keys are available; otherwise send plaintext so
+      // delivery is never blocked.
+      let payload: string = content;
       let recipientPub = counterpartPub;
       if (!recipientPub) {
         const conv = conversations.find((c) => c.id === activeId);
@@ -582,13 +583,9 @@ function MessagesPage() {
         recipientPub = otherId ? await fetchPublicKey(otherId) : null;
         if (recipientPub) setCounterpartPub(recipientPub);
       }
-      if (!keypair || !recipientPub) {
-        toast.error("Can't send: end-to-end encryption keys aren't available for this chat yet.");
-        setDraft(originalDraft);
-        setAttachment(originalAttachment);
-        return;
+      if (keypair && recipientPub) {
+        payload = encryptMessage(content, recipientPub, keypair);
       }
-      payload = encryptMessage(content, recipientPub, keypair);
       const { error } = await supabase
         .from("messages")
         .insert({ conversation_id: activeId, sender_id: user.id, content: payload });
