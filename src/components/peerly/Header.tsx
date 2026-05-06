@@ -25,7 +25,7 @@ export function Header() {
   const { unread } = useNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
   const [proOpen, setProOpen] = useState(false);
-  void user;
+  
 
   const initials = (profile?.full_name || profile?.username || "?")
     .split(" ")
