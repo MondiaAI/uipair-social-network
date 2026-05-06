@@ -14,6 +14,16 @@ import { toast } from "sonner";
 const EMOJIS = ["😀","😂","😍","🥲","🙌","👍","🎉","🔥","💯","🤔","😎","🙏","❤️","👀","✅","🚀","📚","☕","🌙","✨"];
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import {
+  ensureDeviceKeypair,
+  fetchPublicKey,
+  encryptMessage,
+  decryptMessage,
+  isEncrypted,
+  fallbackLabel,
+  type KeyPair,
+  type DecryptResult,
+} from "@/lib/e2ee";
 
 const search = z.object({ c: z.string().uuid().optional(), m: z.string().optional() });
 
@@ -59,6 +69,29 @@ function MessagesPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
   const [muted, setMuted] = useState<Record<string, boolean>>({});
+  const [keypair, setKeypair] = useState<KeyPair | null>(null);
+  const [counterpartPub, setCounterpartPub] = useState<Uint8Array | null>(null);
+
+  // Bootstrap this device's E2EE keypair and publish public key to profile.
+  useEffect(() => {
+    if (!user) return;
+    ensureDeviceKeypair(user.id).then((kp) => kp && setKeypair(kp));
+  }, [user]);
+
+  // Helper: decrypt a stored content string using current keypair + counterpart.
+  const decryptContent = (content: string): DecryptResult => {
+    if (!isEncrypted(content)) return { ok: false, reason: "legacy" };
+    return decryptMessage(content, keypair, counterpartPub);
+  };
+
+  // Plain-text preview for sidebar (only works for messages decryptable on this device).
+  const previewText = (content: string | undefined): string => {
+    if (!content) return "Say hi 👋";
+    if (!isEncrypted(content)) return content;
+    const r = decryptMessage(content, keypair, null);
+    return r.ok ? r.plaintext : "🔒 Encrypted message";
+  };
+
   const persistMuted = async (id: string, next: boolean) => {
     setMuted((prev) => ({ ...prev, [id]: next }));
     if (!user) return;
@@ -256,6 +289,18 @@ function MessagesPage() {
     };
   }, [activeId]);
 
+  // Fetch counterpart's E2EE public key when active conversation changes
+  useEffect(() => {
+    if (!user || !activeId) { setCounterpartPub(null); return; }
+    const conv = conversations.find((c) => c.id === activeId);
+    const otherId = conv ? (conv.user_a === user.id ? conv.user_b : conv.user_a) : null;
+    if (!otherId) { setCounterpartPub(null); return; }
+    let cancelled = false;
+    fetchPublicKey(otherId).then((pk) => { if (!cancelled) setCounterpartPub(pk); });
+    return () => { cancelled = true; };
+  }, [activeId, user, conversations]);
+
+
   // Auto-scroll
   useEffect(() => {
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight });
@@ -292,9 +337,27 @@ function MessagesPage() {
         }
         setUploadProgress(100);
       }
+      // E2EE: encrypt to recipient before insert. Falls back to plaintext only
+      // if we genuinely have no key for the other party (very rare — first
+      // message before they ever opened the app).
+      let payload = content;
+      if (keypair && counterpartPub) {
+        payload = encryptMessage(content, counterpartPub, keypair);
+      } else {
+        // Try to fetch the counterpart key on-demand
+        const conv = conversations.find((c) => c.id === activeId);
+        const otherId = conv ? (conv.user_a === user.id ? conv.user_b : conv.user_a) : null;
+        const pk = otherId ? await fetchPublicKey(otherId) : null;
+        if (pk && keypair) {
+          setCounterpartPub(pk);
+          payload = encryptMessage(content, pk, keypair);
+        } else {
+          toast.warning("Recipient hasn't set up encryption yet — sending unencrypted.");
+        }
+      }
       const { error } = await supabase
         .from("messages")
-        .insert({ conversation_id: activeId, sender_id: user.id, content });
+        .insert({ conversation_id: activeId, sender_id: user.id, content: payload });
       if (error) throw error;
       // Only clear draft + attachment after a fully successful send
       setDraft("");
@@ -443,7 +506,7 @@ function MessagesPage() {
                       )}
                     </div>
                     <p className={cn("truncate text-xs", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
-                      {c.preview ?? "Say hi 👋"}
+                      {previewText(c.preview)}
                     </p>
                   </div>
                 </button>
@@ -499,6 +562,11 @@ function MessagesPage() {
               ) : (
                 messages.map((m) => {
                   const mine = m.sender_id === user?.id;
+                  const decrypted = isEncrypted(m.content)
+                    ? decryptContent(m.content)
+                    : ({ ok: false, reason: "legacy" } as DecryptResult);
+                  const displayText = decrypted.ok ? decrypted.plaintext : m.content;
+                  const showFallback = isEncrypted(m.content) && !decrypted.ok;
                   return (
                     <div
                       key={m.id}
@@ -512,29 +580,38 @@ function MessagesPage() {
                             : "bg-muted text-foreground"
                         )}
                       >
-                        {m.content.split("\n").map((line, i) =>
-                          isImageUrl(line) ? (
-                            <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
-                              <img
-                                src={line}
-                                alt="attachment"
-                                className="my-1 max-h-60 rounded-lg object-cover"
-                              />
-                            </a>
-                          ) : /^https?:\/\//i.test(line) ? (
-                            <a
-                              key={i}
-                              href={line}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="block break-all underline underline-offset-2"
-                            >
-                              {line}
-                            </a>
-                          ) : (
-                            <p key={i} className="whitespace-pre-wrap break-words">
-                              {line}
-                            </p>
+                        {showFallback ? (
+                          <p className={cn(
+                            "italic",
+                            mine ? "text-primary-foreground/80" : "text-muted-foreground"
+                          )}>
+                            {fallbackLabel(decrypted.reason)}
+                          </p>
+                        ) : (
+                          displayText.split("\n").map((line, i) =>
+                            isImageUrl(line) ? (
+                              <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
+                                <img
+                                  src={line}
+                                  alt="attachment"
+                                  className="my-1 max-h-60 rounded-lg object-cover"
+                                />
+                              </a>
+                            ) : /^https?:\/\//i.test(line) ? (
+                              <a
+                                key={i}
+                                href={line}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="block break-all underline underline-offset-2"
+                              >
+                                {line}
+                              </a>
+                            ) : (
+                              <p key={i} className="whitespace-pre-wrap break-words">
+                                {line}
+                              </p>
+                            )
                           )
                         )}
                         <p className={cn(

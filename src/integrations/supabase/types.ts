@@ -824,6 +824,7 @@ export type Database = {
           is_verified: boolean
           last_seen_at: string
           onboarding_completed: boolean
+          public_key: string | null
           reputation_score: number
           skills: string[]
           stripe_account_id: string | null
@@ -849,6 +850,7 @@ export type Database = {
           is_verified?: boolean
           last_seen_at?: string
           onboarding_completed?: boolean
+          public_key?: string | null
           reputation_score?: number
           skills?: string[]
           stripe_account_id?: string | null
@@ -874,6 +876,7 @@ export type Database = {
           is_verified?: boolean
           last_seen_at?: string
           onboarding_completed?: boolean
+          public_key?: string | null
           reputation_score?: number
           skills?: string[]
           stripe_account_id?: string | null
