@@ -14,9 +14,9 @@ import { Camera, Check } from "lucide-react";
 import { SUBJECTS } from "@/lib/subjects";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
-import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
-import { PasswordInput } from "@/components/peerly/PasswordInput";
-import { PasswordStrengthMeter } from "@/components/peerly/PasswordStrengthMeter";
+import { SplitAuthLayout } from "@/components/UiPair/SplitAuthLayout";
+import { PasswordInput } from "@/components/UiPair/PasswordInput";
+import { PasswordStrengthMeter } from "@/components/UiPair/PasswordStrengthMeter";
 import { evaluatePassword } from "@/lib/password-strength";
 import { cn } from "@/lib/utils";
 
@@ -119,7 +119,7 @@ function SignupPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     await refreshProfile();
-    toast.success("Welcome to peerly!");
+    toast.success("Welcome to UiPair!");
     navigate({ to: "/feed" });
   };
 
@@ -191,7 +191,7 @@ function SignupPage() {
                   required
                 />
                 <span>
-                  I agree to peerly's{" "}
+                  I agree to UiPair's{" "}
                   <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</Link>{" "}
                   and{" "}
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
@@ -252,7 +252,7 @@ function SignupPage() {
                   onChange={(e) => setAcceptTerms(e.target.checked)}
                 />
                 <span>
-                  I agree to peerly's{" "}
+                  I agree to UiPair's{" "}
                   <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</Link>{" "}
                   and{" "}
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
@@ -308,7 +308,7 @@ function SignupPage() {
               })}
             </div>
             <Button onClick={finish} disabled={loading || interests.length < 3 || !acceptTerms} className="w-full">
-              {loading ? "Finishing…" : "Finish & enter peerly"}
+              {loading ? "Finishing…" : "Finish & enter UiPair"}
             </Button>
           </>
         )}

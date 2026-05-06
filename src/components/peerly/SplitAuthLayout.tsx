@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { PeerlyLogo, PeerlyMark } from "./PeerlyLogo";
+import { UiPairLogo, UiPairMark } from "./UiPairLogo";
 import { Link } from "@tanstack/react-router";
 
 const CAPTIONS: { title: string; body: string }[] = [
@@ -20,8 +20,8 @@ export function SplitAuthLayout({ children }: { children: ReactNode }) {
         <div className="pointer-events-none absolute -bottom-24 left-1/3 h-64 w-64 rounded-full bg-[#6460CC] opacity-30 blur-3xl" />
 
         <div className="relative z-10">
-          <Link to="/" aria-label="peerly home">
-            <PeerlyLogo size="lg" variant="dark" showTagline />
+          <Link to="/" aria-label="UiPair home">
+            <UiPairLogo size="lg" variant="dark" showTagline />
           </Link>
         </div>
 
@@ -33,7 +33,7 @@ export function SplitAuthLayout({ children }: { children: ReactNode }) {
             {CAPTIONS.map((c) => (
               <li key={c.title} className="flex gap-3">
                 <span className="mt-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/10">
-                  <PeerlyMark size={20} variant="dark" />
+                  <UiPairMark size={20} variant="dark" />
                 </span>
                 <div>
                   <p className="font-medium text-[#EEEDFE]">{c.title}</p>
@@ -45,7 +45,7 @@ export function SplitAuthLayout({ children }: { children: ReactNode }) {
         </div>
 
         <p className="relative z-10 text-xs text-[#AFA9EC]">
-          © {new Date().getFullYear()} peerly · Built by students, for students.
+          © {new Date().getFullYear()} UiPair · Built by students, for students.
         </p>
       </aside>
 
@@ -53,7 +53,7 @@ export function SplitAuthLayout({ children }: { children: ReactNode }) {
       <main className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 lg:px-12">
         <div className="w-full max-w-md">
           <div className="mb-6 flex justify-center lg:hidden">
-            <Link to="/"><PeerlyLogo size="md" variant="light" /></Link>
+            <Link to="/"><UiPairLogo size="md" variant="light" /></Link>
           </div>
           {children}
         </div>

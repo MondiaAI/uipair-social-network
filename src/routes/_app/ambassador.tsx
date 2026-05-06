@@ -64,7 +64,7 @@ function AmbassadorPage() {
           <Sparkles className="h-5 w-5" />
         </div>
         <h1 className="text-2xl font-bold">Campus Ambassador Program</h1>
-        <p className="mt-1 text-muted-foreground">Earn a monthly stipend by recruiting fellow students to PEERLY.</p>
+        <p className="mt-1 text-muted-foreground">Earn a monthly stipend by recruiting fellow students to UiPair.</p>
       </div>
 
       {app ? (
