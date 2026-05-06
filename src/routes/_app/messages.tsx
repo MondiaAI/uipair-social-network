@@ -49,17 +49,57 @@ export const Route = createFileRoute("/_app/messages")({
   component: MessagesPageBoundary,
   errorComponent: ({ error, reset }) => {
     logClientError("MessagesRoute.errorComponent", error, pageSnapshot.current);
-    return (
-      <div className="m-4 rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm">
-        <p className="font-semibold text-destructive">Failed to load messages.</p>
-        <pre className="mt-2 max-h-40 overflow-auto rounded bg-muted p-2 text-[11px]">{error.message}</pre>
-        <button onClick={reset} className="mt-3 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
-          Try again
-        </button>
-      </div>
-    );
+    return <MessagesRouteError error={error} reset={reset} />;
   },
 });
+
+function MessagesRouteError({ error, reset }: { error: Error; reset: () => void }) {
+  const [state, setState] = useState<"idle" | "submitting" | "submitted" | "error">("idle");
+  const [reportId, setReportId] = useState<string | null>(null);
+  const [submitErr, setSubmitErr] = useState<string | null>(null);
+  const onSubmit = async () => {
+    setState("submitting");
+    setSubmitErr(null);
+    try {
+      const id = await submitCrashReport({
+        label: "MessagesRoute.errorComponent",
+        errorName: error.name,
+        message: error.message,
+        stack: error.stack ?? null,
+        context: pageSnapshot.current,
+      });
+      setReportId(id);
+      setState("submitted");
+    } catch (e) {
+      setSubmitErr(e instanceof Error ? e.message : String(e));
+      setState("error");
+    }
+  };
+  return (
+    <div className="m-4 rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm">
+      <p className="font-semibold text-destructive">Failed to load messages.</p>
+      <pre className="mt-2 max-h-40 overflow-auto rounded bg-muted p-2 text-[11px]">{error.message}</pre>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button onClick={reset} className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
+          Try again
+        </button>
+        <button
+          onClick={onSubmit}
+          disabled={state === "submitting" || state === "submitted"}
+          className="rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
+        >
+          {state === "submitting" ? "Submitting…" : state === "submitted" ? "Submitted ✓" : state === "error" ? "Retry submit" : "Submit diagnostics"}
+        </button>
+        {state === "submitted" && reportId && (
+          <span className="text-[11px] text-muted-foreground">Report ID: {reportId.slice(0, 8)}</span>
+        )}
+        {state === "error" && submitErr && (
+          <span className="text-[11px] text-destructive">{submitErr}</span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 interface ConversationRow {
   id: string;
