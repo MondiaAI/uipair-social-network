@@ -774,7 +774,7 @@ function MessagesPage() {
                   {muted[active.id] ? "Notifications muted" : "Private chat"}
                 </p>
               </div>
-              <StatusBadge status={encStatusFor(active)} />
+              
               <Button
                 type="button"
                 size="icon"
