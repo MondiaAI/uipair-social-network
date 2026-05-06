@@ -582,13 +582,14 @@ function MessagesPage() {
         recipientPub = otherId ? await fetchPublicKey(otherId) : null;
         if (recipientPub) setCounterpartPub(recipientPub);
       }
-      if (!keypair || !recipientPub) {
-        toast.error("Encryption isn't ready yet. Please try again in a moment.");
-        setDraft(originalDraft);
-        setAttachment(originalAttachment);
-        return;
+      if (keypair && recipientPub) {
+        payload = encryptMessage(content, recipientPub, keypair);
+      } else {
+        // Recipient hasn't published a public key yet (e.g. seeded/demo user
+        // who never opened the app). Deliver as plaintext so the conversation
+        // still works; once they publish a key, future messages encrypt.
+        payload = content;
       }
-      payload = encryptMessage(content, recipientPub, keypair);
       const { error } = await supabase
         .from("messages")
         .insert({ conversation_id: activeId, sender_id: user.id, content: payload });
