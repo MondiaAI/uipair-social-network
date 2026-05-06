@@ -14,6 +14,16 @@ import { toast } from "sonner";
 const EMOJIS = ["😀","😂","😍","🥲","🙌","👍","🎉","🔥","💯","🤔","😎","🙏","❤️","👀","✅","🚀","📚","☕","🌙","✨"];
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import {
+  ensureDeviceKeypair,
+  fetchPublicKey,
+  encryptMessage,
+  decryptMessage,
+  isEncrypted,
+  fallbackLabel,
+  type KeyPair,
+  type DecryptResult,
+} from "@/lib/e2ee";
 
 const search = z.object({ c: z.string().uuid().optional(), m: z.string().optional() });
 
