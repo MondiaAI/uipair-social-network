@@ -27,6 +27,7 @@ import {
 } from "@/lib/e2ee";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { logClientError } from "@/lib/client-logger";
+import { submitCrashReport } from "@/lib/crash-report";
 
 const search = z.object({ c: z.string().uuid().optional(), m: z.string().optional() });
 
