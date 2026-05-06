@@ -400,6 +400,24 @@ function MessagesPage() {
       messageCount: messages.length,
       messageIds: messages.slice(-20).map((m) => m.id),
       lastMessageId: messages[messages.length - 1]?.id ?? null,
+      // Per-message decryption diagnostics for the most recent 20 messages.
+      // Captures whether each row is encrypted and whether it decrypts on
+      // this device — invaluable for reproducing crashes tied to a specific
+      // message that fails to render.
+      messageDecryption: messages.slice(-20).map((m) => {
+        const encrypted = isEncrypted(m.content);
+        if (!encrypted) {
+          return { id: m.id, senderId: m.sender_id, encrypted: false, decrypted: false, reason: "legacy" as const };
+        }
+        const r = decryptMessage(m.content, keypair, counterpartPub);
+        return r.ok
+          ? { id: m.id, senderId: m.sender_id, encrypted: true, decrypted: true, plaintextLength: r.plaintext.length }
+          : { id: m.id, senderId: m.sender_id, encrypted: true, decrypted: false, reason: r.reason };
+      }),
+      decryptFailureCount: messages.reduce((n, m) => {
+        if (!isEncrypted(m.content)) return n;
+        return decryptMessage(m.content, keypair, counterpartPub).ok ? n : n + 1;
+      }, 0),
       hasKeypair: !!keypair,
       hasCounterpartPub: !!counterpartPub,
       peerKeyStatus,
