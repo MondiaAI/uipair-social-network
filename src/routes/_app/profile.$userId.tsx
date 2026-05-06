@@ -333,10 +333,25 @@ function StartConversationButton({
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [attachment, setAttachment] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const MAX = 1000;
+  const MAX_FILE_BYTES = 20 * 1024 * 1024; // 20MB
   const remaining = MAX - text.length;
   const trimmed = text.trim();
-  const canSend = !sending && trimmed.length > 0 && text.length <= MAX;
+  const canSend = !sending && (trimmed.length > 0 || !!attachment) && text.length <= MAX;
+
+  // Object URL preview for image attachments
+  useEffect(() => {
+    if (!attachment || !attachment.type.startsWith("image/")) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(attachment);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [attachment]);
 
   // Subscribe to realtime conversation creation so we navigate even if the
   // conversation was created in another tab/device while this popover is open.
@@ -361,14 +376,29 @@ function StartConversationButton({
     };
   }, [open, meId, otherId, onOpened]);
 
+  const pickFile = (file: File | null) => {
+    if (!file) {
+      setAttachment(null);
+      return;
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      toast.error("File is too large. Max 20 MB.");
+      return;
+    }
+    setAttachment(file);
+  };
+
   const send = async () => {
     if (!canSend) return;
     setSending(true);
-    const toastId = toast.loading(`Sending message to ${otherName}…`);
+    const toastId = toast.loading(
+      attachment ? `Uploading & sending to ${otherName}…` : `Sending message to ${otherName}…`
+    );
     try {
-      const id = await startConversationWithMessage(meId, otherId, trimmed);
+      const id = await startConversationWithMessage(meId, otherId, trimmed, attachment);
       toast.success(`Message sent to ${otherName}`, { id: toastId });
       setText("");
+      setAttachment(null);
       setOpen(false);
       onOpened(id);
     } catch (e: any) {
@@ -407,10 +437,59 @@ function StartConversationButton({
             }
           }}
         />
+
+        {attachment && (
+          <div className="flex items-center gap-2 rounded-md border bg-muted/40 p-2 text-xs">
+            {previewUrl ? (
+              <img src={previewUrl} alt="preview" className="h-10 w-10 rounded object-cover" />
+            ) : (
+              <FileIcon className="h-5 w-5 text-muted-foreground" />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-medium">{attachment.name}</p>
+              <p className="text-muted-foreground">{(attachment.size / 1024).toFixed(0)} KB</p>
+            </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6"
+              onClick={() => setAttachment(null)}
+              disabled={sending}
+              aria-label="Remove attachment"
+            >
+              <X className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          hidden
+          accept="image/*,application/pdf,.doc,.docx,.txt,.zip"
+          onChange={(e) => {
+            pickFile(e.target.files?.[0] ?? null);
+            e.target.value = "";
+          }}
+        />
+
         <div className="flex items-center justify-between">
-          <span className={`text-xs ${remaining < 50 ? "text-destructive" : "text-muted-foreground"}`}>
-            {remaining} characters left
-          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-8 w-8"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={sending}
+              aria-label="Attach file"
+              title="Attach a file or image"
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+            <span className={`text-xs ${remaining < 50 ? "text-destructive" : "text-muted-foreground"}`}>
+              {remaining} left
+            </span>
+          </div>
           <div className="flex gap-2">
             <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={sending}>
               Cancel
