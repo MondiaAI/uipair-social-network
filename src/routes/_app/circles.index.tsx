@@ -14,7 +14,7 @@ import { SUBJECTS } from "@/lib/subjects";
 import { toast } from "sonner";
 import { Link, useNavigate } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_app/circles")({
+export const Route = createFileRoute("/_app/circles/")({
   component: CirclesPage,
 });
 

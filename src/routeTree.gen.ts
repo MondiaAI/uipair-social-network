@@ -22,8 +22,8 @@ import { Route as AppLabRouteImport } from './routes/_app/lab'
 import { Route as AppJoinRouteImport } from './routes/_app/join'
 import { Route as AppGigsRouteImport } from './routes/_app/gigs'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
-import { Route as AppCirclesRouteImport } from './routes/_app/circles'
 import { Route as AppAmbassadorRouteImport } from './routes/_app/ambassador'
+import { Route as AppCirclesIndexRouteImport } from './routes/_app/circles.index'
 import { Route as AppProfileUserIdRouteImport } from './routes/_app/profile.$userId'
 import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
 import { Route as AppInviteTokenRouteImport } from './routes/_app/invite.$token'
@@ -96,14 +96,14 @@ const AppFeedRoute = AppFeedRouteImport.update({
   path: '/feed',
   getParentRoute: () => AppRoute,
 } as any)
-const AppCirclesRoute = AppCirclesRouteImport.update({
-  id: '/circles',
-  path: '/circles',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppAmbassadorRoute = AppAmbassadorRouteImport.update({
   id: '/ambassador',
   path: '/ambassador',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCirclesIndexRoute = AppCirclesIndexRouteImport.update({
+  id: '/circles/',
+  path: '/circles/',
   getParentRoute: () => AppRoute,
 } as any)
 const AppProfileUserIdRoute = AppProfileUserIdRouteImport.update({
@@ -122,19 +122,19 @@ const AppInviteTokenRoute = AppInviteTokenRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const AppCirclesNewRoute = AppCirclesNewRouteImport.update({
-  id: '/new',
-  path: '/new',
-  getParentRoute: () => AppCirclesRoute,
+  id: '/circles/new',
+  path: '/circles/new',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppCirclesDiscoverRoute = AppCirclesDiscoverRouteImport.update({
-  id: '/discover',
-  path: '/discover',
-  getParentRoute: () => AppCirclesRoute,
+  id: '/circles/discover',
+  path: '/circles/discover',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppCirclesCircleIdRoute = AppCirclesCircleIdRouteImport.update({
-  id: '/$circleId',
-  path: '/$circleId',
-  getParentRoute: () => AppCirclesRoute,
+  id: '/circles/$circleId',
+  path: '/circles/$circleId',
+  getParentRoute: () => AppRoute,
 } as any)
 const ApiPublicPaymentsWebhookRoute =
   ApiPublicPaymentsWebhookRouteImport.update({
@@ -150,7 +150,6 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/ambassador': typeof AppAmbassadorRoute
-  '/circles': typeof AppCirclesRouteWithChildren
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
   '/join': typeof AppJoinRoute
@@ -164,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
+  '/circles/': typeof AppCirclesIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -173,7 +173,6 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/ambassador': typeof AppAmbassadorRoute
-  '/circles': typeof AppCirclesRouteWithChildren
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
   '/join': typeof AppJoinRoute
@@ -187,6 +186,7 @@ export interface FileRoutesByTo {
   '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
+  '/circles': typeof AppCirclesIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -198,7 +198,6 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
   '/_app/ambassador': typeof AppAmbassadorRoute
-  '/_app/circles': typeof AppCirclesRouteWithChildren
   '/_app/feed': typeof AppFeedRoute
   '/_app/gigs': typeof AppGigsRoute
   '/_app/join': typeof AppJoinRoute
@@ -212,6 +211,7 @@ export interface FileRoutesById {
   '/_app/invite/$token': typeof AppInviteTokenRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
+  '/_app/circles/': typeof AppCirclesIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -223,7 +223,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/ambassador'
-    | '/circles'
     | '/feed'
     | '/gigs'
     | '/join'
@@ -237,6 +236,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/lab/$projectId'
     | '/profile/$userId'
+    | '/circles/'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -246,7 +246,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/ambassador'
-    | '/circles'
     | '/feed'
     | '/gigs'
     | '/join'
@@ -260,6 +259,7 @@ export interface FileRouteTypes {
     | '/invite/$token'
     | '/lab/$projectId'
     | '/profile/$userId'
+    | '/circles'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -270,7 +270,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/terms'
     | '/_app/ambassador'
-    | '/_app/circles'
     | '/_app/feed'
     | '/_app/gigs'
     | '/_app/join'
@@ -284,6 +283,7 @@ export interface FileRouteTypes {
     | '/_app/invite/$token'
     | '/_app/lab/$projectId'
     | '/_app/profile/$userId'
+    | '/_app/circles/'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -390,18 +390,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFeedRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/circles': {
-      id: '/_app/circles'
-      path: '/circles'
-      fullPath: '/circles'
-      preLoaderRoute: typeof AppCirclesRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/ambassador': {
       id: '/_app/ambassador'
       path: '/ambassador'
       fullPath: '/ambassador'
       preLoaderRoute: typeof AppAmbassadorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/circles/': {
+      id: '/_app/circles/'
+      path: '/circles'
+      fullPath: '/circles/'
+      preLoaderRoute: typeof AppCirclesIndexRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/profile/$userId': {
@@ -427,24 +427,24 @@ declare module '@tanstack/react-router' {
     }
     '/_app/circles/new': {
       id: '/_app/circles/new'
-      path: '/new'
+      path: '/circles/new'
       fullPath: '/circles/new'
       preLoaderRoute: typeof AppCirclesNewRouteImport
-      parentRoute: typeof AppCirclesRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/circles/discover': {
       id: '/_app/circles/discover'
-      path: '/discover'
+      path: '/circles/discover'
       fullPath: '/circles/discover'
       preLoaderRoute: typeof AppCirclesDiscoverRouteImport
-      parentRoute: typeof AppCirclesRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/circles/$circleId': {
       id: '/_app/circles/$circleId'
-      path: '/$circleId'
+      path: '/circles/$circleId'
       fullPath: '/circles/$circleId'
       preLoaderRoute: typeof AppCirclesCircleIdRouteImport
-      parentRoute: typeof AppCirclesRoute
+      parentRoute: typeof AppRoute
     }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
@@ -455,22 +455,6 @@ declare module '@tanstack/react-router' {
     }
   }
 }
-
-interface AppCirclesRouteChildren {
-  AppCirclesCircleIdRoute: typeof AppCirclesCircleIdRoute
-  AppCirclesDiscoverRoute: typeof AppCirclesDiscoverRoute
-  AppCirclesNewRoute: typeof AppCirclesNewRoute
-}
-
-const AppCirclesRouteChildren: AppCirclesRouteChildren = {
-  AppCirclesCircleIdRoute: AppCirclesCircleIdRoute,
-  AppCirclesDiscoverRoute: AppCirclesDiscoverRoute,
-  AppCirclesNewRoute: AppCirclesNewRoute,
-}
-
-const AppCirclesRouteWithChildren = AppCirclesRoute._addFileChildren(
-  AppCirclesRouteChildren,
-)
 
 interface AppLabRouteChildren {
   AppLabProjectIdRoute: typeof AppLabProjectIdRoute
@@ -485,7 +469,6 @@ const AppLabRouteWithChildren =
 
 interface AppRouteChildren {
   AppAmbassadorRoute: typeof AppAmbassadorRoute
-  AppCirclesRoute: typeof AppCirclesRouteWithChildren
   AppFeedRoute: typeof AppFeedRoute
   AppGigsRoute: typeof AppGigsRoute
   AppJoinRoute: typeof AppJoinRoute
@@ -493,13 +476,16 @@ interface AppRouteChildren {
   AppMatchRoute: typeof AppMatchRoute
   AppMessagesRoute: typeof AppMessagesRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppCirclesCircleIdRoute: typeof AppCirclesCircleIdRoute
+  AppCirclesDiscoverRoute: typeof AppCirclesDiscoverRoute
+  AppCirclesNewRoute: typeof AppCirclesNewRoute
   AppInviteTokenRoute: typeof AppInviteTokenRoute
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
+  AppCirclesIndexRoute: typeof AppCirclesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAmbassadorRoute: AppAmbassadorRoute,
-  AppCirclesRoute: AppCirclesRouteWithChildren,
   AppFeedRoute: AppFeedRoute,
   AppGigsRoute: AppGigsRoute,
   AppJoinRoute: AppJoinRoute,
@@ -507,8 +493,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppMatchRoute: AppMatchRoute,
   AppMessagesRoute: AppMessagesRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppCirclesCircleIdRoute: AppCirclesCircleIdRoute,
+  AppCirclesDiscoverRoute: AppCirclesDiscoverRoute,
+  AppCirclesNewRoute: AppCirclesNewRoute,
   AppInviteTokenRoute: AppInviteTokenRoute,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
+  AppCirclesIndexRoute: AppCirclesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -525,3 +515,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
