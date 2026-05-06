@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setProfile(null);
       }
+      setLoading(false);
     });
 
     supabase.auth.getSession().then(({ data: { session: s } }) => {
@@ -61,9 +62,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ensureDeviceKeypair(s.user.id).catch(() => {});
       }
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
 
-    return () => subscription.unsubscribe();
+    // Safety: never stay in loading forever
+    const timeout = setTimeout(() => setLoading(false), 3000);
+
+    return () => { subscription.unsubscribe(); clearTimeout(timeout); };
   }, []);
 
   const signOut = async () => {
