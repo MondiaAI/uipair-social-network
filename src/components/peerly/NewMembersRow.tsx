@@ -28,7 +28,7 @@ interface Props {
   scoped?: boolean;
 }
 
-export function NewMembersRow({ title = "New on Peerly", limit = 12, scoped = true }: Props) {
+export function NewMembersRow({ title = "New on UiPair", limit = 12, scoped = true }: Props) {
   const { user, profile } = useAuth();
   const { mode } = useFeedMode();
   const { following, follow, unfollow } = useFollows();
