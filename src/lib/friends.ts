@@ -120,12 +120,27 @@ export async function openConversation(meId: string, otherId: string) {
 export async function startConversationWithMessage(
   meId: string,
   otherId: string,
-  content: string
+  content: string,
+  attachment?: File | null
 ) {
   const conversationId = await openConversation(meId, otherId);
+
+  let body = content;
+  if (attachment) {
+    const path = `${meId}/${Date.now()}-${attachment.name.replace(/\s+/g, "_")}`;
+    const { error: upErr } = await supabase.storage.from("resources").upload(path, attachment);
+    if (upErr) throw upErr;
+    const { data: signed } = await supabase.storage
+      .from("resources")
+      .createSignedUrl(path, 60 * 60 * 24 * 7);
+    if (signed?.signedUrl) {
+      body = body ? `${body}\n${signed.signedUrl}` : signed.signedUrl;
+    }
+  }
+
   const { error } = await supabase
     .from("messages")
-    .insert({ conversation_id: conversationId, sender_id: meId, content });
+    .insert({ conversation_id: conversationId, sender_id: meId, content: body });
   if (error) throw error;
   return conversationId;
 }
