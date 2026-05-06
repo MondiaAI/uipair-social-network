@@ -619,94 +619,13 @@ function MessagesPage() {
               </Button>
             </header>
 
-            <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto p-4">
-              {(() => {
-                const visible = messages.filter((m) => isEncrypted(m.content));
-                const hiddenCount = messages.length - visible.length;
-                if (visible.length === 0) {
-                  return (
-                    <p className="py-8 text-center text-sm text-muted-foreground">
-                      {hiddenCount > 0
-                        ? `${hiddenCount} unencrypted message${hiddenCount === 1 ? "" : "s"} hidden.`
-                        : "No messages yet. Send the first one!"}
-                    </p>
-                  );
-                }
-                return (
-                  <>
-                    {hiddenCount > 0 && (
-                      <p className="text-center text-[11px] text-muted-foreground">
-                        {hiddenCount} unencrypted message{hiddenCount === 1 ? "" : "s"} hidden
-                      </p>
-                    )}
-                    {visible.map((m) => {
-                  const mine = m.sender_id === user?.id;
-                  const decrypted = isEncrypted(m.content)
-                    ? decryptContent(m.content)
-                    : ({ ok: false, reason: "legacy" } as DecryptResult);
-                  const displayText = decrypted.ok ? decrypted.plaintext : m.content;
-                  const showFallback = isEncrypted(m.content) && !decrypted.ok;
-                  return (
-                    <div
-                      key={m.id}
-                      className={cn("flex", mine ? "justify-end" : "justify-start")}
-                    >
-                      <div
-                        className={cn(
-                          "max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow-sm",
-                          mine
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-foreground"
-                        )}
-                      >
-                        {showFallback ? (
-                          <p className={cn(
-                            "italic",
-                            mine ? "text-primary-foreground/80" : "text-muted-foreground"
-                          )}>
-                            {fallbackLabel(decrypted.reason)}
-                          </p>
-                        ) : (
-                          displayText.split("\n").map((line, i) =>
-                            isImageUrl(line) ? (
-                              <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
-                                <img
-                                  src={line}
-                                  alt="attachment"
-                                  className="my-1 max-h-60 rounded-lg object-cover"
-                                />
-                              </a>
-                            ) : /^https?:\/\//i.test(line) ? (
-                              <a
-                                key={i}
-                                href={line}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="block break-all underline underline-offset-2"
-                              >
-                                {line}
-                              </a>
-                            ) : (
-                              <p key={i} className="whitespace-pre-wrap break-words">
-                                {line}
-                              </p>
-                            )
-                          )
-                        )}
-                        <p className={cn(
-                          "mt-1 text-[10px]",
-                          mine ? "text-primary-foreground/70" : "text-muted-foreground"
-                        )}>
-                          {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-                  </>
-                );
-              })()}
-            </div>
+            <MessageList
+              messages={messages}
+              userId={user?.id}
+              decryptContent={decryptContent}
+              isImageUrl={isImageUrl}
+              scrollerRef={scrollerRef}
+            />
 
             <form
               onSubmit={(e) => {
