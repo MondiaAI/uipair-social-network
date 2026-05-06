@@ -318,3 +318,70 @@ function FriendActions({ otherId, otherName }: { otherId: string; otherName: str
     </>
   );
 }
+
+function StartConversationButton({
+  meId,
+  otherId,
+  otherName,
+  onOpened,
+}: {
+  meId: string;
+  otherId: string;
+  otherName: string;
+  onOpened: (conversationId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const send = async () => {
+    const content = text.trim();
+    if (!content) return;
+    setSending(true);
+    try {
+      const id = await startConversationWithMessage(meId, otherId, content);
+      toast.success(`Message sent to ${otherName}`);
+      setText("");
+      setOpen(false);
+      onOpened(id);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Could not send message");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button size="sm">
+          <MessageCircle className="h-4 w-4" /> Message
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-80 space-y-2">
+        <p className="text-sm font-medium">Start a conversation with {otherName}</p>
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={`Say hi to ${otherName}…`}
+          rows={3}
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              send();
+            }
+          }}
+        />
+        <div className="flex justify-end gap-2">
+          <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={sending}>
+            Cancel
+          </Button>
+          <Button size="sm" onClick={send} disabled={sending || !text.trim()}>
+            <Send className="h-4 w-4" /> Send
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
