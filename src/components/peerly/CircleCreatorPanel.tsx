@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Settings, Users, CreditCard, Trash2, Save, Loader2, Crown } from "lucide-react";
+import { Settings, Users, CreditCard, Trash2, Save, Loader2, Crown, Link as LinkIcon } from "lucide-react";
+import { CircleInvitesManager } from "./CircleInvitesManager";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
