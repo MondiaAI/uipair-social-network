@@ -389,6 +389,29 @@ function MessagesPage() {
   }, [conversations, user]);
 
 
+  // Keep the module-level snapshot in sync so the ErrorBoundary can log
+  // exactly what props/state were in play when a render error happens.
+  useEffect(() => {
+    pageSnapshot.current = {
+      userId: user?.id ?? null,
+      activeConversationId: activeId ?? null,
+      prefillSearchParam: prefill ?? null,
+      conversationCount: conversations.length,
+      messageCount: messages.length,
+      messageIds: messages.slice(-20).map((m) => m.id),
+      lastMessageId: messages[messages.length - 1]?.id ?? null,
+      hasKeypair: !!keypair,
+      hasCounterpartPub: !!counterpartPub,
+      peerKeyStatus,
+      mutedConversationIds: Object.keys(muted).filter((k) => muted[k]),
+      draftLength: draft.length,
+      hasAttachment: !!attachment,
+      sending,
+      uploading,
+      searchQuery: search,
+    };
+  }, [user, activeId, prefill, conversations, messages, keypair, counterpartPub, peerKeyStatus, muted, draft, attachment, sending, uploading, search]);
+
   // Auto-scroll
   useEffect(() => {
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight });
