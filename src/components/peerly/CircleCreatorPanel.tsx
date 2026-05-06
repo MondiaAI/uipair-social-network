@@ -135,10 +135,11 @@ export function CircleCreatorPanel({
       </div>
 
       <Tabs defaultValue="settings">
-        <TabsList className="grid grid-cols-3 w-full">
+        <TabsList className="grid grid-cols-4 w-full">
           <TabsTrigger value="settings"><Settings className="h-4 w-4 mr-1" /> Settings</TabsTrigger>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members</TabsTrigger>
-          <TabsTrigger value="subs"><CreditCard className="h-4 w-4 mr-1" /> Subscriptions</TabsTrigger>
+          <TabsTrigger value="invites"><LinkIcon className="h-4 w-4 mr-1" /> Invites</TabsTrigger>
+          <TabsTrigger value="subs"><CreditCard className="h-4 w-4 mr-1" /> Subs</TabsTrigger>
         </TabsList>
 
         <TabsContent value="settings" className="mt-4 space-y-3">
