@@ -40,32 +40,48 @@ function CreateCirclePage() {
   const effectivePremium = premiumLocked ? true : isPremium;
 
   const handleSubmit = async () => {
-    if (!user) return toast.error("Please sign in");
-    if (!name.trim()) return toast.error("Give your circle a name");
+    console.log("[circles/new] submit clicked", { user: user?.id, name, subject });
+    if (!user) {
+      toast.error("Please sign in");
+      return;
+    }
+    if (!name.trim()) {
+      toast.error("Please enter a name for your circle");
+      return;
+    }
     setSubmitting(true);
-    const { data, error } = await supabase
-      .from("circles")
-      .insert({
+    try {
+      const payload = {
         name: name.trim(),
         subject,
         description: description.trim() || null,
         leader_id: user.id,
-        scope: campusOnly ? "campus" : "global",
+        scope: campusOnly ? ("campus" as const) : ("global" as const),
         university: campusOnly ? profile?.university ?? null : null,
         is_premium: effectivePremium,
         price_monthly: effectivePremium ? Number(price) : null,
         meeting_schedule: schedule.trim() || null,
         resources_folder_url: resourcesUrl.trim() || null,
-      })
-      .select("id")
-      .single();
-    setSubmitting(false);
-    if (error || !data) {
-      toast.error(error?.message ?? "Failed to create circle");
-      return;
+      };
+      console.log("[circles/new] inserting", payload);
+      const { data, error } = await supabase
+        .from("circles")
+        .insert(payload)
+        .select("id")
+        .single();
+      console.log("[circles/new] insert result", { data, error });
+      if (error || !data) {
+        toast.error(error?.message ?? "Failed to create circle");
+        return;
+      }
+      toast.success("Circle created!");
+      navigate({ to: "/circles/$circleId", params: { circleId: data.id } });
+    } catch (err) {
+      console.error("[circles/new] unexpected error", err);
+      toast.error(err instanceof Error ? err.message : "Unexpected error");
+    } finally {
+      setSubmitting(false);
     }
-    toast.success("Circle created!");
-    navigate({ to: "/circles/$circleId", params: { circleId: data.id } });
   };
 
   if (!user) {
@@ -136,7 +152,7 @@ function CreateCirclePage() {
           <Label>Resources folder URL</Label>
           <Input value={resourcesUrl} onChange={(e) => setResourcesUrl(e.target.value)} placeholder="Drive / Notion link (optional)" />
         </div>
-        <Button onClick={handleSubmit} disabled={submitting || !name.trim()} className="w-full">
+        <Button onClick={handleSubmit} disabled={submitting} className="w-full">
           {submitting ? "Creating…" : "Create circle"}
         </Button>
       </Card>
