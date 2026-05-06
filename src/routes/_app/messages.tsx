@@ -72,6 +72,37 @@ function MessagesPage() {
   const [muted, setMuted] = useState<Record<string, boolean>>({});
   const [keypair, setKeypair] = useState<KeyPair | null>(null);
   const [counterpartPub, setCounterpartPub] = useState<Uint8Array | null>(null);
+  // Map of otherUserId -> whether they have published a public key
+  const [peerKeyStatus, setPeerKeyStatus] = useState<Record<string, boolean>>({});
+
+  type EncStatus = "ready" | "pending" | "failed";
+  const encStatusFor = (c: ConversationRow): EncStatus => {
+    if (!keypair) return "failed";
+    const otherId = c.user_a === user?.id ? c.user_b : c.user_a;
+    return peerKeyStatus[otherId] ? "ready" : "pending";
+  };
+
+  const StatusBadge = ({ status, compact = false }: { status: EncStatus; compact?: boolean }) => {
+    const map = {
+      ready: { Icon: ShieldCheck, label: "Encrypted", desc: "Messages are end-to-end encrypted.", cls: "text-emerald-600" },
+      pending: { Icon: ShieldQuestion, label: "Pending", desc: "Recipient hasn't set up encryption yet.", cls: "text-amber-600" },
+      failed: { Icon: ShieldAlert, label: "Unavailable", desc: "Encryption keys aren't ready on this device.", cls: "text-destructive" },
+    } as const;
+    const { Icon, label, desc, cls } = map[status];
+    return (
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className={cn("inline-flex items-center gap-1 shrink-0", cls)} aria-label={`Encryption: ${label}`}>
+              <Icon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+              {!compact && <span className="text-xs font-medium">{label}</span>}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>{desc}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   // Bootstrap this device's E2EE keypair and publish public key to profile.
   useEffect(() => {
