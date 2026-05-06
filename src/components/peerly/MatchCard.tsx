@@ -122,7 +122,7 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
     }
   };
 
-  const partnershipTemplate = `Hey ${name.split(" ")[0]} 👋 — want to team up as study partners? I think we'd be a great match for ${profile.field_of_study ?? "our shared subjects"}.`;
+  // Auto-prefill removed — users compose their own first message.
 
   return (
     <div className="relative rounded-xl border bg-card p-4 shadow-sm">
