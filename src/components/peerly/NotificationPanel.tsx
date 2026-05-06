@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
-import { Handshake, MessageSquare, Lightbulb, Package, CheckCircle2, Trophy, Users, Radio, DollarSign } from "lucide-react";
+import { Handshake, MessageSquare, Lightbulb, Package, CheckCircle2, Trophy, Users, Radio, DollarSign, Megaphone, Pin } from "lucide-react";
 import { timeAgo } from "@/lib/gig-meta";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +17,9 @@ const ICONS: Record<string, { icon: typeof Handshake; color: string }> = {
   circle_member: { icon: Users, color: "text-blue-600" },
   live_session: { icon: Radio, color: "text-rose-600" },
   payment: { icon: DollarSign, color: "text-emerald-600" },
+  announcement_new: { icon: Megaphone, color: "text-primary" },
+  announcement_pinned: { icon: Pin, color: "text-primary" },
+  announcement_updated: { icon: Megaphone, color: "text-primary" },
 };
 
 type N = { id: string; type: string; content: string; is_read: boolean; created_at: string };
