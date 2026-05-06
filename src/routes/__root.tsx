@@ -33,10 +33,14 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "PEERLY — Academic Social Network" },
+      { title: "UiPair — Find your pair. Build your future." },
       { name: "description", content: "Connect, collaborate, and grow with university students worldwide." },
     ],
-    links: [{ rel: "stylesheet", href: appCss }],
+    links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/svg+xml", href: faviconUrl },
+      { rel: "apple-touch-icon", href: faviconUrl },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
