@@ -127,8 +127,8 @@ function CirclesPage() {
           <Button variant="outline" asChild>
             <Link to="/circles/discover"><Compass className="h-4 w-4" /> Discover</Link>
           </Button>
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" /> Create Circle
+          <Button asChild>
+            <Link to="/circles/new"><Plus className="h-4 w-4" /> Create Circle</Link>
           </Button>
         </div>
       </div>

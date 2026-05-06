@@ -25,6 +25,7 @@ import { Route as AppCirclesRouteImport } from './routes/_app/circles'
 import { Route as AppAmbassadorRouteImport } from './routes/_app/ambassador'
 import { Route as AppProfileUserIdRouteImport } from './routes/_app/profile.$userId'
 import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
+import { Route as AppCirclesNewRouteImport } from './routes/_app/circles.new'
 import { Route as AppCirclesDiscoverRouteImport } from './routes/_app/circles.discover'
 import { Route as AppCirclesCircleIdRouteImport } from './routes/_app/circles.$circleId'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -108,6 +109,11 @@ const AppLabProjectIdRoute = AppLabProjectIdRouteImport.update({
   path: '/$projectId',
   getParentRoute: () => AppLabRoute,
 } as any)
+const AppCirclesNewRoute = AppCirclesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AppCirclesRoute,
+} as any)
 const AppCirclesDiscoverRoute = AppCirclesDiscoverRouteImport.update({
   id: '/discover',
   path: '/discover',
@@ -141,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AppSettingsRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
+  '/circles/new': typeof AppCirclesNewRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AppSettingsRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
+  '/circles/new': typeof AppCirclesNewRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/_app/settings': typeof AppSettingsRoute
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/_app/circles/discover': typeof AppCirclesDiscoverRoute
+  '/_app/circles/new': typeof AppCirclesNewRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -205,6 +214,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/circles/$circleId'
     | '/circles/discover'
+    | '/circles/new'
     | '/lab/$projectId'
     | '/profile/$userId'
     | '/api/public/payments/webhook'
@@ -225,6 +235,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/circles/$circleId'
     | '/circles/discover'
+    | '/circles/new'
     | '/lab/$projectId'
     | '/profile/$userId'
     | '/api/public/payments/webhook'
@@ -246,6 +257,7 @@ export interface FileRouteTypes {
     | '/_app/settings'
     | '/_app/circles/$circleId'
     | '/_app/circles/discover'
+    | '/_app/circles/new'
     | '/_app/lab/$projectId'
     | '/_app/profile/$userId'
     | '/api/public/payments/webhook'
@@ -375,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLabProjectIdRouteImport
       parentRoute: typeof AppLabRoute
     }
+    '/_app/circles/new': {
+      id: '/_app/circles/new'
+      path: '/new'
+      fullPath: '/circles/new'
+      preLoaderRoute: typeof AppCirclesNewRouteImport
+      parentRoute: typeof AppCirclesRoute
+    }
     '/_app/circles/discover': {
       id: '/_app/circles/discover'
       path: '/discover'
@@ -402,11 +421,13 @@ declare module '@tanstack/react-router' {
 interface AppCirclesRouteChildren {
   AppCirclesCircleIdRoute: typeof AppCirclesCircleIdRoute
   AppCirclesDiscoverRoute: typeof AppCirclesDiscoverRoute
+  AppCirclesNewRoute: typeof AppCirclesNewRoute
 }
 
 const AppCirclesRouteChildren: AppCirclesRouteChildren = {
   AppCirclesCircleIdRoute: AppCirclesCircleIdRoute,
   AppCirclesDiscoverRoute: AppCirclesDiscoverRoute,
+  AppCirclesNewRoute: AppCirclesNewRoute,
 }
 
 const AppCirclesRouteWithChildren = AppCirclesRoute._addFileChildren(
