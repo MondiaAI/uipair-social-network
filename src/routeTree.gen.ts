@@ -25,6 +25,7 @@ import { Route as AppCirclesRouteImport } from './routes/_app/circles'
 import { Route as AppAmbassadorRouteImport } from './routes/_app/ambassador'
 import { Route as AppProfileUserIdRouteImport } from './routes/_app/profile.$userId'
 import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
+import { Route as AppInviteTokenRouteImport } from './routes/_app/invite.$token'
 import { Route as AppCirclesNewRouteImport } from './routes/_app/circles.new'
 import { Route as AppCirclesDiscoverRouteImport } from './routes/_app/circles.discover'
 import { Route as AppCirclesCircleIdRouteImport } from './routes/_app/circles.$circleId'
@@ -109,6 +110,11 @@ const AppLabProjectIdRoute = AppLabProjectIdRouteImport.update({
   path: '/$projectId',
   getParentRoute: () => AppLabRoute,
 } as any)
+const AppInviteTokenRoute = AppInviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCirclesNewRoute = AppCirclesNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
+  '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
+  '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/_app/circles/discover': typeof AppCirclesDiscoverRoute
   '/_app/circles/new': typeof AppCirclesNewRoute
+  '/_app/invite/$token': typeof AppInviteTokenRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
+    | '/invite/$token'
     | '/lab/$projectId'
     | '/profile/$userId'
     | '/api/public/payments/webhook'
@@ -236,6 +246,7 @@ export interface FileRouteTypes {
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
+    | '/invite/$token'
     | '/lab/$projectId'
     | '/profile/$userId'
     | '/api/public/payments/webhook'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/_app/circles/$circleId'
     | '/_app/circles/discover'
     | '/_app/circles/new'
+    | '/_app/invite/$token'
     | '/_app/lab/$projectId'
     | '/_app/profile/$userId'
     | '/api/public/payments/webhook'
@@ -387,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLabProjectIdRouteImport
       parentRoute: typeof AppLabRoute
     }
+    '/_app/invite/$token': {
+      id: '/_app/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof AppInviteTokenRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/circles/new': {
       id: '/_app/circles/new'
       path: '/new'
@@ -454,6 +473,7 @@ interface AppRouteChildren {
   AppMatchRoute: typeof AppMatchRoute
   AppMessagesRoute: typeof AppMessagesRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppInviteTokenRoute: typeof AppInviteTokenRoute
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
 }
 
@@ -466,6 +486,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMatchRoute: AppMatchRoute,
   AppMessagesRoute: AppMessagesRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppInviteTokenRoute: AppInviteTokenRoute,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
 }
 
