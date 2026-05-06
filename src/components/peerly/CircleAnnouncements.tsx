@@ -55,6 +55,38 @@ export function CircleAnnouncements({
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [circleId]);
 
+  // Realtime: announcement edits, pins, inserts, and deletes propagate to all members.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`circle-announcements-${circleId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "circle_announcements", filter: `circle_id=eq.${circleId}` },
+        (payload) => {
+          const row = payload.new as Announcement;
+          setItems((prev) => prev.some((x) => x.id === row.id) ? prev : sortItems([...prev, row]));
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "circle_announcements", filter: `circle_id=eq.${circleId}` },
+        (payload) => {
+          const row = payload.new as Announcement;
+          setItems((prev) => sortItems(prev.map((x) => x.id === row.id ? { ...x, ...row } : x)));
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "circle_announcements", filter: `circle_id=eq.${circleId}` },
+        (payload) => {
+          const row = payload.old as { id: string };
+          setItems((prev) => prev.filter((x) => x.id !== row.id));
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [circleId]);
+
   const post = async () => {
     if (!userId || !title.trim() || !content.trim()) return;
     setPosting(true);
@@ -95,28 +127,42 @@ export function CircleAnnouncements({
 
   const saveEdit = async (id: string) => {
     if (!editTitle.trim() || !editContent.trim()) return;
+    const newTitle = editTitle.trim();
+    const newContent = editContent.trim();
+    const prev = items;
+    // Optimistic
+    setItems((curr) => sortItems(curr.map((a) => a.id === id ? { ...a, title: newTitle, content: newContent } : a)));
+    cancelEdit();
     setSavingId(id);
     const { error } = await supabase
       .from("circle_announcements")
-      .update({ title: editTitle.trim(), content: editContent.trim() })
+      .update({ title: newTitle, content: newContent })
       .eq("id", id);
     setSavingId(null);
-    if (error) { toast.error(error.message); return; }
-    setItems((prev) => sortItems(prev.map((a) => a.id === id ? { ...a, title: editTitle.trim(), content: editContent.trim() } : a)));
-    cancelEdit();
+    if (error) {
+      setItems(prev); // rollback
+      toast.error(error.message);
+      return;
+    }
     toast.success("Announcement updated");
   };
 
   const togglePin = async (a: Announcement) => {
-    setPinningId(a.id);
     const next = !a.is_pinned;
+    const prev = items;
+    // Optimistic
+    setItems((curr) => sortItems(curr.map((x) => x.id === a.id ? { ...x, is_pinned: next } : x)));
+    setPinningId(a.id);
     const { error } = await supabase
       .from("circle_announcements")
       .update({ is_pinned: next })
       .eq("id", a.id);
     setPinningId(null);
-    if (error) { toast.error(error.message); return; }
-    setItems((prev) => sortItems(prev.map((x) => x.id === a.id ? { ...x, is_pinned: next } : x)));
+    if (error) {
+      setItems(prev); // rollback
+      toast.error(error.message);
+      return;
+    }
     toast.success(next ? "Pinned" : "Unpinned");
   };
 

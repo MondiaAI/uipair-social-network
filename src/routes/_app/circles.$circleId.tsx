@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, Crown, Users, Calendar, FileText, MessageSquare, Lock, Sparkles } from "lucide-react";
+import { ArrowLeft, Crown, Users, Calendar, FileText, MessageSquare, Lock, Sparkles, LinkIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -81,6 +81,26 @@ function CircleDetailPage() {
   } | null>(null);
   const [canceling, setCanceling] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [generatingInvite, setGeneratingInvite] = useState(false);
+
+  const handleQuickInvite = async () => {
+    if (!user || !circle) return;
+    setGeneratingInvite(true);
+    const { data, error } = await supabase
+      .from("circle_invites")
+      .insert({ circle_id: circle.id, created_by: user.id })
+      .select("token")
+      .single();
+    setGeneratingInvite(false);
+    if (error || !data) { toast.error(error?.message || "Could not create invite"); return; }
+    const url = `${window.location.origin}/invite/${data.token}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Invite link copied to clipboard");
+    } catch {
+      toast.message("Invite created", { description: url });
+    }
+  };
 
   const stripeEnv = getStripeEnvironment();
   const isMember = members.some((m) => m.id === user?.id);
@@ -417,7 +437,11 @@ function CircleDetailPage() {
             <Button onClick={requestJoin} className={circle.is_premium ? "bg-gradient-to-r from-primary to-primary/70" : ""}>
               {circle.is_premium ? <><Sparkles className="h-4 w-4" /> Subscribe ${Number(circle.price_monthly).toFixed(0)}/mo</> : "Join"}
             </Button>
-          ) : user?.id !== circle.leader_id && !circle.is_premium ? (
+          ) : user?.id === circle.leader_id ? (
+            <Button variant="outline" onClick={handleQuickInvite} disabled={generatingInvite}>
+              <LinkIcon className="h-4 w-4" /> {generatingInvite ? "Generating…" : "Invite link"}
+            </Button>
+          ) : !circle.is_premium ? (
             <Button variant="outline" onClick={handleLeave} disabled={leaving}>
               <LogOut className="h-4 w-4" /> {leaving ? "Leaving…" : "Leave circle"}
             </Button>
