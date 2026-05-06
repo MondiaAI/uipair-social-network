@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard";
-import { CreateCircleModal } from "@/components/peerly/CreateCircleModal";
+
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { SUBJECTS } from "@/lib/subjects";
 import { toast } from "sonner";
@@ -32,7 +32,7 @@ function CirclesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [createOpen, setCreateOpen] = useState(false);
+  
 
   const userUniversity = profile?.university ?? null;
 
@@ -75,6 +75,38 @@ function CirclesPage() {
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [user?.id]);
+
+  // Realtime: keep joined/subscribed state in sync across cards without refresh.
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`circles-membership-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "circle_members", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new as { circle_id: string };
+          setMemberships((prev) => new Set(prev).add(row.circle_id));
+          setCircles((prev) => prev.map((c) =>
+            c.id === row.circle_id ? { ...c, member_count: c.member_count + 1 } : c
+          ));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "circle_members", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.old as { circle_id: string };
+          setMemberships((prev) => { const n = new Set(prev); n.delete(row.circle_id); return n; });
+          setCircles((prev) => prev.map((c) =>
+            c.id === row.circle_id ? { ...c, member_count: Math.max(0, c.member_count - 1) } : c
+          ));
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
+
 
   const handleJoin = async (circleId: string) => {
     if (!user) return;
@@ -127,8 +159,8 @@ function CirclesPage() {
           <Button variant="outline" asChild>
             <Link to="/circles/discover"><Compass className="h-4 w-4" /> Discover</Link>
           </Button>
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" /> Create Circle
+          <Button asChild>
+            <Link to="/circles/new"><Plus className="h-4 w-4" /> Create Circle</Link>
           </Button>
         </div>
       </div>
@@ -201,8 +233,6 @@ function CirclesPage() {
           </div>
         )}
       </section>
-
-      <CreateCircleModal open={createOpen} onOpenChange={(o) => { setCreateOpen(o); if (!o) load(); }} />
     </div>
   );
 }
