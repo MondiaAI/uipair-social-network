@@ -69,6 +69,29 @@ function MessagesPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
   const [muted, setMuted] = useState<Record<string, boolean>>({});
+  const [keypair, setKeypair] = useState<KeyPair | null>(null);
+  const [counterpartPub, setCounterpartPub] = useState<Uint8Array | null>(null);
+
+  // Bootstrap this device's E2EE keypair and publish public key to profile.
+  useEffect(() => {
+    if (!user) return;
+    ensureDeviceKeypair(user.id).then((kp) => kp && setKeypair(kp));
+  }, [user]);
+
+  // Helper: decrypt a stored content string using current keypair + counterpart.
+  const decryptContent = (content: string): DecryptResult => {
+    if (!isEncrypted(content)) return { ok: false, reason: "legacy" };
+    return decryptMessage(content, keypair, counterpartPub);
+  };
+
+  // Plain-text preview for sidebar (only works for messages decryptable on this device).
+  const previewText = (content: string | undefined): string => {
+    if (!content) return "Say hi 👋";
+    if (!isEncrypted(content)) return content;
+    const r = decryptMessage(content, keypair, null);
+    return r.ok ? r.plaintext : "🔒 Encrypted message";
+  };
+
   const persistMuted = async (id: string, next: boolean) => {
     setMuted((prev) => ({ ...prev, [id]: next }));
     if (!user) return;
