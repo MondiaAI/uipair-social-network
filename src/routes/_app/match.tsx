@@ -111,7 +111,7 @@ function MatchPage() {
       setLoading(true);
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, username, avatar_url, university, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at, created_at")
+        .select("id, full_name, username, avatar_url, university, university_id, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at, created_at")
         .neq("id", user.id)
         .limit(100);
       setProfiles((data ?? []) as ProfileRow[]);
