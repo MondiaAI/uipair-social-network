@@ -702,8 +702,10 @@ function MessagesPage() {
                       </div>
                     </div>
                   );
-                })
-              )}
+                })}
+                  </>
+                );
+              })()}
             </div>
 
             <form
