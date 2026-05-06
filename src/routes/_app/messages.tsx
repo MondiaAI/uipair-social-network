@@ -729,7 +729,7 @@ function MessagesPage() {
                       <p className={cn("truncate text-sm flex items-center gap-1 min-w-0", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
                         {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground" />}
                         <span className="truncate">{name}</span>
-                        <StatusBadge status={encStatusFor(c)} compact />
+                        
                       </p>
                       {unread > 0 && (
                         <span className={cn(
