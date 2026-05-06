@@ -405,6 +405,42 @@ function MessagesPage() {
     return () => { cancelled = true; };
   }, [activeId, user, conversations]);
 
+  // Backfill: re-encrypt any of MY own plaintext messages in this conversation
+  // so all stored messages end up E2EE. We can only safely rewrite messages we
+  // sent ourselves (RLS allows updating own rows via delete+insert pattern is
+  // not needed — we just update content in place via delete+reinsert? messages
+  // table has no UPDATE policy for sender, only "Recipients mark messages
+  // read". Instead delete the plaintext row and insert an encrypted one.)
+  useEffect(() => {
+    if (!user || !activeId || !keypair || !counterpartPub) return;
+    const plaintextMine = messages.filter(
+      (m) => m.sender_id === user.id && !isEncrypted(m.content)
+    );
+    if (plaintextMine.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      for (const m of plaintextMine) {
+        if (cancelled) return;
+        try {
+          const cipher = encryptMessage(m.content, counterpartPub, keypair);
+          // Delete + re-insert so RLS (sender can delete + insert) lets us
+          // upgrade legacy plaintext rows to encrypted ones.
+          const { error: delErr } = await supabase.from("messages").delete().eq("id", m.id);
+          if (delErr) continue;
+          await supabase.from("messages").insert({
+            conversation_id: m.conversation_id,
+            sender_id: user.id,
+            content: cipher,
+          });
+        } catch {
+          /* skip */
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeId, user, keypair, counterpartPub, messages]);
+
+
   // Bulk-fetch peer key presence for the conversation list (for sidebar badges)
   useEffect(() => {
     if (!user || conversations.length === 0) return;
@@ -537,20 +573,22 @@ function MessagesPage() {
         }
         setUploadProgress(100);
       }
-      // E2EE: encrypt when keys are available; otherwise send as plaintext
-      // so messaging always works (recipient may not have set up keys yet).
-      let payload = content;
-      if (keypair && counterpartPub) {
-        payload = encryptMessage(content, counterpartPub, keypair);
-      } else {
+      // E2EE required: never send plaintext. Block until keys are ready.
+      let payload: string;
+      let recipientPub = counterpartPub;
+      if (!recipientPub) {
         const conv = conversations.find((c) => c.id === activeId);
         const otherId = conv ? (conv.user_a === user.id ? conv.user_b : conv.user_a) : null;
-        const pk = otherId ? await fetchPublicKey(otherId) : null;
-        if (pk && keypair) {
-          setCounterpartPub(pk);
-          payload = encryptMessage(content, pk, keypair);
-        }
+        recipientPub = otherId ? await fetchPublicKey(otherId) : null;
+        if (recipientPub) setCounterpartPub(recipientPub);
       }
+      if (!keypair || !recipientPub) {
+        toast.error("Encryption isn't ready yet. Please try again in a moment.");
+        setDraft(originalDraft);
+        setAttachment(originalAttachment);
+        return;
+      }
+      payload = encryptMessage(content, recipientPub, keypair);
       const { error } = await supabase
         .from("messages")
         .insert({ conversation_id: activeId, sender_id: user.id, content: payload });

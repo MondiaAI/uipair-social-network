@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureDeviceKeypair } from "@/lib/e2ee";
 
 interface Profile {
   id: string;
@@ -46,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(newSession?.user ?? null);
       if (newSession?.user) {
         setTimeout(() => loadProfile(newSession.user.id), 0);
+        setTimeout(() => { ensureDeviceKeypair(newSession.user.id).catch(() => {}); }, 0);
       } else {
         setProfile(null);
       }
@@ -54,7 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
-      if (s?.user) loadProfile(s.user.id);
+      if (s?.user) {
+        loadProfile(s.user.id);
+        ensureDeviceKeypair(s.user.id).catch(() => {});
+      }
       setLoading(false);
     });
 
