@@ -333,39 +333,73 @@ function StartConversationButton({
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const MAX = 1000;
+  const remaining = MAX - text.length;
+  const trimmed = text.trim();
+  const canSend = !sending && trimmed.length > 0 && text.length <= MAX;
+
+  // Subscribe to realtime conversation creation so we navigate even if the
+  // conversation was created in another tab/device while this popover is open.
+  useEffect(() => {
+    if (!open) return;
+    const [a, b] = [meId, otherId].sort();
+    const channel = supabase
+      .channel(`conv-watch-${a}-${b}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "conversations", filter: `user_a=eq.${a}` },
+        (payload: any) => {
+          if (payload?.new?.user_b === b) {
+            onOpened(payload.new.id as string);
+            setOpen(false);
+          }
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [open, meId, otherId, onOpened]);
 
   const send = async () => {
-    const content = text.trim();
-    if (!content) return;
+    if (!canSend) return;
     setSending(true);
+    const toastId = toast.loading(`Sending message to ${otherName}…`);
     try {
-      const id = await startConversationWithMessage(meId, otherId, content);
-      toast.success(`Message sent to ${otherName}`);
+      const id = await startConversationWithMessage(meId, otherId, trimmed);
+      toast.success(`Message sent to ${otherName}`, { id: toastId });
       setText("");
       setOpen(false);
       onOpened(id);
     } catch (e: any) {
-      toast.error(e?.message ?? "Could not send message");
+      const msg = e?.message?.includes("are_friends")
+        ? `You can only message ${otherName} after they accept your connect request.`
+        : e?.message ?? "Could not send message. Please try again.";
+      toast.error(msg, { id: toastId });
     } finally {
       setSending(false);
     }
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={(v) => !sending && setOpen(v)}>
       <PopoverTrigger asChild>
         <Button size="sm">
           <MessageCircle className="h-4 w-4" /> Message
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 space-y-2">
-        <p className="text-sm font-medium">Start a conversation with {otherName}</p>
+        <div>
+          <p className="text-sm font-medium">Start a conversation</p>
+          <p className="text-xs text-muted-foreground">Send {otherName} your first message</p>
+        </div>
         <Textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => setText(e.target.value.slice(0, MAX))}
           placeholder={`Say hi to ${otherName}…`}
           rows={3}
           autoFocus
+          disabled={sending}
           onKeyDown={(e) => {
             if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
               e.preventDefault();
@@ -373,14 +407,21 @@ function StartConversationButton({
             }
           }}
         />
-        <div className="flex justify-end gap-2">
-          <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={sending}>
-            Cancel
-          </Button>
-          <Button size="sm" onClick={send} disabled={sending || !text.trim()}>
-            <Send className="h-4 w-4" /> Send
-          </Button>
+        <div className="flex items-center justify-between">
+          <span className={`text-xs ${remaining < 50 ? "text-destructive" : "text-muted-foreground"}`}>
+            {remaining} characters left
+          </span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setOpen(false)} disabled={sending}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={send} disabled={!canSend}>
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              {sending ? "Sending…" : "Send"}
+            </Button>
+          </div>
         </div>
+        <p className="text-[11px] text-muted-foreground">Press ⌘/Ctrl + Enter to send</p>
       </PopoverContent>
     </Popover>
   );
