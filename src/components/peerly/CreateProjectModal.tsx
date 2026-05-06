@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Check, Search } from "lucide-react";
+import { useNetworkPeople } from "@/hooks/use-network-people";
 import { SUBJECTS } from "@/lib/subjects";
 import {
   PROJECT_CATEGORIES,
