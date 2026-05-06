@@ -152,7 +152,7 @@ function CreateCirclePage() {
           <Label>Resources folder URL</Label>
           <Input value={resourcesUrl} onChange={(e) => setResourcesUrl(e.target.value)} placeholder="Drive / Notion link (optional)" />
         </div>
-        <Button onClick={handleSubmit} disabled={submitting || !name.trim()} className="w-full">
+        <Button onClick={handleSubmit} disabled={submitting} className="w-full">
           {submitting ? "Creating…" : "Create circle"}
         </Button>
       </Card>
