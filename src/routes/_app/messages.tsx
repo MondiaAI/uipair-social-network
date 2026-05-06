@@ -620,12 +620,26 @@ function MessagesPage() {
             </header>
 
             <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto p-4">
-              {messages.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">
-                  No messages yet. Send the first one!
-                </p>
-              ) : (
-                messages.map((m) => {
+              {(() => {
+                const visible = messages.filter((m) => isEncrypted(m.content));
+                const hiddenCount = messages.length - visible.length;
+                if (visible.length === 0) {
+                  return (
+                    <p className="py-8 text-center text-sm text-muted-foreground">
+                      {hiddenCount > 0
+                        ? `${hiddenCount} unencrypted message${hiddenCount === 1 ? "" : "s"} hidden.`
+                        : "No messages yet. Send the first one!"}
+                    </p>
+                  );
+                }
+                return (
+                  <>
+                    {hiddenCount > 0 && (
+                      <p className="text-center text-[11px] text-muted-foreground">
+                        {hiddenCount} unencrypted message{hiddenCount === 1 ? "" : "s"} hidden
+                      </p>
+                    )}
+                    {visible.map((m) => {
                   const mine = m.sender_id === user?.id;
                   const decrypted = isEncrypted(m.content)
                     ? decryptContent(m.content)
@@ -688,8 +702,10 @@ function MessagesPage() {
                       </div>
                     </div>
                   );
-                })
-              )}
+                })}
+                  </>
+                );
+              })()}
             </div>
 
             <form
