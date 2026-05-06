@@ -78,6 +78,40 @@ export function NotificationPanel({ open, onOpenChange }: { open: boolean; onOpe
     })();
   }, [open, user]);
 
+  // Realtime: keep the panel list in sync with new/updated/deleted notifications
+  // so users see them instantly while logged in (panel open or not).
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`notifications-panel-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new as N;
+          setItems((prev) => prev.some((n) => n.id === row.id) ? prev : [row, ...prev].slice(0, 50));
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new as N;
+          setItems((prev) => prev.map((n) => n.id === row.id ? { ...n, ...row } : n));
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.old as { id: string };
+          setItems((prev) => prev.filter((n) => n.id !== row.id));
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   const markAll = async () => {
     if (!user) return;
     await supabase.from("notifications").update({ is_read: true }).eq("user_id", user.id).eq("is_read", false);
