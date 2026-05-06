@@ -209,7 +209,11 @@ export function CircleAnnouncements({
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-4">No announcements yet.</p>
       ) : items.map((a) => (
-        <div key={a.id} className={`rounded-md border-l-4 p-3 ${a.is_pinned ? "border-primary bg-primary/5" : "border-muted bg-muted/30"}`}>
+        <div
+          key={a.id}
+          id={`announcement-${a.id}`}
+          className={`rounded-md border-l-4 p-3 transition-shadow ${a.is_pinned ? "border-primary bg-primary/5" : "border-muted bg-muted/30"} ${highlightedId === a.id ? "ring-2 ring-primary ring-offset-2 ring-offset-card" : ""}`}
+        >
           {editingId === a.id ? (
             <div className="space-y-2">
               <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} placeholder="Title" />
