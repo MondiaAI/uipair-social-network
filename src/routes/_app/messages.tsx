@@ -582,14 +582,13 @@ function MessagesPage() {
         recipientPub = otherId ? await fetchPublicKey(otherId) : null;
         if (recipientPub) setCounterpartPub(recipientPub);
       }
-      if (keypair && recipientPub) {
-        payload = encryptMessage(content, recipientPub, keypair);
-      } else {
-        // Recipient hasn't published a public key yet (e.g. seeded/demo user
-        // who never opened the app). Deliver as plaintext so the conversation
-        // still works; once they publish a key, future messages encrypt.
-        payload = content;
+      if (!keypair || !recipientPub) {
+        toast.error("Can't send: end-to-end encryption keys aren't available for this chat yet.");
+        setDraft(originalDraft);
+        setAttachment(originalAttachment);
+        return;
       }
+      payload = encryptMessage(content, recipientPub, keypair);
       const { error } = await supabase
         .from("messages")
         .insert({ conversation_id: activeId, sender_id: user.id, content: payload });
