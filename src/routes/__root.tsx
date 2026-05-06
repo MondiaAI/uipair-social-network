@@ -4,6 +4,7 @@ import { FeedProvider } from "@/lib/feed-context";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
+import faviconUrl from "@/assets/favicon.svg?url";
 
 function NotFoundComponent() {
   return (
