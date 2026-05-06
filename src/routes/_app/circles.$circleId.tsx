@@ -437,7 +437,11 @@ function CircleDetailPage() {
             <Button onClick={requestJoin} className={circle.is_premium ? "bg-gradient-to-r from-primary to-primary/70" : ""}>
               {circle.is_premium ? <><Sparkles className="h-4 w-4" /> Subscribe ${Number(circle.price_monthly).toFixed(0)}/mo</> : "Join"}
             </Button>
-          ) : user?.id !== circle.leader_id && !circle.is_premium ? (
+          ) : user?.id === circle.leader_id ? (
+            <Button variant="outline" onClick={handleQuickInvite} disabled={generatingInvite}>
+              <LinkIcon className="h-4 w-4" /> {generatingInvite ? "Generating…" : "Invite link"}
+            </Button>
+          ) : !circle.is_premium ? (
             <Button variant="outline" onClick={handleLeave} disabled={leaving}>
               <LogOut className="h-4 w-4" /> {leaving ? "Leaving…" : "Leave circle"}
             </Button>
