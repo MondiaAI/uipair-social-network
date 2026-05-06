@@ -562,6 +562,11 @@ function MessagesPage() {
               ) : (
                 messages.map((m) => {
                   const mine = m.sender_id === user?.id;
+                  const decrypted = isEncrypted(m.content)
+                    ? decryptContent(m.content)
+                    : ({ ok: false, reason: "legacy" } as DecryptResult);
+                  const displayText = decrypted.ok ? decrypted.plaintext : m.content;
+                  const showFallback = isEncrypted(m.content) && !decrypted.ok;
                   return (
                     <div
                       key={m.id}
@@ -575,29 +580,38 @@ function MessagesPage() {
                             : "bg-muted text-foreground"
                         )}
                       >
-                        {m.content.split("\n").map((line, i) =>
-                          isImageUrl(line) ? (
-                            <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
-                              <img
-                                src={line}
-                                alt="attachment"
-                                className="my-1 max-h-60 rounded-lg object-cover"
-                              />
-                            </a>
-                          ) : /^https?:\/\//i.test(line) ? (
-                            <a
-                              key={i}
-                              href={line}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="block break-all underline underline-offset-2"
-                            >
-                              {line}
-                            </a>
-                          ) : (
-                            <p key={i} className="whitespace-pre-wrap break-words">
-                              {line}
-                            </p>
+                        {showFallback ? (
+                          <p className={cn(
+                            "italic",
+                            mine ? "text-primary-foreground/80" : "text-muted-foreground"
+                          )}>
+                            {fallbackLabel(decrypted.reason)}
+                          </p>
+                        ) : (
+                          displayText.split("\n").map((line, i) =>
+                            isImageUrl(line) ? (
+                              <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
+                                <img
+                                  src={line}
+                                  alt="attachment"
+                                  className="my-1 max-h-60 rounded-lg object-cover"
+                                />
+                              </a>
+                            ) : /^https?:\/\//i.test(line) ? (
+                              <a
+                                key={i}
+                                href={line}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="block break-all underline underline-offset-2"
+                              >
+                                {line}
+                              </a>
+                            ) : (
+                              <p key={i} className="whitespace-pre-wrap break-words">
+                                {line}
+                              </p>
+                            )
                           )
                         )}
                         <p className={cn(
