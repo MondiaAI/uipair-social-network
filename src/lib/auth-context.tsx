@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(newSession?.user ?? null);
       if (newSession?.user) {
         setTimeout(() => loadProfile(newSession.user.id), 0);
+        setTimeout(() => { ensureDeviceKeypair(newSession.user.id).catch(() => {}); }, 0);
       } else {
         setProfile(null);
       }
