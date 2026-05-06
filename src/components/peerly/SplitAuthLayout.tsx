@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { UiPairLogo, UiPairMark } from "./UiPairLogo";
+import { PeerlyLogo, UiPairMark } from "./PeerlyLogo";
 import { Link } from "@tanstack/react-router";
 
 const CAPTIONS: { title: string; body: string }[] = [
@@ -21,7 +21,7 @@ export function SplitAuthLayout({ children }: { children: ReactNode }) {
 
         <div className="relative z-10">
           <Link to="/" aria-label="UiPair home">
-            <UiPairLogo size="lg" variant="dark" showTagline />
+            <PeerlyLogo size="lg" variant="dark" showTagline />
           </Link>
         </div>
 
@@ -53,7 +53,7 @@ export function SplitAuthLayout({ children }: { children: ReactNode }) {
       <main className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6 lg:px-12">
         <div className="w-full max-w-md">
           <div className="mb-6 flex justify-center lg:hidden">
-            <Link to="/"><UiPairLogo size="md" variant="light" /></Link>
+            <Link to="/"><PeerlyLogo size="md" variant="light" /></Link>
           </div>
           {children}
         </div>

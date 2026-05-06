@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { UiPairLogo } from "@/components/peerly/UiPairLogo";
+import { PeerlyLogo } from "@/components/peerly/PeerlyLogo";
 
 export const Route = createFileRoute("/terms")({
   component: TermsPage,
@@ -16,7 +16,7 @@ function TermsPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <Link to="/"><UiPairLogo size="sm" /></Link>
+          <Link to="/"><PeerlyLogo size="sm" /></Link>
           <Link to="/login" className="text-sm text-primary hover:underline">Sign in</Link>
         </div>
       </header>
