@@ -216,6 +216,10 @@ export function CircleCreatorPanel({
           })}
         </TabsContent>
 
+        <TabsContent value="invites" className="mt-4">
+          <CircleInvitesManager circleId={circle.id} userId={circle.leader_id} />
+        </TabsContent>
+
         <TabsContent value="subs" className="mt-4 space-y-3">
           {circle.is_premium ? (
             <>
