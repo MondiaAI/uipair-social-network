@@ -459,6 +459,48 @@ export type Database = {
         }
         Relationships: []
       }
+      crash_reports: {
+        Row: {
+          component_stack: string | null
+          context: Json
+          created_at: string
+          error_name: string | null
+          id: string
+          label: string
+          message: string
+          route: string | null
+          stack: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component_stack?: string | null
+          context?: Json
+          created_at?: string
+          error_name?: string | null
+          id?: string
+          label: string
+          message: string
+          route?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component_stack?: string | null
+          context?: Json
+          created_at?: string
+          error_name?: string | null
+          id?: string
+          label?: string
+          message?: string
+          route?: string | null
+          stack?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -830,6 +872,7 @@ export type Database = {
           stripe_account_id: string | null
           terms_accepted_at: string | null
           university: string | null
+          university_id: string | null
           updated_at: string
           username: string | null
           year_of_study: number | null
@@ -856,6 +899,7 @@ export type Database = {
           stripe_account_id?: string | null
           terms_accepted_at?: string | null
           university?: string | null
+          university_id?: string | null
           updated_at?: string
           username?: string | null
           year_of_study?: number | null
@@ -882,11 +926,20 @@ export type Database = {
           stripe_account_id?: string | null
           terms_accepted_at?: string | null
           university?: string | null
+          university_id?: string | null
           updated_at?: string
           username?: string | null
           year_of_study?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_activity: {
         Row: {
@@ -1365,6 +1418,30 @@ export type Database = {
           status?: Database["public"]["Enums"]["study_request_status"]
           subject?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      universities: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
         }
         Relationships: []
       }

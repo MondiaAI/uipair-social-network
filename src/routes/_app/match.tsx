@@ -28,9 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronDown, Search, History, Check, Clock, X } from "lucide-react";
+import { ChevronDown, Search, History, Check, Clock, X, GraduationCap, Globe2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "@tanstack/react-router";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/_app/match")({
   component: MatchPage,
@@ -44,6 +45,7 @@ interface ProfileRow extends MatchProfile {
   availability: string[] | null;
   country: string | null;
   created_at?: string | null;
+  university_id?: string | null;
 }
 
 function computeScore(me: ProfileRow, other: ProfileRow): number {
@@ -60,14 +62,17 @@ function computeScore(me: ProfileRow, other: ProfileRow): number {
   const availScore = Math.min(availOverlap / Math.max(myAvail.size, 1), 1) * 30;
 
   const yearScore = me.year_of_study && me.year_of_study === other.year_of_study ? 15 : 0;
-  const campusScore = me.university && me.university === other.university ? 15 : 0;
+  const sameUniversity =
+    (me.university_id && other.university_id && me.university_id === other.university_id) ||
+    (!!me.university && me.university === other.university);
+  const campusScore = sameUniversity ? 15 : 0;
 
   return Math.round(subjectScore + availScore + yearScore + campusScore);
 }
 
 function MatchPage() {
   const { user, profile } = useAuth();
-  const { mode } = useFeedMode();
+  const { mode, setMode } = useFeedMode();
   const { edges } = useFriendships();
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,7 +111,7 @@ function MatchPage() {
       setLoading(true);
       const { data } = await supabase
         .from("profiles")
-        .select("id, full_name, username, avatar_url, university, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at, created_at")
+        .select("id, full_name, username, avatar_url, university, university_id, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at, created_at")
         .neq("id", user.id)
         .limit(100);
       setProfiles((data ?? []) as ProfileRow[]);
@@ -132,7 +137,13 @@ function MatchPage() {
     return profiles
       .filter((p) => !hidden.has(p.id))
       .filter((p) => {
-        if (mode === "campus" && profile?.university && p.university !== profile.university) return false;
+        if (mode === "campus") {
+          const myUid = (profile as any)?.university_id ?? null;
+          const myUni = profile?.university ?? null;
+          const sameById = myUid && p.university_id && myUid === p.university_id;
+          const sameByName = myUni && p.university && myUni === p.university;
+          if (!sameById && !sameByName) return false;
+        }
         if (q) {
           const hay = [p.full_name, p.username, p.university, p.country]
             .filter(Boolean)
@@ -180,6 +191,22 @@ function MatchPage() {
         <h1 className="text-2xl font-bold">Find Your Study Partner</h1>
         <p className="text-sm text-muted-foreground">Matched by subject, availability & goals</p>
       </header>
+
+      <Tabs value={mode} onValueChange={(v) => setMode(v as "campus" | "global")} className="mb-4">
+        <TabsList className="grid w-full max-w-sm grid-cols-2">
+          <TabsTrigger value="campus" className="gap-1.5">
+            <GraduationCap className="h-4 w-4" /> Campus
+          </TabsTrigger>
+          <TabsTrigger value="global" className="gap-1.5">
+            <Globe2 className="h-4 w-4" /> Global
+          </TabsTrigger>
+        </TabsList>
+        {mode === "campus" && !profile?.university && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Add your university in your profile to see campus peers.
+          </p>
+        )}
+      </Tabs>
 
       <IncomingFriendRequests />
 
