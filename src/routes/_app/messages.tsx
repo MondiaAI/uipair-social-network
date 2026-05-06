@@ -582,14 +582,13 @@ function MessagesPage() {
         recipientPub = otherId ? await fetchPublicKey(otherId) : null;
         if (recipientPub) setCounterpartPub(recipientPub);
       }
-      if (keypair && recipientPub) {
-        payload = encryptMessage(content, recipientPub, keypair);
-      } else {
-        // Recipient hasn't published a public key yet (e.g. seeded/demo user
-        // who never opened the app). Deliver as plaintext so the conversation
-        // still works; once they publish a key, future messages encrypt.
-        payload = content;
+      if (!keypair || !recipientPub) {
+        toast.error("Can't send: end-to-end encryption keys aren't available for this chat yet.");
+        setDraft(originalDraft);
+        setAttachment(originalAttachment);
+        return;
       }
+      payload = encryptMessage(content, recipientPub, keypair);
       const { error } = await supabase
         .from("messages")
         .insert({ conversation_id: activeId, sender_id: user.id, content: payload });
@@ -730,7 +729,7 @@ function MessagesPage() {
                       <p className={cn("truncate text-sm flex items-center gap-1 min-w-0", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
                         {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground" />}
                         <span className="truncate">{name}</span>
-                        <StatusBadge status={encStatusFor(c)} compact />
+                        
                       </p>
                       {unread > 0 && (
                         <span className={cn(
@@ -775,7 +774,7 @@ function MessagesPage() {
                   {muted[active.id] ? "Notifications muted" : "Private chat"}
                 </p>
               </div>
-              <StatusBadge status={encStatusFor(active)} />
+              
               <Button
                 type="button"
                 size="icon"
