@@ -8,6 +8,7 @@ interface Profile {
   username: string | null;
   avatar_url: string | null;
   university: string | null;
+  university_id: string | null;
   country: string | null;
   field_of_study: string | null;
   year_of_study: number | null;
