@@ -4,6 +4,8 @@ interface Props {
   children: ReactNode;
   label?: string;
   fallback?: (error: Error, reset: () => void) => ReactNode;
+  /** Optional getter returning a snapshot of relevant props/state at crash time. */
+  getContext?: () => Record<string, unknown>;
 }
 
 interface State {
