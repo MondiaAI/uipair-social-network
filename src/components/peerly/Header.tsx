@@ -11,53 +11,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { NotificationPanel } from "./NotificationPanel";
 import { ProUpgradeModal } from "./ProUpgradeModal";
 import { PeerlyLogo } from "./PeerlyLogo";
-import { toast } from "sonner";
+import { useNotifications } from "@/lib/notifications-context";
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
   const { mode, setMode } = useFeedMode();
   const navigate = useNavigate();
-  const [unread, setUnread] = useState(0);
+  const { unread } = useNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
   const [proOpen, setProOpen] = useState(false);
-  useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      const { count } = await supabase
-        .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("is_read", false);
-      setUnread(count ?? 0);
-    };
-    load();
-
-    // Realtime: bump unread count and surface a toast for new notifications.
-    const channel = supabase
-      .channel(`notifications-${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          const row = payload.new as { content: string; type: string };
-          setUnread((u) => u + 1);
-          toast(row.content);
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        () => { load(); },
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [user]);
+  void user;
 
   const initials = (profile?.full_name || profile?.username || "?")
     .split(" ")
