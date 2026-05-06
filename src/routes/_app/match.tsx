@@ -137,7 +137,13 @@ function MatchPage() {
     return profiles
       .filter((p) => !hidden.has(p.id))
       .filter((p) => {
-        if (mode === "campus" && profile?.university && p.university !== profile.university) return false;
+        if (mode === "campus") {
+          const myUid = (profile as any)?.university_id ?? null;
+          const myUni = profile?.university ?? null;
+          const sameById = myUid && p.university_id && myUid === p.university_id;
+          const sameByName = myUni && p.university && myUni === p.university;
+          if (!sameById && !sameByName) return false;
+        }
         if (q) {
           const hay = [p.full_name, p.username, p.university, p.country]
             .filter(Boolean)
