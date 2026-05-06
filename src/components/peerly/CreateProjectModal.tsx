@@ -38,13 +38,29 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
   const [deadline, setDeadline] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [invitees, setInvitees] = useState<string[]>([]);
+  const [peopleQuery, setPeopleQuery] = useState("");
+  const { people, loading: peopleLoading } = useNetworkPeople();
 
   const toggleRole = (r: ProjectRole) =>
     setOpenRoles((rs) => (rs.includes(r) ? rs.filter((x) => x !== r) : [...rs, r]));
 
+  const toggleInvitee = (id: string) =>
+    setInvitees((v) => (v.includes(id) ? v.filter((x) => x !== id) : [...v, id]));
+
+  const filteredPeople = people.filter((p) => {
+    const q = peopleQuery.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (p.full_name ?? "").toLowerCase().includes(q) ||
+      (p.username ?? "").toLowerCase().includes(q) ||
+      (p.university ?? "").toLowerCase().includes(q)
+    );
+  });
+
   const reset = () => {
     setName(""); setDescription(""); setCategory("other"); setOpenRoles([]);
-    setTeamSize(5); setDeadline(""); setIsPublic(true);
+    setTeamSize(5); setDeadline(""); setIsPublic(true); setInvitees([]); setPeopleQuery("");
   };
 
   const handleSubmit = async () => {
@@ -65,16 +81,28 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
       })
       .select("id")
       .single();
-    setSubmitting(false);
     if (error || !data) {
+      setSubmitting(false);
       toast.error(error?.message ?? "Failed to create project");
       return;
     }
-    toast.success("Project created!");
+    if (invitees.length) {
+      const rows = invitees.map((uid) => ({ project_id: data.id, user_id: uid, role: "member" as const }));
+      const { error: memErr } = await supabase.from("project_members").insert(rows);
+      if (memErr) {
+        toast.error(`Project created, but couldn't add some teammates: ${memErr.message}`);
+      } else {
+        toast.success(`Project created with ${invitees.length} teammate${invitees.length === 1 ? "" : "s"}!`);
+      }
+    } else {
+      toast.success("Project created!");
+    }
+    setSubmitting(false);
     reset();
     onOpenChange(false);
     navigate({ to: "/lab/$projectId", params: { projectId: data.id } });
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
