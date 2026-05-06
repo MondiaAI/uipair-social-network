@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { NotificationPanel } from "./NotificationPanel";
 import { ProUpgradeModal } from "./ProUpgradeModal";
 import { PeerlyLogo } from "./PeerlyLogo";
+import { toast } from "sonner";
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
@@ -36,6 +37,26 @@ export function Header() {
       setUnread(count ?? 0);
     };
     load();
+
+    // Realtime: bump unread count and surface a toast for new notifications.
+    const channel = supabase
+      .channel(`notifications-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          const row = payload.new as { content: string; type: string };
+          setUnread((u) => u + 1);
+          toast(row.content);
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        () => { load(); },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   const initials = (profile?.full_name || profile?.username || "?")

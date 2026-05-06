@@ -19,6 +19,7 @@ import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppMessagesRouteImport } from './routes/_app/messages'
 import { Route as AppMatchRouteImport } from './routes/_app/match'
 import { Route as AppLabRouteImport } from './routes/_app/lab'
+import { Route as AppJoinRouteImport } from './routes/_app/join'
 import { Route as AppGigsRouteImport } from './routes/_app/gigs'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
 import { Route as AppCirclesRouteImport } from './routes/_app/circles'
@@ -78,6 +79,11 @@ const AppMatchRoute = AppMatchRouteImport.update({
 const AppLabRoute = AppLabRouteImport.update({
   id: '/lab',
   path: '/lab',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppJoinRoute = AppJoinRouteImport.update({
+  id: '/join',
+  path: '/join',
   getParentRoute: () => AppRoute,
 } as any)
 const AppGigsRoute = AppGigsRouteImport.update({
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/circles': typeof AppCirclesRouteWithChildren
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
+  '/join': typeof AppJoinRoute
   '/lab': typeof AppLabRouteWithChildren
   '/match': typeof AppMatchRoute
   '/messages': typeof AppMessagesRoute
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/circles': typeof AppCirclesRouteWithChildren
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
+  '/join': typeof AppJoinRoute
   '/lab': typeof AppLabRouteWithChildren
   '/match': typeof AppMatchRoute
   '/messages': typeof AppMessagesRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/_app/circles': typeof AppCirclesRouteWithChildren
   '/_app/feed': typeof AppFeedRoute
   '/_app/gigs': typeof AppGigsRoute
+  '/_app/join': typeof AppJoinRoute
   '/_app/lab': typeof AppLabRouteWithChildren
   '/_app/match': typeof AppMatchRoute
   '/_app/messages': typeof AppMessagesRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/circles'
     | '/feed'
     | '/gigs'
+    | '/join'
     | '/lab'
     | '/match'
     | '/messages'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/circles'
     | '/feed'
     | '/gigs'
+    | '/join'
     | '/lab'
     | '/match'
     | '/messages'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/_app/circles'
     | '/_app/feed'
     | '/_app/gigs'
+    | '/_app/join'
     | '/_app/lab'
     | '/_app/match'
     | '/_app/messages'
@@ -355,6 +367,13 @@ declare module '@tanstack/react-router' {
       path: '/lab'
       fullPath: '/lab'
       preLoaderRoute: typeof AppLabRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/join': {
+      id: '/_app/join'
+      path: '/join'
+      fullPath: '/join'
+      preLoaderRoute: typeof AppJoinRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/gigs': {
@@ -469,6 +488,7 @@ interface AppRouteChildren {
   AppCirclesRoute: typeof AppCirclesRouteWithChildren
   AppFeedRoute: typeof AppFeedRoute
   AppGigsRoute: typeof AppGigsRoute
+  AppJoinRoute: typeof AppJoinRoute
   AppLabRoute: typeof AppLabRouteWithChildren
   AppMatchRoute: typeof AppMatchRoute
   AppMessagesRoute: typeof AppMessagesRoute
@@ -482,6 +502,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCirclesRoute: AppCirclesRouteWithChildren,
   AppFeedRoute: AppFeedRoute,
   AppGigsRoute: AppGigsRoute,
+  AppJoinRoute: AppJoinRoute,
   AppLabRoute: AppLabRouteWithChildren,
   AppMatchRoute: AppMatchRoute,
   AppMessagesRoute: AppMessagesRoute,
