@@ -56,7 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
-      if (s?.user) loadProfile(s.user.id);
+      if (s?.user) {
+        loadProfile(s.user.id);
+        ensureDeviceKeypair(s.user.id).catch(() => {});
+      }
       setLoading(false);
     });
 
