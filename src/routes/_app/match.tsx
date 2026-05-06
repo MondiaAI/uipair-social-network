@@ -192,6 +192,22 @@ function MatchPage() {
         <p className="text-sm text-muted-foreground">Matched by subject, availability & goals</p>
       </header>
 
+      <Tabs value={mode} onValueChange={(v) => setMode(v as "campus" | "global")} className="mb-4">
+        <TabsList className="grid w-full max-w-sm grid-cols-2">
+          <TabsTrigger value="campus" className="gap-1.5">
+            <GraduationCap className="h-4 w-4" /> Campus
+          </TabsTrigger>
+          <TabsTrigger value="global" className="gap-1.5">
+            <Globe2 className="h-4 w-4" /> Global
+          </TabsTrigger>
+        </TabsList>
+        {mode === "campus" && !profile?.university && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Add your university in your profile to see campus peers.
+          </p>
+        )}
+      </Tabs>
+
       <IncomingFriendRequests />
 
       <div className="mb-4">
