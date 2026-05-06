@@ -50,7 +50,7 @@ export function Header() {
     <header className="sticky top-0 z-40 h-16 w-full border-b bg-card">
       <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
         {/* Left: Logo */}
-        <Link to="/feed" aria-label="peerly home">
+        <Link to="/feed" aria-label="UiPair home">
           <PeerlyLogo size="sm" variant="light" />
         </Link>
 
@@ -117,7 +117,7 @@ export function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => user && navigate({ to: "/profile/$userId", params: { userId: user.id } })}>View Profile</DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setProOpen(true)}>PEERLY Pro</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setProOpen(true)}>UiPair Pro</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={async () => {

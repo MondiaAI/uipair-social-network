@@ -11,7 +11,7 @@ import { Loader2 } from "lucide-react";
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsPage,
   head: () => ({
-    meta: [{ title: "Settings · Peerly" }, { name: "description", content: "Manage your profile settings" }],
+    meta: [{ title: "Settings · UiPair" }, { name: "description", content: "Manage your profile settings" }],
   }),
 });
 

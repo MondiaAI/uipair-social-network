@@ -29,7 +29,7 @@ export function ProUpgradeModal({ open, onOpenChange }: { open: boolean; onOpenC
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/60 text-primary-foreground">
             <Sparkles className="h-6 w-6" />
           </div>
-          <DialogTitle className="text-center text-2xl">Unlock PEERLY Pro</DialogTitle>
+          <DialogTitle className="text-center text-2xl">Unlock UiPair Pro</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-2">

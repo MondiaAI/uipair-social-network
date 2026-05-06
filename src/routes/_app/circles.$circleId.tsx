@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { EmbeddedCheckoutModal } from "@/components/peerly/EmbeddedCheckoutModal";
 import { CircleCreatorPanel } from "@/components/peerly/CircleCreatorPanel";
+import { CircleAnnouncements } from "@/components/peerly/CircleAnnouncements";
+import { LogOut } from "lucide-react";
 import { createCircleCheckout, verifyCircleCheckout, cancelCircleSubscription } from "@/server/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { subjectChipClass } from "@/lib/subjects";
@@ -78,6 +80,7 @@ function CircleDetailPage() {
     current_period_end: string | null;
   } | null>(null);
   const [canceling, setCanceling] = useState(false);
+  const [leaving, setLeaving] = useState(false);
 
   const stripeEnv = getStripeEnvironment();
   const isMember = members.some((m) => m.id === user?.id);
@@ -195,6 +198,28 @@ function CircleDetailPage() {
   const requestJoin = () => {
     if (!user || !circle) return;
     setConfirmJoinOpen(true);
+  };
+
+  const handleLeave = async () => {
+    if (!user || !circle) return;
+    if (user.id === circle.leader_id) { toast.error("Leaders can't leave their own circle"); return; }
+    if (!confirm(`Leave ${circle.name}? You'll lose access to its discussions and resources.`)) return;
+    setLeaving(true);
+    const prevMembers = members;
+    const prevCount = circle.member_count;
+    setMembers((m) => m.filter((x) => x.id !== user.id));
+    setCircle((c) => c ? { ...c, member_count: Math.max(0, c.member_count - 1) } : c);
+    const { error } = await supabase
+      .from("circle_members").delete()
+      .eq("circle_id", circleId).eq("user_id", user.id);
+    setLeaving(false);
+    if (error) {
+      setMembers(prevMembers);
+      setCircle((c) => c ? { ...c, member_count: prevCount } : c);
+      toast.error(error.message || "Could not leave circle");
+      return;
+    }
+    toast.success("Left circle");
   };
 
   const confirmJoin = async () => {
@@ -388,11 +413,15 @@ function CircleDetailPage() {
               )}
             </div>
           </div>
-          {!isMember && (
+          {!isMember ? (
             <Button onClick={requestJoin} className={circle.is_premium ? "bg-gradient-to-r from-primary to-primary/70" : ""}>
               {circle.is_premium ? <><Sparkles className="h-4 w-4" /> Subscribe ${Number(circle.price_monthly).toFixed(0)}/mo</> : "Join"}
             </Button>
-          )}
+          ) : user?.id !== circle.leader_id && !circle.is_premium ? (
+            <Button variant="outline" onClick={handleLeave} disabled={leaving}>
+              <LogOut className="h-4 w-4" /> {leaving ? "Leaving…" : "Leave circle"}
+            </Button>
+          ) : null}
         </div>
 
         {circle.description && <p className="text-sm text-muted-foreground mb-3">{circle.description}</p>}
@@ -446,6 +475,12 @@ function CircleDetailPage() {
           }}
         />
       )}
+
+      <CircleAnnouncements
+        circleId={circleId}
+        isLeader={user?.id === circle.leader_id}
+        userId={user?.id}
+      />
 
       {!isMember && (
         circle.is_premium ? (

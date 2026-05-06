@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Settings, Users, CreditCard, Trash2, Save, Loader2, Crown } from "lucide-react";
+import { Settings, Users, CreditCard, Trash2, Save, Loader2, Crown, Link as LinkIcon } from "lucide-react";
+import { CircleInvitesManager } from "./CircleInvitesManager";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,10 +135,11 @@ export function CircleCreatorPanel({
       </div>
 
       <Tabs defaultValue="settings">
-        <TabsList className="grid grid-cols-3 w-full">
+        <TabsList className="grid grid-cols-4 w-full">
           <TabsTrigger value="settings"><Settings className="h-4 w-4 mr-1" /> Settings</TabsTrigger>
           <TabsTrigger value="members"><Users className="h-4 w-4 mr-1" /> Members</TabsTrigger>
-          <TabsTrigger value="subs"><CreditCard className="h-4 w-4 mr-1" /> Subscriptions</TabsTrigger>
+          <TabsTrigger value="invites"><LinkIcon className="h-4 w-4 mr-1" /> Invites</TabsTrigger>
+          <TabsTrigger value="subs"><CreditCard className="h-4 w-4 mr-1" /> Subs</TabsTrigger>
         </TabsList>
 
         <TabsContent value="settings" className="mt-4 space-y-3">
@@ -212,6 +214,10 @@ export function CircleCreatorPanel({
               </div>
             );
           })}
+        </TabsContent>
+
+        <TabsContent value="invites" className="mt-4">
+          <CircleInvitesManager circleId={circle.id} userId={circle.leader_id} />
         </TabsContent>
 
         <TabsContent value="subs" className="mt-4 space-y-3">

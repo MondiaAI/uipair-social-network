@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_app/circles/new")({
   component: CreateCirclePage,
   head: () => ({
     meta: [
-      { title: "Create a Study Circle · Peerly" },
+      { title: "Create a Study Circle · UiPair" },
       { name: "description", content: "Start a new study circle and invite peers" },
     ],
   }),

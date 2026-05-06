@@ -98,6 +98,75 @@ export type Database = {
         }
         Relationships: []
       }
+      circle_announcements: {
+        Row: {
+          circle_id: string
+          content: string
+          created_at: string
+          id: string
+          is_pinned: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          circle_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          circle_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      circle_invites: {
+        Row: {
+          circle_id: string
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          token: string
+          use_count: number
+        }
+        Insert: {
+          circle_id: string
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          token?: string
+          use_count?: number
+        }
+        Update: {
+          circle_id?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          token?: string
+          use_count?: number
+        }
+        Relationships: []
+      }
       circle_members: {
         Row: {
           circle_id: string
@@ -1467,6 +1536,7 @@ export type Database = {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
+      redeem_circle_invite: { Args: { _token: string }; Returns: string }
     }
     Enums: {
       bounty_status: "open" | "claimed" | "completed" | "cancelled"
