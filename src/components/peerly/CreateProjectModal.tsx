@@ -177,6 +177,68 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
             </div>
             <Switch checked={isPublic} onCheckedChange={setIsPublic} />
           </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Invite teammates</Label>
+              {invitees.length > 0 && (
+                <span className="text-xs text-muted-foreground">{invitees.length} selected</span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pick from people you follow, your friends, and your study circle members.
+            </p>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={peopleQuery}
+                onChange={(e) => setPeopleQuery(e.target.value)}
+                placeholder="Search your network…"
+                className="pl-8"
+              />
+            </div>
+            <div className="max-h-56 overflow-y-auto rounded-md border">
+              {peopleLoading ? (
+                <p className="p-3 text-xs text-muted-foreground">Loading your network…</p>
+              ) : filteredPeople.length === 0 ? (
+                <p className="p-3 text-xs text-muted-foreground">
+                  {people.length === 0
+                    ? "Follow peers, add friends, or join circles to invite teammates here."
+                    : "No matches."}
+                </p>
+              ) : (
+                filteredPeople.map((p) => {
+                  const selected = invitees.includes(p.id);
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => toggleInvitee(p.id)}
+                      className={cn(
+                        "flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition hover:bg-accent",
+                        selected && "bg-accent",
+                      )}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={p.avatar_url ?? undefined} />
+                        <AvatarFallback>{(p.full_name ?? "?").slice(0, 1)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{p.full_name ?? p.username ?? "Unnamed"}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {Array.from(p.sources).map((s) => (
+                            <Badge key={s} variant="secondary" className="px-1.5 py-0 text-[10px] capitalize">
+                              {s}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      {selected && <Check className="h-4 w-4 text-primary" />}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
           <Button onClick={handleSubmit} disabled={submitting || !name.trim()} className="w-full">
             {submitting ? "Creating…" : "Create Project"}
           </Button>
