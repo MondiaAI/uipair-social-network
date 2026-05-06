@@ -166,12 +166,18 @@ function CirclesPage() {
       <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
         <h1 className="text-2xl font-bold">Study Circles</h1>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link to="/circles/discover"><Compass className="h-4 w-4" /> Discover</Link>
-          </Button>
-          <Button asChild>
-            <Link to="/circles/new"><Plus className="h-4 w-4" /> Create Circle</Link>
-          </Button>
+          <Link
+            to="/circles/discover"
+            className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground"
+          >
+            <Compass className="h-4 w-4" /> Discover
+          </Link>
+          <Link
+            to="/circles/new"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
+          >
+            <Plus className="h-4 w-4" /> Create Circle
+          </Link>
         </div>
       </div>
 
