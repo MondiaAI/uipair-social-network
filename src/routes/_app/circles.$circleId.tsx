@@ -200,6 +200,28 @@ function CircleDetailPage() {
     setConfirmJoinOpen(true);
   };
 
+  const handleLeave = async () => {
+    if (!user || !circle) return;
+    if (user.id === circle.leader_id) { toast.error("Leaders can't leave their own circle"); return; }
+    if (!confirm(`Leave ${circle.name}? You'll lose access to its discussions and resources.`)) return;
+    setLeaving(true);
+    const prevMembers = members;
+    const prevCount = circle.member_count;
+    setMembers((m) => m.filter((x) => x.id !== user.id));
+    setCircle((c) => c ? { ...c, member_count: Math.max(0, c.member_count - 1) } : c);
+    const { error } = await supabase
+      .from("circle_members").delete()
+      .eq("circle_id", circleId).eq("user_id", user.id);
+    setLeaving(false);
+    if (error) {
+      setMembers(prevMembers);
+      setCircle((c) => c ? { ...c, member_count: prevCount } : c);
+      toast.error(error.message || "Could not leave circle");
+      return;
+    }
+    toast.success("Left circle");
+  };
+
   const confirmJoin = async () => {
     if (!user || !circle) return;
     if (circle.is_premium) {
