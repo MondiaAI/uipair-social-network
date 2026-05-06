@@ -435,6 +435,18 @@ function CircleDetailPage() {
         )}
       </div>
 
+      {user?.id === circle.leader_id && (
+        <CircleCreatorPanel
+          circle={circle}
+          members={members}
+          onUpdated={load}
+          onMemberRemoved={(uid) => {
+            setMembers((prev) => prev.filter((m) => m.id !== uid));
+            setCircle((prev) => prev ? { ...prev, member_count: Math.max(0, prev.member_count - 1) } : prev);
+          }}
+        />
+      )}
+
       {!isMember && (
         circle.is_premium ? (
           <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 mb-6">
