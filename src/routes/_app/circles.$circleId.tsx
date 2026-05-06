@@ -81,6 +81,26 @@ function CircleDetailPage() {
   } | null>(null);
   const [canceling, setCanceling] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [generatingInvite, setGeneratingInvite] = useState(false);
+
+  const handleQuickInvite = async () => {
+    if (!user || !circle) return;
+    setGeneratingInvite(true);
+    const { data, error } = await supabase
+      .from("circle_invites")
+      .insert({ circle_id: circle.id, created_by: user.id })
+      .select("token")
+      .single();
+    setGeneratingInvite(false);
+    if (error || !data) { toast.error(error?.message || "Could not create invite"); return; }
+    const url = `${window.location.origin}/invite/${data.token}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Invite link copied to clipboard");
+    } catch {
+      toast.message("Invite created", { description: url });
+    }
+  };
 
   const stripeEnv = getStripeEnvironment();
   const isMember = members.some((m) => m.id === user?.id);
