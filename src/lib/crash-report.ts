@@ -29,7 +29,7 @@ export async function submitCrashReport(payload: CrashReportPayload) {
   };
   const { data, error } = await supabase
     .from("crash_reports")
-    .insert(row)
+    .insert([row])
     .select("id")
     .single();
   if (error) throw error;
