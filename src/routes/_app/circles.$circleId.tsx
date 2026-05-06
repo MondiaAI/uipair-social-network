@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { EmbeddedCheckoutModal } from "@/components/peerly/EmbeddedCheckoutModal";
 import { CircleCreatorPanel } from "@/components/peerly/CircleCreatorPanel";
+import { CircleAnnouncements } from "@/components/peerly/CircleAnnouncements";
+import { LogOut } from "lucide-react";
 import { createCircleCheckout, verifyCircleCheckout, cancelCircleSubscription } from "@/server/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { subjectChipClass } from "@/lib/subjects";
