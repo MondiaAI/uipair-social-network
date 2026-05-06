@@ -32,7 +32,7 @@ function CirclesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [createOpen, setCreateOpen] = useState(false);
+  
 
   const userUniversity = profile?.university ?? null;
 
