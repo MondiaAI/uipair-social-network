@@ -289,6 +289,18 @@ function MessagesPage() {
     };
   }, [activeId]);
 
+  // Fetch counterpart's E2EE public key when active conversation changes
+  useEffect(() => {
+    if (!user || !activeId) { setCounterpartPub(null); return; }
+    const conv = conversations.find((c) => c.id === activeId);
+    const otherId = conv ? (conv.user_a === user.id ? conv.user_b : conv.user_a) : null;
+    if (!otherId) { setCounterpartPub(null); return; }
+    let cancelled = false;
+    fetchPublicKey(otherId).then((pk) => { if (!cancelled) setCounterpartPub(pk); });
+    return () => { cancelled = true; };
+  }, [activeId, user, conversations]);
+
+
   // Auto-scroll
   useEffect(() => {
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight });
