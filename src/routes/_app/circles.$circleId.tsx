@@ -476,6 +476,12 @@ function CircleDetailPage() {
         />
       )}
 
+      <CircleAnnouncements
+        circleId={circleId}
+        isLeader={user?.id === circle.leader_id}
+        userId={user?.id}
+      />
+
       {!isMember && (
         circle.is_premium ? (
           <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 mb-6">
