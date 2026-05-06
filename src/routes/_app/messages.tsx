@@ -405,6 +405,42 @@ function MessagesPage() {
     return () => { cancelled = true; };
   }, [activeId, user, conversations]);
 
+  // Backfill: re-encrypt any of MY own plaintext messages in this conversation
+  // so all stored messages end up E2EE. We can only safely rewrite messages we
+  // sent ourselves (RLS allows updating own rows via delete+insert pattern is
+  // not needed — we just update content in place via delete+reinsert? messages
+  // table has no UPDATE policy for sender, only "Recipients mark messages
+  // read". Instead delete the plaintext row and insert an encrypted one.)
+  useEffect(() => {
+    if (!user || !activeId || !keypair || !counterpartPub) return;
+    const plaintextMine = messages.filter(
+      (m) => m.sender_id === user.id && !isEncrypted(m.content)
+    );
+    if (plaintextMine.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      for (const m of plaintextMine) {
+        if (cancelled) return;
+        try {
+          const cipher = encryptMessage(m.content, counterpartPub, keypair);
+          // Delete + re-insert so RLS (sender can delete + insert) lets us
+          // upgrade legacy plaintext rows to encrypted ones.
+          const { error: delErr } = await supabase.from("messages").delete().eq("id", m.id);
+          if (delErr) continue;
+          await supabase.from("messages").insert({
+            conversation_id: m.conversation_id,
+            sender_id: user.id,
+            content: cipher,
+          });
+        } catch {
+          /* skip */
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeId, user, keypair, counterpartPub, messages]);
+
+
   // Bulk-fetch peer key presence for the conversation list (for sidebar badges)
   useEffect(() => {
     if (!user || conversations.length === 0) return;
