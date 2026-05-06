@@ -39,6 +39,7 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
+  const [optimisticEdge, setOptimisticEdge] = useState<FriendEdge | null>(null);
 
   const name = profile.full_name || profile.username || "Student";
   const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -46,15 +47,26 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
     ? Date.now() - new Date(profile.last_seen_at).getTime() < 5 * 60 * 1000
     : false;
 
-  const status = user ? deriveStatus(edge, user.id) : "none";
+  const effectiveEdge = edge ?? optimisticEdge;
+  const status = user ? deriveStatus(effectiveEdge, user.id) : "none";
 
   const handleConnect = async () => {
     if (!user) return;
+    // Optimistic: show "Request sent" instantly
+    const optimistic: FriendEdge = {
+      id: `optimistic-${profile.id}`,
+      sender_id: user.id,
+      recipient_id: profile.id,
+      status: "pending",
+    };
+    setOptimisticEdge(optimistic);
     setBusy(true);
     try {
-      await sendFriendRequest(user.id, profile.id);
+      const real = await sendFriendRequest(user.id, profile.id);
+      if (real) setOptimisticEdge(real as FriendEdge);
       toast.success(`Friend request sent to ${name}`);
     } catch (e: any) {
+      setOptimisticEdge(null); // rollback
       toast.error(e?.message ?? "Could not send request");
     } finally {
       setBusy(false);
