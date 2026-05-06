@@ -337,9 +337,27 @@ function MessagesPage() {
         }
         setUploadProgress(100);
       }
+      // E2EE: encrypt to recipient before insert. Falls back to plaintext only
+      // if we genuinely have no key for the other party (very rare — first
+      // message before they ever opened the app).
+      let payload = content;
+      if (keypair && counterpartPub) {
+        payload = encryptMessage(content, counterpartPub, keypair);
+      } else {
+        // Try to fetch the counterpart key on-demand
+        const conv = conversations.find((c) => c.id === activeId);
+        const otherId = conv ? (conv.user_a === user.id ? conv.user_b : conv.user_a) : null;
+        const pk = otherId ? await fetchPublicKey(otherId) : null;
+        if (pk && keypair) {
+          setCounterpartPub(pk);
+          payload = encryptMessage(content, pk, keypair);
+        } else {
+          toast.warning("Recipient hasn't set up encryption yet — sending unencrypted.");
+        }
+      }
       const { error } = await supabase
         .from("messages")
-        .insert({ conversation_id: activeId, sender_id: user.id, content });
+        .insert({ conversation_id: activeId, sender_id: user.id, content: payload });
       if (error) throw error;
       // Only clear draft + attachment after a fully successful send
       setDraft("");
