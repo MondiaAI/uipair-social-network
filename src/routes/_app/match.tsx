@@ -4,9 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useFeedMode } from "@/lib/feed-context";
 import { SUBJECTS } from "@/lib/subjects";
-import { MatchCard, type MatchProfile } from "@/components/peerly/MatchCard";
-import { IncomingFriendRequests } from "@/components/peerly/IncomingFriendRequests";
-import { NewMembersRow } from "@/components/peerly/NewMembersRow";
+import { MatchCard, type MatchProfile } from "@/components/UiPair/MatchCard";
+import { IncomingFriendRequests } from "@/components/UiPair/IncomingFriendRequests";
+import { NewMembersRow } from "@/components/UiPair/NewMembersRow";
 import { useFriendships } from "@/hooks/use-friendships";
 import { useMatchDismissals } from "@/hooks/use-match-dismissals";
 import { toast } from "sonner";
@@ -184,7 +184,7 @@ function MatchPage() {
       <IncomingFriendRequests />
 
       <div className="mb-4">
-        <NewMembersRow title="Just joined Peerly" />
+        <NewMembersRow title="Just joined UiPair" />
       </div>
 
       <div className="sticky top-16 z-30 mb-6 rounded-xl border bg-card/95 p-4 shadow-sm backdrop-blur">
