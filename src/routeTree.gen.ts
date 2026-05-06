@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppMessagesRouteImport } from './routes/_app/messages'
 import { Route as AppMatchRouteImport } from './routes/_app/match'
 import { Route as AppLabRouteImport } from './routes/_app/lab'
@@ -56,6 +57,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppMessagesRoute = AppMessagesRouteImport.update({
   id: '/messages',
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/lab': typeof AppLabRouteWithChildren
   '/match': typeof AppMatchRoute
   '/messages': typeof AppMessagesRoute
+  '/settings': typeof AppSettingsRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/lab': typeof AppLabRouteWithChildren
   '/match': typeof AppMatchRoute
   '/messages': typeof AppMessagesRoute
+  '/settings': typeof AppSettingsRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/_app/lab': typeof AppLabRouteWithChildren
   '/_app/match': typeof AppMatchRoute
   '/_app/messages': typeof AppMessagesRoute
+  '/_app/settings': typeof AppSettingsRoute
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/_app/circles/discover': typeof AppCirclesDiscoverRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
@@ -193,6 +202,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/match'
     | '/messages'
+    | '/settings'
     | '/circles/$circleId'
     | '/circles/discover'
     | '/lab/$projectId'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/lab'
     | '/match'
     | '/messages'
+    | '/settings'
     | '/circles/$circleId'
     | '/circles/discover'
     | '/lab/$projectId'
@@ -232,6 +243,7 @@ export interface FileRouteTypes {
     | '/_app/lab'
     | '/_app/match'
     | '/_app/messages'
+    | '/_app/settings'
     | '/_app/circles/$circleId'
     | '/_app/circles/discover'
     | '/_app/lab/$projectId'
@@ -292,6 +304,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/messages': {
       id: '/_app/messages'
@@ -413,6 +432,7 @@ interface AppRouteChildren {
   AppLabRoute: typeof AppLabRouteWithChildren
   AppMatchRoute: typeof AppMatchRoute
   AppMessagesRoute: typeof AppMessagesRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
 }
 
@@ -424,6 +444,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppLabRoute: AppLabRouteWithChildren,
   AppMatchRoute: AppMatchRoute,
   AppMessagesRoute: AppMessagesRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
 }
 
@@ -441,3 +462,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
