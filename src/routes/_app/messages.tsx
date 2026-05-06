@@ -506,7 +506,7 @@ function MessagesPage() {
                       )}
                     </div>
                     <p className={cn("truncate text-xs", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
-                      {c.preview ?? "Say hi 👋"}
+                      {previewText(c.preview)}
                     </p>
                   </div>
                 </button>
