@@ -24,9 +24,7 @@ export async function submitCrashReport(payload: CrashReportPayload) {
     message: payload.message,
     stack: payload.stack ?? null,
     component_stack: payload.componentStack ?? null,
-    context: payload.context ?? {},
-    user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
-  };
+    context: (payload.context ?? {}) as never,
   const { data, error } = await supabase
     .from("crash_reports")
     .insert([row])
