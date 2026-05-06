@@ -7,15 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock } from "lucide-react";
+import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send } from "lucide-react";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
 import {
   deriveStatus,
   sendFriendRequest,
   respondToRequest,
   cancelRequest,
   openConversation,
+  startConversationWithMessage,
 } from "@/lib/friends";
 import { useFriendships } from "@/hooks/use-friendships";
 import { PostCard } from "@/components/peerly/PostCard";
