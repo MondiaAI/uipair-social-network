@@ -13,6 +13,7 @@ import { Beaker, HelpCircle, Handshake, BookOpen } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { EmbeddedCheckoutModal } from "@/components/peerly/EmbeddedCheckoutModal";
+import { CircleCreatorPanel } from "@/components/peerly/CircleCreatorPanel";
 import { createCircleCheckout, verifyCircleCheckout, cancelCircleSubscription } from "@/server/payments.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { subjectChipClass } from "@/lib/subjects";
@@ -215,11 +216,26 @@ function CircleDetailPage() {
       return;
     }
     setJoining(true);
+    // Optimistic: add user to members immediately
+    const optimisticSelf: ProfileLite = {
+      id: user.id,
+      full_name: (user.user_metadata?.full_name as string) ?? null,
+      username: (user.user_metadata?.username as string) ?? null,
+      avatar_url: (user.user_metadata?.avatar_url as string) ?? null,
+    };
+    setMembers((prev) => prev.some((m) => m.id === user.id) ? prev : [...prev, optimisticSelf]);
+    setCircle((prev) => prev ? { ...prev, member_count: prev.member_count + 1 } : prev);
+    setConfirmJoinOpen(false);
     const { error } = await supabase.from("circle_members").insert({ circle_id: circleId, user_id: user.id });
     setJoining(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      // Rollback
+      setMembers((prev) => prev.filter((m) => m.id !== user.id));
+      setCircle((prev) => prev ? { ...prev, member_count: Math.max(0, prev.member_count - 1) } : prev);
+      toast.error(error.message);
+      return;
+    }
     toast.success("Joined circle!");
-    setConfirmJoinOpen(false);
     load();
   };
 
@@ -418,6 +434,18 @@ function CircleDetailPage() {
           </div>
         )}
       </div>
+
+      {user?.id === circle.leader_id && (
+        <CircleCreatorPanel
+          circle={circle}
+          members={members}
+          onUpdated={load}
+          onMemberRemoved={(uid) => {
+            setMembers((prev) => prev.filter((m) => m.id !== uid));
+            setCircle((prev) => prev ? { ...prev, member_count: Math.max(0, prev.member_count - 1) } : prev);
+          }}
+        />
+      )}
 
       {!isMember && (
         circle.is_premium ? (
