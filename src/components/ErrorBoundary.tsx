@@ -4,6 +4,8 @@ interface Props {
   children: ReactNode;
   label?: string;
   fallback?: (error: Error, reset: () => void) => ReactNode;
+  /** Optional getter returning a snapshot of relevant props/state at crash time. */
+  getContext?: () => Record<string, unknown>;
 }
 
 interface State {
@@ -23,6 +25,12 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
+    let context: Record<string, unknown> | undefined;
+    try {
+      context = this.props.getContext?.();
+    } catch (ctxErr) {
+      context = { __getContextError: String(ctxErr) };
+    }
     const payload = {
       label: this.props.label ?? "ErrorBoundary",
       route: typeof window !== "undefined" ? window.location.pathname + window.location.search : "ssr",
@@ -30,6 +38,7 @@ export class ErrorBoundary extends Component<Props, State> {
       name: error.name,
       stack: error.stack,
       componentStack: info.componentStack,
+      context,
       time: new Date().toISOString(),
       userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "ssr",
     };
@@ -40,6 +49,10 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error(error);
     // eslint-disable-next-line no-console
     console.error("Component stack:", info.componentStack);
+    if (context) {
+      // eslint-disable-next-line no-console
+      console.error("React context snapshot:", context);
+    }
     // eslint-disable-next-line no-console
     console.error("Diagnostics:", payload);
     // eslint-disable-next-line no-console

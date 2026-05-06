@@ -30,9 +30,15 @@ import { logClientError } from "@/lib/client-logger";
 
 const search = z.object({ c: z.string().uuid().optional(), m: z.string().optional() });
 
+// Module-level snapshot of relevant page state, updated by MessagesPage via
+// useEffect. Read by the ErrorBoundary at crash time so the console log
+// includes the exact React props/state in play (active chat, search params,
+// message ids, encryption status).
+const pageSnapshot: { current: Record<string, unknown> } = { current: {} };
+
 function MessagesPageBoundary() {
   return (
-    <ErrorBoundary label="MessagesPage">
+    <ErrorBoundary label="MessagesPage" getContext={() => pageSnapshot.current}>
       <MessagesPage />
     </ErrorBoundary>
   );
@@ -42,7 +48,7 @@ export const Route = createFileRoute("/_app/messages")({
   validateSearch: (s) => search.parse(s),
   component: MessagesPageBoundary,
   errorComponent: ({ error, reset }) => {
-    logClientError("MessagesRoute.errorComponent", error);
+    logClientError("MessagesRoute.errorComponent", error, pageSnapshot.current);
     return (
       <div className="m-4 rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm">
         <p className="font-semibold text-destructive">Failed to load messages.</p>
@@ -382,6 +388,29 @@ function MessagesPage() {
     return () => { cancelled = true; };
   }, [conversations, user]);
 
+
+  // Keep the module-level snapshot in sync so the ErrorBoundary can log
+  // exactly what props/state were in play when a render error happens.
+  useEffect(() => {
+    pageSnapshot.current = {
+      userId: user?.id ?? null,
+      activeConversationId: activeId ?? null,
+      prefillSearchParam: prefill ?? null,
+      conversationCount: conversations.length,
+      messageCount: messages.length,
+      messageIds: messages.slice(-20).map((m) => m.id),
+      lastMessageId: messages[messages.length - 1]?.id ?? null,
+      hasKeypair: !!keypair,
+      hasCounterpartPub: !!counterpartPub,
+      peerKeyStatus,
+      mutedConversationIds: Object.keys(muted).filter((k) => muted[k]),
+      draftLength: draft.length,
+      hasAttachment: !!attachment,
+      sending,
+      uploading,
+      searchQuery: search,
+    };
+  }, [user, activeId, prefill, conversations, messages, keypair, counterpartPub, peerKeyStatus, muted, draft, attachment, sending, uploading, search]);
 
   // Auto-scroll
   useEffect(() => {
