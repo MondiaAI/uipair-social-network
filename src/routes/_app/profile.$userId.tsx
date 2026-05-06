@@ -272,12 +272,12 @@ function FriendActions({ otherId, otherName }: { otherId: string; otherName: str
 
   if (status === "friends") {
     return (
-      <Button size="sm" disabled={busy} onClick={() => wrap(async () => {
-        const id = await openConversation(user.id, otherId);
-        navigate({ to: "/messages", search: { c: id } });
-      }, "Could not open chat")}>
-        <MessageCircle className="h-4 w-4" /> Message
-      </Button>
+      <StartConversationButton
+        meId={user.id}
+        otherId={otherId}
+        otherName={otherName}
+        onOpened={(id) => navigate({ to: "/messages", search: { c: id } })}
+      />
     );
   }
   if (status === "outgoing_pending") {
