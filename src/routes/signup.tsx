@@ -171,8 +171,14 @@ function SignupPage() {
 
   const finish = async () => {
     if (!user) return;
-    if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
-    if (!dobValid) return toast.error("You must be at least 18 years old to use UiPair");
+    if (!validateStep2()) return;
+    if (!validateStep3()) return;
+    if (interests.length < 3) {
+      setStep(4);
+      toast.error("Pick at least 3 interests");
+      focusField(interestsRef);
+      return;
+    }
     setLoading(true);
     let avatar_url: string | null = null;
     if (avatarFile) avatar_url = await uploadToBucket("avatars", user.id, avatarFile);
