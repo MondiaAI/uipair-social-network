@@ -118,6 +118,25 @@ function SignupPage() {
   const passwordsMatch = password.length > 0 && password === confirmPassword;
   const passwordStrong = evaluatePassword(password).score >= 2;
 
+  const daysInMonth = (() => {
+    const m = Number(dobMonth);
+    const y = Number(dobYear) || 2000; // leap-safe fallback
+    if (!m) return 31;
+    return new Date(y, m, 0).getDate();
+  })();
+
+  // Auto-correct day if it exceeds the days in the selected month/year
+  useEffect(() => {
+    const d = Number(dobDay);
+    if (!d || !dobMonth) return;
+    if (d > daysInMonth) {
+      setDobDay(String(daysInMonth));
+      toast.info(`Adjusted day to ${daysInMonth} — that month only has ${daysInMonth} days.`);
+      focusField(dobDayRef);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dobMonth, dobYear]);
+
   const dob = (() => {
     const d = Number(dobDay), m = Number(dobMonth), y = Number(dobYear);
     if (!d || !m || !y) return null;
