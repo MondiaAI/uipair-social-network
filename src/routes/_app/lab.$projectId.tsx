@@ -275,9 +275,18 @@ function ProjectDetailPage() {
               </div>
             )}
           </div>
-          <div className="w-44">
-            <p className="mb-1 text-xs text-muted-foreground">Progress {project.progress}%</p>
-            <Progress value={project.progress} />
+          <div className="flex flex-col items-end gap-3 w-44">
+            <div className="w-full">
+              <p className="mb-1 text-xs text-muted-foreground">Progress {project.progress}%</p>
+              <Progress value={project.progress} />
+            </div>
+            {!isMember && user && (
+              <Button size="sm" onClick={requestJoin} disabled={requesting} className="w-full">
+                {requesting ? "Sending…" : "Request to Join"}
+              </Button>
+            )}
+            {isMember && !isCreator && <Badge variant="secondary">Member</Badge>}
+            {isCreator && <Badge className="bg-primary">Admin · Creator</Badge>}
           </div>
         </div>
       </Card>
