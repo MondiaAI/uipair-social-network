@@ -155,7 +155,12 @@ function MatchPage() {
         }
         if (subjects.length > 0) {
           const pSubs = [p.field_of_study, ...(p.skills ?? [])].filter(Boolean) as string[];
-          if (!pSubs.some((s) => subjects.includes(s))) return false;
+          const otherTerm = subjects.includes("Other") ? customSubject.trim().toLowerCase() : "";
+          const matchesSelected = pSubs.some((s) => subjects.includes(s));
+          const matchesOther = otherTerm
+            ? pSubs.some((s) => s.toLowerCase().includes(otherTerm))
+            : false;
+          if (!matchesSelected && !matchesOther) return false;
         }
         if (availability.length > 0) {
           const pa = p.availability ?? [];
