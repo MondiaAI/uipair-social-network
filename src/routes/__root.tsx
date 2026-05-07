@@ -59,6 +59,8 @@ export const Route = createRootRoute({
         { name: "twitter:title", content: "UiPair — Find your pair. Build your future." },
         { name: "twitter:description", content: "Connect, collaborate, and grow with university students worldwide." },
         { name: "twitter:image", content: ogImage },
+        { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/b8883a3b-e8a8-4c5c-bee8-ab92876bbf55" },
+        { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/b8883a3b-e8a8-4c5c-bee8-ab92876bbf55" },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
