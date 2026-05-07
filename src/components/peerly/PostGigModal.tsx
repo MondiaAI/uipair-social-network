@@ -79,6 +79,10 @@ export function PostGigModal({ open, onOpenChange, onCreated }: { open: boolean;
             )}
           </div>
           <div>
+            <Label>Qualification level (optional)</Label>
+            <DegreePicker value={degree} onChange={setDegree} label="Pick" />
+          </div>
+          <div>
             <Label>Description</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={600} />
           </div>
