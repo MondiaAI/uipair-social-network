@@ -3,13 +3,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, Clock } from "lucide-react";
-import { CATEGORY_CHIP, CATEGORY_LABEL, formatPrice, countryFlag, type GigCategory } from "@/lib/gig-meta";
+import { gigCategoryChip, gigCategoryLabel, formatPrice, countryFlag, type GigCategory } from "@/lib/gig-meta";
 import { cn } from "@/lib/utils";
 
 export type GigCardData = {
   id: string;
   title: string;
   category: GigCategory;
+  custom_category?: string | null;
   price_cents: number;
   delivery_days: number;
   rating_avg: number;
@@ -42,7 +43,7 @@ export function GigCard({ gig, onOpen }: { gig: GigCardData; onOpen: (id: string
         </div>
       </div>
       <h3 className="line-clamp-2 text-sm font-semibold leading-snug">{gig.title}</h3>
-      <Badge variant="outline" className={cn("w-fit", CATEGORY_CHIP[gig.category])}>{CATEGORY_LABEL[gig.category]}</Badge>
+      <Badge variant="outline" className={cn("w-fit", gigCategoryChip(gig.category))}>{gigCategoryLabel(gig.category, gig.custom_category)}</Badge>
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">
           <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
