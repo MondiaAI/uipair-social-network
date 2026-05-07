@@ -32,8 +32,11 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
+  const [customSubject, setCustomSubject] = useState("");
   const [category, setCategory] = useState<ProjectCategory>("other");
+  const [customCategory, setCustomCategory] = useState("");
   const [openRoles, setOpenRoles] = useState<ProjectRole[]>([]);
+  const [customRole, setCustomRole] = useState("");
   const [teamSize, setTeamSize] = useState(5);
   const [deadline, setDeadline] = useState("");
   const [isPublic, setIsPublic] = useState(true);
@@ -62,19 +65,25 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
 
   const reset = () => {
     setName(""); setDescription(""); setCategory("other"); setOpenRoles([]);
+    setCustomSubject(""); setCustomCategory(""); setCustomRole("");
     setTeamSize(5); setDeadline(""); setIsPublic(true); setJoinFee(0); setFeeInterval("one_time"); setInvitees([]); setPeopleQuery("");
   };
 
   const handleSubmit = async () => {
     if (!user || !name.trim()) return;
     setSubmitting(true);
+    const finalSubject = subject === "Other" && customSubject.trim() ? customSubject.trim() : subject;
+    const extras: string[] = [];
+    if (category === "other" && customCategory.trim()) extras.push(`Category: ${customCategory.trim()}`);
+    if (openRoles.includes("other") && customRole.trim()) extras.push(`Other roles: ${customRole.trim()}`);
+    const finalDescription = [description.trim(), extras.length ? `\n\n${extras.join(" • ")}` : ""].join("").trim() || null;
     const { data, error } = await supabase
       .from("projects")
       .insert({
         creator_id: user.id,
         name: name.trim(),
-        description: description.trim() || null,
-        subject,
+        description: finalDescription,
+        subject: finalSubject,
         category,
         open_roles: openRoles,
         team_size_limit: teamSize,
@@ -143,6 +152,15 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
+              {subject === "Other" && (
+                <Input
+                  className="mt-2"
+                  value={customSubject}
+                  onChange={(e) => setCustomSubject(e.target.value)}
+                  placeholder="Enter subject area"
+                  maxLength={50}
+                />
+              )}
             </div>
             <div>
               <Label>Category</Label>
@@ -152,6 +170,15 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
                   {PROJECT_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{CATEGORY_LABEL[c]}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {category === "other" && (
+                <Input
+                  className="mt-2"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="Enter category"
+                  maxLength={50}
+                />
+              )}
             </div>
           </div>
           <div>
@@ -174,6 +201,15 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
                 );
               })}
             </div>
+            {openRoles.includes("other") && (
+              <Input
+                className="mt-2"
+                value={customRole}
+                onChange={(e) => setCustomRole(e.target.value)}
+                placeholder="Specify other role(s), e.g. Marketer, PM"
+                maxLength={80}
+              />
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
