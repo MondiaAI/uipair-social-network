@@ -1,67 +1,78 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 
+const SHARED_KEY = "peerly.filters.customSubject";
+const EVT = "peerly:custom-subject-changed";
+
+function readShared(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return localStorage.getItem(SHARED_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function writeShared(v: string) {
+  try {
+    if (v) localStorage.setItem(SHARED_KEY, v);
+    else localStorage.removeItem(SHARED_KEY);
+  } catch {}
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(EVT, { detail: v }));
+  }
+}
+
+/**
+ * Shared "Other" custom subject term — synced across all subject filters
+ * (posts, circles, bounties, gigs, match) via a single localStorage key
+ * and a window event so updates propagate instantly between mounted views.
+ *
+ * The `_storageKey` argument is accepted for backwards compatibility with
+ * existing callers but ignored — every consumer reads/writes the same value.
+ */
+export function useCustomSubject(_storageKey?: string) {
+  const [value, setValue] = useState<string>(() => readShared());
+
+  useEffect(() => {
+    const onCustom = (e: Event) => {
+      const v = (e as CustomEvent<string>).detail ?? "";
+      setValue((prev) => (prev === v ? prev : v));
+    };
+    const onStorage = (e: StorageEvent) => {
+      if (e.key !== SHARED_KEY) return;
+      setValue(e.newValue ?? "");
+    };
+    window.addEventListener(EVT, onCustom);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener(EVT, onCustom);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  const update = (v: string) => {
+    setValue(v);
+    writeShared(v);
+  };
+
+  return [value, update] as const;
+}
+
 interface Props {
-  storageKey: string;
+  storageKey?: string; // ignored, kept for API compatibility
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
 }
 
-/**
- * Inline "Other" custom subject input with localStorage auto-save.
- * Shows when user has selected the "Other" option in a subject filter.
- */
-export function CustomSubjectFilter({ storageKey, value, onChange, placeholder }: Props) {
-  // Hydrate from localStorage on mount if empty
-  useEffect(() => {
-    if (value) return;
-    try {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) onChange(saved);
-    } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Auto-save on change (debounced)
-  useEffect(() => {
-    const t = setTimeout(() => {
-      try {
-        if (value) localStorage.setItem(storageKey, value);
-        else localStorage.removeItem(storageKey);
-      } catch {}
-    }, 250);
-    return () => clearTimeout(t);
-  }, [value, storageKey]);
-
+export function CustomSubjectFilter({ value, onChange, placeholder }: Props) {
   return (
     <Input
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder ?? "Type your subject…"}
+      placeholder={placeholder ?? "Type your subject (synced everywhere)…"}
       className="text-sm"
     />
   );
-}
-
-/** Hook variant: manages state + autosave for a custom subject string. */
-export function useCustomSubject(storageKey: string) {
-  const [value, setValue] = useState<string>(() => {
-    if (typeof window === "undefined") return "";
-    try {
-      return localStorage.getItem(storageKey) ?? "";
-    } catch {
-      return "";
-    }
-  });
-  useEffect(() => {
-    const t = setTimeout(() => {
-      try {
-        if (value) localStorage.setItem(storageKey, value);
-        else localStorage.removeItem(storageKey);
-      } catch {}
-    }, 250);
-    return () => clearTimeout(t);
-  }, [value, storageKey]);
-  return [value, setValue] as const;
 }
