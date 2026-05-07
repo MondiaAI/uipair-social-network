@@ -28,6 +28,7 @@ export const Route = createFileRoute("/_app/circles/new")({
 });
 
 function CreateCirclePage() {
+  const allSubjects = useAllSubjects();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");

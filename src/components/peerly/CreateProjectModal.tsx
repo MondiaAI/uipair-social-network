@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const allSubjects = useAllSubjects();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");

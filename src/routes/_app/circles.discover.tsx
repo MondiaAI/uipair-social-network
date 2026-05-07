@@ -28,6 +28,7 @@ type Tier = "all" | "free" | "premium";
 type Scope = "all" | "campus" | "global";
 
 function DiscoverCirclesPage() {
+  const allSubjects = useAllSubjects();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [circles, setCircles] = useState<CircleRow[]>([]);

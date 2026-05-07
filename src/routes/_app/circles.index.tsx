@@ -27,6 +27,7 @@ interface CircleRow extends CircleCardData {
 }
 
 function CirclesPage() {
+  const allSubjects = useAllSubjects();
   const { user, profile } = useAuth();
   const { mode } = useFeedMode();
   const navigate = useNavigate();

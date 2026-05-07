@@ -22,6 +22,7 @@ interface Props {
 }
 
 export function StudyTogetherModal({ open, onOpenChange, partnerId, partnerName, defaultSubject }: Props) {
+  const allSubjects = useAllSubjects();
   const { user } = useAuth();
   const [subject, setSubject] = useState(defaultSubject ?? SUBJECTS[0]);
   const [customSubject, setCustomSubject] = useState("");

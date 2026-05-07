@@ -50,6 +50,7 @@ interface SubscriptionRow {
 }
 
 export function CircleCreatorPanel({
+  const allSubjects = useAllSubjects();
   circle,
   members,
   onUpdated,

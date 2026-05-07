@@ -35,6 +35,7 @@ const COUNTRIES = ["United States", "United Kingdom", "South Africa", "Nigeria",
 const SKILL_OPTIONS = ["Python", "JavaScript", "Research", "Writing", "Design", "Data Analysis", "Public Speaking", "Statistics", "Machine Learning", "UI/UX", "Marketing", "Translation"];
 
 function SignupPage() {
+  const allSubjects = useAllSubjects();
   const navigate = useNavigate();
   const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(1);

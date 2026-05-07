@@ -17,6 +17,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const allSubjects = useAllSubjects();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");

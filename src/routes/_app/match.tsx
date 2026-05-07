@@ -74,6 +74,7 @@ function computeScore(me: ProfileRow, other: ProfileRow): number {
 }
 
 function MatchPage() {
+  const allSubjects = useAllSubjects();
   const { user, profile } = useAuth();
   const { mode, setMode } = useFeedMode();
   const { edges } = useFriendships();

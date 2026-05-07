@@ -15,6 +15,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 
 export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boolean; onOpenChange: (o: boolean) => void; onCreated?: () => void }) {
+  const allSubjects = useAllSubjects();
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
