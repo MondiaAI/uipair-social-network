@@ -118,6 +118,10 @@ function ProjectDetailPage() {
   const isMember = !!user && members.some((m) => m.user_id === user.id);
   const isCreator = !!user && project?.creator_id === user.id;
   const [requesting, setRequesting] = useState(false);
+  const [editCustomCategory, setEditCustomCategory] = useState("");
+  const [editCustomRoles, setEditCustomRoles] = useState("");
+  const [editCustomSubject, setEditCustomSubject] = useState("");
+  const [savingMeta, setSavingMeta] = useState<null | "saving" | "saved">(null);
 
   const requestJoin = async () => {
     if (!user || !project) return;
