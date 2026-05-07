@@ -34,8 +34,8 @@ function DiscoverCirclesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [degree, setDegree] = useState<DegreeKey>("all");
-  const [customSubject, setCustomSubject] = useCustomSubject("circles.discover.customSubject");
+  const [degree, setDegree] = useSharedDegree();
+  const [customSubject, setCustomSubject] = useCustomSubject();
   const [tier, setTier] = useState<Tier>("all");
   const [scope, setScope] = useState<Scope>("all");
   const [campusOnlyMine, setCampusOnlyMine] = useState(true);
