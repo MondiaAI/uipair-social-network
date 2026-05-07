@@ -291,13 +291,20 @@ function ProjectDetailPage() {
         </div>
       </Card>
 
-      <Tabs defaultValue="workspace">
+      {!isMember && (
+        <Card className="p-4 text-sm text-muted-foreground bg-muted/30">
+          You're viewing this project as a guest. Workspace, tasks, files, and discussion are visible to members only.
+          {user ? " Send a join request above to participate." : " Sign in and request to join to participate."}
+        </Card>
+      )}
+
+      <Tabs defaultValue={isMember ? "workspace" : "members"}>
         <TabsList>
-          <TabsTrigger value="workspace">Workspace</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="files">Files</TabsTrigger>
-          <TabsTrigger value="discussion">Discussion</TabsTrigger>
+          {isMember && <TabsTrigger value="workspace">Workspace</TabsTrigger>}
+          {isMember && <TabsTrigger value="activity">Activity</TabsTrigger>}
+          {isMember && <TabsTrigger value="tasks">Tasks</TabsTrigger>}
+          {isMember && <TabsTrigger value="files">Files</TabsTrigger>}
+          {isMember && <TabsTrigger value="discussion">Discussion</TabsTrigger>}
           <TabsTrigger value="members">Members</TabsTrigger>
         </TabsList>
 
