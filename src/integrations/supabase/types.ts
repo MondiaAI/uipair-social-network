@@ -1291,8 +1291,10 @@ export type Database = {
           creator_id: string
           deadline: string | null
           description: string | null
+          fee_interval: string
           id: string
           is_public: boolean
+          join_fee_cents: number
           member_count: number
           name: string
           open_roles: Database["public"]["Enums"]["project_role"][]
@@ -1308,8 +1310,10 @@ export type Database = {
           creator_id: string
           deadline?: string | null
           description?: string | null
+          fee_interval?: string
           id?: string
           is_public?: boolean
+          join_fee_cents?: number
           member_count?: number
           name: string
           open_roles?: Database["public"]["Enums"]["project_role"][]
@@ -1325,8 +1329,10 @@ export type Database = {
           creator_id?: string
           deadline?: string | null
           description?: string | null
+          fee_interval?: string
           id?: string
           is_public?: boolean
+          join_fee_cents?: number
           member_count?: number
           name?: string
           open_roles?: Database["public"]["Enums"]["project_role"][]
