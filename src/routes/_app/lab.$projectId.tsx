@@ -325,6 +325,34 @@ function ProjectDetailPage() {
         </div>
       </Card>
 
+      {isCreator && joinRequests.length > 0 && (
+        <Card className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Join Requests <span className="text-muted-foreground">({joinRequests.length})</span></h2>
+          </div>
+          <div className="space-y-2">
+            {joinRequests.map((r) => (
+              <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={r.profile?.avatar_url ?? undefined} />
+                    <AvatarFallback>{(r.profile?.full_name ?? r.profile?.username ?? "?").slice(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{r.profile?.full_name || r.profile?.username || "Student"}</p>
+                    <p className="text-xs text-muted-foreground">requested {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button size="sm" variant="outline" onClick={() => declineRequest(r.id)}>Decline</Button>
+                  <Button size="sm" onClick={() => approveRequest(r.id)}>Approve</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {!isMember && (
         <Card className="p-4 text-sm text-muted-foreground bg-muted/30">
           You're viewing this project as a guest. Workspace, tasks, files, and discussion are visible to members only.
