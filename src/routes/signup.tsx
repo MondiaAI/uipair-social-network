@@ -56,6 +56,45 @@ function SignupPage() {
   const [dobMonth, setDobMonth] = useState<string>("");
   const [dobYear, setDobYear] = useState<string>("");
 
+  // Refs for jump-to-field on validation errors
+  const universityRef = useRef<HTMLDivElement>(null);
+  const countryRef = useRef<HTMLDivElement>(null);
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const confirmPwRef = useRef<HTMLDivElement>(null);
+  const dobRef = useRef<HTMLDivElement>(null);
+  const termsRef = useRef<HTMLDivElement>(null);
+  const skillsRef = useRef<HTMLDivElement>(null);
+  const interestsRef = useRef<HTMLDivElement>(null);
+
+  const focusField = (ref: React.RefObject<HTMLDivElement | null>) => {
+    setTimeout(() => {
+      const el = ref.current;
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      const focusable = el.querySelector<HTMLElement>(
+        'input, select, textarea, button, [tabindex]:not([tabindex="-1"])',
+      );
+      focusable?.focus();
+      el.classList.add("ring-2", "ring-destructive", "rounded-md");
+      setTimeout(() => el.classList.remove("ring-2", "ring-destructive", "rounded-md"), 2000);
+    }, 50);
+  };
+
+  const validateStep2 = (): boolean => {
+    if (!university) { setStep(2); toast.error("Please enter your university"); focusField(universityRef); return false; }
+    if (!country) { setStep(2); toast.error("Please select your country"); focusField(countryRef); return false; }
+    if (!field) { setStep(2); toast.error("Please enter your field of study"); focusField(fieldRef); return false; }
+    if (!passwordsMatch) { setStep(2); toast.error("Passwords don't match"); focusField(confirmPwRef); return false; }
+    if (!dobValid) { setStep(2); toast.error("Please enter a valid date of birth (18+)"); focusField(dobRef); return false; }
+    if (!acceptTerms) { setStep(2); toast.error("Please accept the Terms"); focusField(termsRef); return false; }
+    return true;
+  };
+
+  const validateStep3 = (): boolean => {
+    if (skills.length < 3) { setStep(3); toast.error("Pick at least 3 skills"); focusField(skillsRef); return false; }
+    return true;
+  };
+
   const passwordsMatch = password.length > 0 && password === confirmPassword;
   const passwordStrong = evaluatePassword(password).score >= 2;
 
@@ -132,8 +171,14 @@ function SignupPage() {
 
   const finish = async () => {
     if (!user) return;
-    if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
-    if (!dobValid) return toast.error("You must be at least 18 years old to use UiPair");
+    if (!validateStep2()) return;
+    if (!validateStep3()) return;
+    if (interests.length < 3) {
+      setStep(4);
+      toast.error("Pick at least 3 interests");
+      focusField(interestsRef);
+      return;
+    }
     setLoading(true);
     let avatar_url: string | null = null;
     if (avatarFile) avatar_url = await uploadToBucket("avatars", user.id, avatarFile);
@@ -237,7 +282,7 @@ function SignupPage() {
             <h1 className="text-xl font-bold">Academic info</h1>
             <p className="text-sm text-muted-foreground mb-4">Step 2 of 4</p>
             <div className="space-y-3">
-              <div>
+              <div ref={universityRef}>
                 <Label>University</Label>
                 <UniversityField
                   userId={user?.id}
@@ -245,14 +290,14 @@ function SignupPage() {
                   onChange={setUniversity}
                 />
               </div>
-              <div>
+              <div ref={countryRef}>
                 <Label>Country</Label>
                 <Select value={country} onValueChange={setCountry}>
                   <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                   <SelectContent>{COUNTRIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div><Label>Field of study</Label><Input value={field} onChange={(e) => setField(e.target.value)} placeholder="e.g. Computer Science" /></div>
+              <div ref={fieldRef}><Label>Field of study</Label><Input value={field} onChange={(e) => setField(e.target.value)} placeholder="e.g. Computer Science" /></div>
               <div>
                 <Label>Year of study</Label>
                 <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
@@ -260,7 +305,7 @@ function SignupPage() {
                   <SelectContent>{[1, 2, 3, 4, 5, 6].map((y) => <SelectItem key={y} value={String(y)}>Year {y}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5 pt-1">
+              <div ref={confirmPwRef} className="space-y-1.5 pt-1">
                 <Label>Confirm password</Label>
                 <PasswordInput
                   required
@@ -275,7 +320,7 @@ function SignupPage() {
                   </p>
                 )}
               </div>
-              <div className="space-y-1.5 pt-1">
+              <div ref={dobRef} className="space-y-1.5 pt-1">
                 <Label>Date of birth</Label>
                 <p className="text-xs text-muted-foreground">You must be at least 18 to use UiPair.</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -319,6 +364,7 @@ function SignupPage() {
                   </div>
                 )}
               </div>
+              <div ref={termsRef}>
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
                 <input
                   type="checkbox"
@@ -333,7 +379,11 @@ function SignupPage() {
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
                 </span>
               </label>
-              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms || !passwordsMatch || !dobValid} className="w-full">Continue</Button>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">Back</Button>
+                <Button onClick={() => { if (validateStep2()) setStep(3); }} className="flex-1">Continue</Button>
+              </div>
             </div>
           </>
         )}
@@ -351,7 +401,7 @@ function SignupPage() {
             </div>
             <div className="space-y-3">
               <div><Label>Bio</Label><Textarea rows={3} value={bio} onChange={(e) => setBio(e.target.value)} maxLength={200} placeholder="A line about you" /></div>
-              <div>
+              <div ref={skillsRef}>
                 <Label>Skills (3–5)</Label>
                 <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {SKILL_OPTIONS.map((s) => (
@@ -362,7 +412,10 @@ function SignupPage() {
                   ))}
                 </div>
               </div>
-              <Button onClick={() => setStep(4)} disabled={skills.length < 3} className="w-full">Continue</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">Back</Button>
+                <Button onClick={() => { if (validateStep3()) setStep(4); }} className="flex-1">Continue</Button>
+              </div>
             </div>
           </>
         )}
@@ -371,7 +424,7 @@ function SignupPage() {
           <>
             <h1 className="text-xl font-bold">Pick your interests</h1>
             <p className="text-sm text-muted-foreground mb-4">Step 4 of 4 — choose 3+ to personalize your feed</p>
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div ref={interestsRef} className="grid grid-cols-2 gap-2 mb-4">
               {SUBJECTS.map((s) => {
                 const on = interests.includes(s);
                 return (
@@ -382,9 +435,12 @@ function SignupPage() {
                 );
               })}
             </div>
-            <Button onClick={finish} disabled={loading || interests.length < 3 || !acceptTerms} className="w-full">
-              {loading ? "Finishing…" : "Finish & enter UiPair"}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setStep(3)} className="flex-1" disabled={loading}>Back</Button>
+              <Button onClick={finish} disabled={loading} className="flex-1">
+                {loading ? "Finishing…" : "Finish & enter UiPair"}
+              </Button>
+            </div>
           </>
         )}
       </div>
