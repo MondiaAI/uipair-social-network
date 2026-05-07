@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard";
 import { SUBJECTS } from "@/lib/subjects";
 import { DegreeFilterBar, matchesDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
+import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -34,6 +35,7 @@ function DiscoverCirclesPage() {
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [degree, setDegree] = useState<DegreeKey>("all");
+  const [customSubject, setCustomSubject] = useCustomSubject("circles.discover.customSubject");
   const [tier, setTier] = useState<Tier>("all");
   const [scope, setScope] = useState<Scope>("all");
   const [campusOnlyMine, setCampusOnlyMine] = useState(true);
@@ -129,7 +131,10 @@ function DiscoverCirclesPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return circles.filter((c) => {
-      if (subjectFilter !== "all" && c.subject !== subjectFilter) return false;
+      if (subjectFilter !== "all" && subjectFilter !== "Other" && c.subject !== subjectFilter) return false;
+      if (subjectFilter === "Other" && customSubject.trim()) {
+        if (!c.subject.toLowerCase().includes(customSubject.trim().toLowerCase())) return false;
+      }
       if (!matchesDegree(c.subject, degree)) return false;
       if (tier === "free" && c.is_premium) return false;
       if (tier === "premium" && !c.is_premium) return false;
@@ -138,7 +143,7 @@ function DiscoverCirclesPage() {
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q) || c.subject.toLowerCase().includes(q);
     });
-  }, [circles, search, subjectFilter, degree, tier, scope, campusOnlyMine, userUniversity]);
+  }, [circles, search, subjectFilter, customSubject, degree, tier, scope, campusOnlyMine, userUniversity]);
 
   const activeFilters = [
     subjectFilter !== "all" && { label: subjectFilter, clear: () => setSubjectFilter("all") },
@@ -182,6 +187,17 @@ function DiscoverCirclesPage() {
               {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
+
+          {subjectFilter === "Other" && (
+            <div className="sm:col-span-3">
+              <CustomSubjectFilter
+                storageKey="circles.discover.customSubject"
+                value={customSubject}
+                onChange={setCustomSubject}
+                placeholder="Type your subject (auto-saved)…"
+              />
+            </div>
+          )}
 
           <div className="flex rounded-md border p-0.5 bg-background">
             {([

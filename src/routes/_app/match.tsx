@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useFeedMode } from "@/lib/feed-context";
 import { SUBJECTS } from "@/lib/subjects";
+import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { MatchCard, type MatchProfile } from "@/components/peerly/MatchCard";
 import { IncomingFriendRequests } from "@/components/peerly/IncomingFriendRequests";
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
@@ -78,6 +79,7 @@ function MatchPage() {
   const [loading, setLoading] = useState(true);
 
   const [subjects, setSubjects] = useState<string[]>([]);
+  const [customSubject, setCustomSubject] = useCustomSubject("match.customSubject");
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [yearRange, setYearRange] = useState<[number, number]>([1, 6]);
   const [query, setQuery] = useState("");
@@ -153,7 +155,12 @@ function MatchPage() {
         }
         if (subjects.length > 0) {
           const pSubs = [p.field_of_study, ...(p.skills ?? [])].filter(Boolean) as string[];
-          if (!pSubs.some((s) => subjects.includes(s))) return false;
+          const otherTerm = subjects.includes("Other") ? customSubject.trim().toLowerCase() : "";
+          const matchesSelected = pSubs.some((s) => subjects.includes(s));
+          const matchesOther = otherTerm
+            ? pSubs.some((s) => s.toLowerCase().includes(otherTerm))
+            : false;
+          if (!matchesSelected && !matchesOther) return false;
         }
         if (availability.length > 0) {
           const pa = p.availability ?? [];
@@ -178,7 +185,7 @@ function MatchPage() {
         }
         return b.score - a.score;
       });
-  }, [profiles, me, mode, profile?.university, subjects, availability, yearRange, query, sortKey, hidden]);
+  }, [profiles, me, mode, profile?.university, subjects, customSubject, availability, yearRange, query, sortKey, hidden]);
 
   const toggleSubject = (s: string) =>
     setSubjects((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
@@ -241,6 +248,16 @@ function MatchPage() {
                   </label>
                 ))}
               </div>
+              {subjects.includes("Other") && (
+                <div className="mt-2 border-t pt-2">
+                  <CustomSubjectFilter
+                    storageKey="match.customSubject"
+                    value={customSubject}
+                    onChange={setCustomSubject}
+                    placeholder="Type your subject (auto-saved)…"
+                  />
+                </div>
+              )}
             </PopoverContent>
           </Popover>
 

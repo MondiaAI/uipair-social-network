@@ -12,6 +12,7 @@ import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard"
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { SUBJECTS } from "@/lib/subjects";
 import { DegreeFilterBar, matchesDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
+import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { toast } from "sonner";
 import { Link, useNavigate } from "@tanstack/react-router";
 
@@ -34,6 +35,7 @@ function CirclesPage() {
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [degree, setDegree] = useState<DegreeKey>("all");
+  const [customSubject, setCustomSubject] = useCustomSubject("circles.index.customSubject");
   const [inviteInput, setInviteInput] = useState("");
 
   const handleJoinByInvite = () => {
@@ -152,7 +154,10 @@ function CirclesPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return circles.filter((c) => {
-      if (subjectFilter !== "all" && c.subject !== subjectFilter) return false;
+      if (subjectFilter !== "all" && subjectFilter !== "Other" && c.subject !== subjectFilter) return false;
+      if (subjectFilter === "Other" && customSubject.trim()) {
+        if (!c.subject.toLowerCase().includes(customSubject.trim().toLowerCase())) return false;
+      }
       if (!matchesDegree(c.subject, degree)) return false;
       if (mode === "campus") {
         if (c.scope !== "campus") return false;
@@ -163,7 +168,7 @@ function CirclesPage() {
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q);
     });
-  }, [circles, search, subjectFilter, degree, mode, userUniversity]);
+  }, [circles, search, subjectFilter, customSubject, degree, mode, userUniversity]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
@@ -203,6 +208,17 @@ function CirclesPage() {
           </SelectContent>
         </Select>
       </div>
+
+      {subjectFilter === "Other" && (
+        <div className="mb-4">
+          <CustomSubjectFilter
+            storageKey="circles.index.customSubject"
+            value={customSubject}
+            onChange={setCustomSubject}
+            placeholder="Type your subject (auto-saved)…"
+          />
+        </div>
+      )}
 
       <div className="mb-6">
         <DegreeFilterBar value={degree} onChange={setDegree} />
