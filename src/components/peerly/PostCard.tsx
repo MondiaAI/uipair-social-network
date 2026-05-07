@@ -281,6 +281,17 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
         )}
       </div>
 
+      {post.media_url && (
+        <a href={post.media_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+          <img
+            src={post.media_url}
+            alt="Post attachment"
+            loading="lazy"
+            className="max-h-96 w-full rounded-lg border object-cover"
+          />
+        </a>
+      )}
+
       {linkedProject && (
         <ProjectFeedCard
           project={linkedProject}
