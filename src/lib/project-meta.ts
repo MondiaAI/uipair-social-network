@@ -6,7 +6,7 @@ export type ProjectRole = (typeof PROJECT_ROLES)[number];
 
 export const CATEGORY_LABEL: Record<ProjectCategory, string> = {
   hackathon: "Hackathons",
-  research: "Pair research",
+  research: "Pair-research",
   startup: "Startup",
   course: "Course Projects",
   other: "Other",
@@ -31,7 +31,7 @@ export const ROLE_LABEL: Record<ProjectRole, string> = {
 export const CATEGORY_FILTERS: { value: ProjectCategory | "all"; label: string }[] = [
   { value: "all", label: "All" },
   { value: "hackathon", label: "Hackathons" },
-  { value: "research", label: "Pair research" },
+  { value: "research", label: "Pair-research" },
   { value: "startup", label: "Startup" },
   { value: "course", label: "Course Projects" },
 ];
