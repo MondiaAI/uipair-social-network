@@ -1,6 +1,7 @@
 import { Rocket, Users, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -77,7 +78,7 @@ export function ProjectFeedCard({
           <ExternalLink className="h-3.5 w-3.5" />
           View
         </Button>
-        {project.is_public && (
+        {project.is_public ? (
           isMember ? (
             <Button size="sm" className="flex-1" variant="secondary" onClick={view}>
               Open
@@ -94,6 +95,17 @@ export function ProjectFeedCard({
               {project.fee_interval === "monthly" ? "/mo" : ""}
             </Button>
           )
+        ) : (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex-1">
+                  <Button size="sm" className="w-full" disabled>Join</Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>This is a private project — you need an invite to join.</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
     </div>
