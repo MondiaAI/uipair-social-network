@@ -358,7 +358,8 @@ function SignupPage() {
                   </div>
                 )}
               </div>
-              <label ref={termsRef} className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
+              <div ref={termsRef}>
+              <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
                 <input
                   type="checkbox"
                   className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
