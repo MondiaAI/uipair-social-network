@@ -224,6 +224,8 @@ function DiscoverCirclesPage() {
           </div>
         </div>
 
+        <DegreeFilterBar value={degree} onChange={setDegree} />
+
         {scope === "campus" && userUniversity && (
           <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
             <input
