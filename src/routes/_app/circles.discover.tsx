@@ -143,7 +143,7 @@ function DiscoverCirclesPage() {
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q) || c.subject.toLowerCase().includes(q);
     });
-  }, [circles, search, subjectFilter, degree, tier, scope, campusOnlyMine, userUniversity]);
+  }, [circles, search, subjectFilter, customSubject, degree, tier, scope, campusOnlyMine, userUniversity]);
 
   const activeFilters = [
     subjectFilter !== "all" && { label: subjectFilter, clear: () => setSubjectFilter("all") },
