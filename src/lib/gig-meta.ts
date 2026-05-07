@@ -38,6 +38,15 @@ export const CATEGORY_LABEL: Record<GigCategory, string> = {
   other: "Other",
 };
 
+export function gigCategoryLabel(category: GigCategory, customCategory?: string | null) {
+  if (category === "other" && customCategory && customCategory.trim()) return customCategory.trim();
+  return CATEGORY_LABEL[category];
+}
+
+export function gigCategoryChip(category: GigCategory) {
+  return CATEGORY_CHIP[category];
+}
+
 export const CATEGORY_CHIP: Record<GigCategory, string> = {
   tutoring: "bg-blue-100 text-blue-700 border-blue-200",
   notes: "bg-amber-100 text-amber-700 border-amber-200",

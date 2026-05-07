@@ -56,3 +56,8 @@ export const CATEGORY_FILTERS: { value: ProjectCategory | "all"; label: string }
   { value: "club", label: "Student club" },
   { value: "nonprofit", label: "Nonprofit" },
 ];
+
+export function projectCategoryLabel(category: ProjectCategory, customCategory?: string | null) {
+  if (category === "other" && customCategory && customCategory.trim()) return customCategory.trim();
+  return CATEGORY_LABEL[category];
+}
