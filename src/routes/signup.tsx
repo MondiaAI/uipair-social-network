@@ -373,6 +373,7 @@ function SignupPage() {
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
                 </span>
               </label>
+              </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setStep(1)} className="flex-1">Back</Button>
                 <Button onClick={() => { if (validateStep2()) setStep(3); }} className="flex-1">Continue</Button>
