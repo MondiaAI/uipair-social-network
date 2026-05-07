@@ -1302,6 +1302,7 @@ export type Database = {
           subject: string
           team_size_limit: number
           updated_at: string
+          view_count: number
         }
         Insert: {
           category?: Database["public"]["Enums"]["project_category"]
@@ -1321,6 +1322,7 @@ export type Database = {
           subject: string
           team_size_limit?: number
           updated_at?: string
+          view_count?: number
         }
         Update: {
           category?: Database["public"]["Enums"]["project_category"]
@@ -1340,6 +1342,7 @@ export type Database = {
           subject?: string
           team_size_limit?: number
           updated_at?: string
+          view_count?: number
         }
         Relationships: []
       }
@@ -1529,6 +1532,10 @@ export type Database = {
       has_active_circle_subscription: {
         Args: { _circle_id: string; _environment?: string; _user_id: string }
         Returns: boolean
+      }
+      increment_project_view: {
+        Args: { _project_id: string }
+        Returns: undefined
       }
       is_circle_member: {
         Args: { _circle_id: string; _user_id: string }
