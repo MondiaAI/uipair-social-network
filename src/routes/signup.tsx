@@ -360,14 +360,27 @@ function SignupPage() {
                 )}
               </div>
               <div ref={dobRef} className="space-y-1.5 pt-1">
-                <Label>Date of birth</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label>Date of birth</Label>
+                  {dob && (
+                    <span
+                      className={cn(
+                        "text-xs font-medium tabular-nums",
+                        dobValid ? "text-emerald-600" : "text-destructive",
+                      )}
+                      aria-live="polite"
+                    >
+                      Age: {age}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">You must be at least 18 to use UiPair.</p>
                 <div className="grid grid-cols-3 gap-2">
                   <div ref={dobDayRef}>
                     <Select value={dobDay} onValueChange={setDobDay}>
                       <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
                       <SelectContent className="max-h-72">
-                        {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
                           <SelectItem key={d} value={String(d)}>{d}</SelectItem>
                         ))}
                       </SelectContent>
