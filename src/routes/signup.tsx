@@ -137,22 +137,33 @@ function SignupPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dobMonth, dobYear]);
 
-  const dob = (() => {
+  // Timezone-safe: treat DOB and "today" as plain calendar dates (y/m/d ints)
+  // so age never flips around midnight regardless of UTC offset / DST.
+  const dobParts = (() => {
     const d = Number(dobDay), m = Number(dobMonth), y = Number(dobYear);
     if (!d || !m || !y) return null;
+    // Validate calendar date (e.g. reject Feb 30) using UTC math (no TZ shift).
     const dt = new Date(Date.UTC(y, m - 1, d));
     if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return null;
-    return dt;
+    return { y, m, d };
   })();
+  const dob = dobParts ? new Date(Date.UTC(dobParts.y, dobParts.m - 1, dobParts.d)) : null;
   const age = (() => {
-    if (!dob) return 0;
-    const today = new Date();
-    let a = today.getUTCFullYear() - dob.getUTCFullYear();
-    const m = today.getUTCMonth() - dob.getUTCMonth();
-    if (m < 0 || (m === 0 && today.getUTCDate() < dob.getUTCDate())) a--;
+    if (!dobParts) return 0;
+    const now = new Date();
+    const ty = now.getFullYear();
+    const tm = now.getMonth() + 1;
+    const td = now.getDate();
+    let a = ty - dobParts.y;
+    if (tm < dobParts.m || (tm === dobParts.m && td < dobParts.d)) a--;
     return a;
   })();
-  const dobValid = !!dob && age >= 18;
+  const dobValid = !!dobParts && age >= 18;
+  // Inline per-field validity (only flag once user has touched the field)
+  const dobDayInvalid = !!dobDay && !!dobMonth && !!dobYear && !dobParts;
+  const dobMonthMissing = (!!dobDay || !!dobYear) && !dobMonth;
+  const dobDayMissing = (!!dobMonth || !!dobYear) && !dobDay;
+  const dobYearMissing = (!!dobDay || !!dobMonth) && !dobYear;
   const currentYear = new Date().getFullYear();
   // Cap years so the youngest selectable year still allows turning 18 (validated precisely by `age`)
   const maxYear = currentYear - 18;
