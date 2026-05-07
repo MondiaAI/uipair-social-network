@@ -62,6 +62,9 @@ function SignupPage() {
   const fieldRef = useRef<HTMLDivElement>(null);
   const confirmPwRef = useRef<HTMLDivElement>(null);
   const dobRef = useRef<HTMLDivElement>(null);
+  const dobDayRef = useRef<HTMLDivElement>(null);
+  const dobMonthRef = useRef<HTMLDivElement>(null);
+  const dobYearRef = useRef<HTMLDivElement>(null);
   const termsRef = useRef<HTMLDivElement>(null);
   const skillsRef = useRef<HTMLDivElement>(null);
   const interestsRef = useRef<HTMLDivElement>(null);
@@ -85,7 +88,24 @@ function SignupPage() {
     if (!country) { setStep(2); toast.error("Please select your country"); focusField(countryRef); return false; }
     if (!field) { setStep(2); toast.error("Please enter your field of study"); focusField(fieldRef); return false; }
     if (!passwordsMatch) { setStep(2); toast.error("Passwords don't match"); focusField(confirmPwRef); return false; }
-    if (!dobValid) { setStep(2); toast.error("Please enter a valid date of birth (18+)"); focusField(dobRef); return false; }
+    if (!dob) {
+      setStep(2);
+      const missingRef = !dobDay ? dobDayRef : !dobMonth ? dobMonthRef : !dobYear ? dobYearRef : dobDayRef;
+      toast.error(
+        !dobDay ? "Please select your day of birth"
+        : !dobMonth ? "Please select your month of birth"
+        : !dobYear ? "Please select your year of birth"
+        : "That date doesn't look valid — please correct it",
+      );
+      focusField(missingRef);
+      return false;
+    }
+    if (!dobValid) {
+      setStep(2);
+      toast.error(`You must be 18+ to join (you're ${age})`);
+      focusField(dobYearRef);
+      return false;
+    }
     if (!acceptTerms) { setStep(2); toast.error("Please accept the Terms"); focusField(termsRef); return false; }
     return true;
   };
@@ -324,30 +344,36 @@ function SignupPage() {
                 <Label>Date of birth</Label>
                 <p className="text-xs text-muted-foreground">You must be at least 18 to use UiPair.</p>
                 <div className="grid grid-cols-3 gap-2">
-                  <Select value={dobDay} onValueChange={setDobDay}>
-                    <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                        <SelectItem key={d} value={String(d)}>{d}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={dobMonth} onValueChange={setDobMonth}>
-                    <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {monthOptions.map((name, idx) => (
-                        <SelectItem key={name} value={String(idx + 1)}>{name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={dobYear} onValueChange={setDobYear}>
-                    <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
-                    <SelectContent className="max-h-72">
-                      {yearOptions.map((y) => (
-                        <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div ref={dobDayRef}>
+                    <Select value={dobDay} onValueChange={setDobDay}>
+                      <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                          <SelectItem key={d} value={String(d)}>{d}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div ref={dobMonthRef}>
+                    <Select value={dobMonth} onValueChange={setDobMonth}>
+                      <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {monthOptions.map((name, idx) => (
+                          <SelectItem key={name} value={String(idx + 1)}>{name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div ref={dobYearRef}>
+                    <Select value={dobYear} onValueChange={setDobYear}>
+                      <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
+                      <SelectContent className="max-h-72">
+                        {yearOptions.map((y) => (
+                          <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 {dobDay && dobMonth && dobYear && !dob && (
                   <p className="text-xs text-destructive">That date doesn't look valid.</p>
