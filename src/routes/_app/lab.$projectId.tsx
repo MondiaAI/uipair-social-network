@@ -101,6 +101,7 @@ function ProjectDetailPage() {
   const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [files, setFiles] = useState<FileRow[]>([]);
+  const [joinRequests, setJoinRequests] = useState<Array<{ id: string; user_id: string; created_at: string; message: string | null; profile?: { full_name: string | null; username: string | null; avatar_url: string | null } }>>([]);
   const [loading, setLoading] = useState(true);
 
   const [newActivity, setNewActivity] = useState("");
