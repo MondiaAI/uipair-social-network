@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Camera, Check } from "lucide-react";
 import { SUBJECTS } from "@/lib/subjects";
+import { useAllSubjects } from "@/lib/use-all-subjects";
+import { addCustomSubject } from "@/lib/subjects";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { SplitAuthLayout } from "@/components/peerly/SplitAuthLayout";
@@ -499,7 +501,7 @@ function SignupPage() {
             <h1 className="text-xl font-bold">Pick your interests</h1>
             <p className="text-sm text-muted-foreground mb-4">Step 4 of 4 — choose 3+ to personalize your feed</p>
             <div ref={interestsRef} className="grid grid-cols-2 gap-2 mb-4">
-              {SUBJECTS.map((s) => {
+              {useAllSubjectsList.map((s) => {
                 const on = interests.includes(s);
                 return (
                   <button key={s} type="button" onClick={() => toggle(interests, s, setInterests)}
