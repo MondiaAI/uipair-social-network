@@ -115,7 +115,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
     (async () => {
       const { data } = await supabase
         .from("projects")
-        .select("id, name, is_public, join_fee_cents, fee_interval, member_count, team_size_limit, creator_id")
+        .select("id, name, is_public, join_fee_cents, fee_interval, member_count, team_size_limit, creator_id, view_count")
         .eq("id", projectId)
         .maybeSingle();
       if (!cancelled && data) setLinkedProject(data as typeof linkedProject);
