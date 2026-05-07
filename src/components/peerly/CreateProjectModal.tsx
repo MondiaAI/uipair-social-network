@@ -32,8 +32,11 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
+  const [customSubject, setCustomSubject] = useState("");
   const [category, setCategory] = useState<ProjectCategory>("other");
+  const [customCategory, setCustomCategory] = useState("");
   const [openRoles, setOpenRoles] = useState<ProjectRole[]>([]);
+  const [customRole, setCustomRole] = useState("");
   const [teamSize, setTeamSize] = useState(5);
   const [deadline, setDeadline] = useState("");
   const [isPublic, setIsPublic] = useState(true);
