@@ -18,6 +18,7 @@ export interface ProjectFeedCardData {
   member_count: number;
   team_size_limit: number;
   creator_id: string;
+  view_count?: number;
 }
 
 export function ProjectFeedCard({
