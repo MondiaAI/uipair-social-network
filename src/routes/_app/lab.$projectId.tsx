@@ -308,6 +308,7 @@ function ProjectDetailPage() {
           <TabsTrigger value="members">Members</TabsTrigger>
         </TabsList>
 
+        {isMember && <>
         <TabsContent value="workspace">
           <ProjectWorkspace
             projectId={projectId}
