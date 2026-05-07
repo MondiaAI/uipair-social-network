@@ -151,6 +151,15 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
+              {subject === "Other" && (
+                <Input
+                  className="mt-2"
+                  value={customSubject}
+                  onChange={(e) => setCustomSubject(e.target.value)}
+                  placeholder="Enter subject area"
+                  maxLength={50}
+                />
+              )}
             </div>
             <div>
               <Label>Category</Label>
@@ -160,6 +169,15 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
                   {PROJECT_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{CATEGORY_LABEL[c]}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {category === "other" && (
+                <Input
+                  className="mt-2"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="Enter category"
+                  maxLength={50}
+                />
+              )}
             </div>
           </div>
           <div>
@@ -182,6 +200,15 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
                 );
               })}
             </div>
+            {openRoles.includes("other") && (
+              <Input
+                className="mt-2"
+                value={customRole}
+                onChange={(e) => setCustomRole(e.target.value)}
+                placeholder="Specify other role(s), e.g. Marketer, PM"
+                maxLength={80}
+              />
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
