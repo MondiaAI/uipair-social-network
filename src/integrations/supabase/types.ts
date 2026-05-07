@@ -1542,6 +1542,7 @@ export type Database = {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
       }
+      join_public_project: { Args: { _project_id: string }; Returns: string }
       redeem_circle_invite: { Args: { _token: string }; Returns: string }
     }
     Enums: {
