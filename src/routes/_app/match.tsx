@@ -185,7 +185,7 @@ function MatchPage() {
         }
         return b.score - a.score;
       });
-  }, [profiles, me, mode, profile?.university, subjects, availability, yearRange, query, sortKey, hidden]);
+  }, [profiles, me, mode, profile?.university, subjects, customSubject, availability, yearRange, query, sortKey, hidden]);
 
   const toggleSubject = (s: string) =>
     setSubjects((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
