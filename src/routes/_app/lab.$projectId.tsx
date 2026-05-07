@@ -121,7 +121,8 @@ function ProjectDetailPage() {
   const [editCustomCategory, setEditCustomCategory] = useState("");
   const [editCustomRoles, setEditCustomRoles] = useState("");
   const [editCustomSubject, setEditCustomSubject] = useState("");
-  const [savingMeta, setSavingMeta] = useState<null | "saving" | "saved">(null);
+  const [savingCategory, setSavingCategory] = useState<null | "saving" | "saved">(null);
+  const [savingRoles, setSavingRoles] = useState<null | "saving" | "saved">(null);
 
   const requestJoin = async () => {
     if (!user || !project) return;
