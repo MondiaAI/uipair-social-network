@@ -118,6 +118,25 @@ function SignupPage() {
   const passwordsMatch = password.length > 0 && password === confirmPassword;
   const passwordStrong = evaluatePassword(password).score >= 2;
 
+  const daysInMonth = (() => {
+    const m = Number(dobMonth);
+    const y = Number(dobYear) || 2000; // leap-safe fallback
+    if (!m) return 31;
+    return new Date(y, m, 0).getDate();
+  })();
+
+  // Auto-correct day if it exceeds the days in the selected month/year
+  useEffect(() => {
+    const d = Number(dobDay);
+    if (!d || !dobMonth) return;
+    if (d > daysInMonth) {
+      setDobDay(String(daysInMonth));
+      toast.info(`Adjusted day to ${daysInMonth} — that month only has ${daysInMonth} days.`);
+      focusField(dobDayRef);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dobMonth, dobYear]);
+
   const dob = (() => {
     const d = Number(dobDay), m = Number(dobMonth), y = Number(dobYear);
     if (!d || !m || !y) return null;
@@ -341,14 +360,27 @@ function SignupPage() {
                 )}
               </div>
               <div ref={dobRef} className="space-y-1.5 pt-1">
-                <Label>Date of birth</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label>Date of birth</Label>
+                  {dob && (
+                    <span
+                      className={cn(
+                        "text-xs font-medium tabular-nums",
+                        dobValid ? "text-emerald-600" : "text-destructive",
+                      )}
+                      aria-live="polite"
+                    >
+                      Age: {age}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">You must be at least 18 to use UiPair.</p>
                 <div className="grid grid-cols-3 gap-2">
                   <div ref={dobDayRef}>
                     <Select value={dobDay} onValueChange={setDobDay}>
                       <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
                       <SelectContent className="max-h-72">
-                        {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                        {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
                           <SelectItem key={d} value={String(d)}>{d}</SelectItem>
                         ))}
                       </SelectContent>
@@ -467,6 +499,9 @@ function SignupPage() {
                 {loading ? "Finishing…" : "Finish & enter UiPair"}
               </Button>
             </div>
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              By joining, you confirm you're at least 18 years old.
+            </p>
           </>
         )}
       </div>
