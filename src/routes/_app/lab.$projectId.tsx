@@ -92,6 +92,8 @@ const TASK_COLUMNS: { status: TaskRow["status"]; label: string }[] = [
 
 function ProjectDetailPage() {
   const { projectId } = useParams({ from: "/_app/lab/$projectId" });
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { user } = useAuth();
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [members, setMembers] = useState<MemberRow[]>([]);
