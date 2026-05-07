@@ -1551,6 +1551,10 @@ export type Database = {
       }
       join_public_project: { Args: { _project_id: string }; Returns: string }
       redeem_circle_invite: { Args: { _token: string }; Returns: string }
+      request_project_join: {
+        Args: { _project_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       bounty_status: "open" | "claimed" | "completed" | "cancelled"

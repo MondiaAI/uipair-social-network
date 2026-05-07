@@ -113,6 +113,16 @@ function ProjectDetailPage() {
 
   const isMember = !!user && members.some((m) => m.user_id === user.id);
   const isCreator = !!user && project?.creator_id === user.id;
+  const [requesting, setRequesting] = useState(false);
+
+  const requestJoin = async () => {
+    if (!user || !project) return;
+    setRequesting(true);
+    const { error } = await supabase.rpc("request_project_join", { _project_id: projectId });
+    setRequesting(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Join request sent to the project creator");
+  };
 
   const load = async () => {
     setLoading(true);
@@ -265,23 +275,40 @@ function ProjectDetailPage() {
               </div>
             )}
           </div>
-          <div className="w-44">
-            <p className="mb-1 text-xs text-muted-foreground">Progress {project.progress}%</p>
-            <Progress value={project.progress} />
+          <div className="flex flex-col items-end gap-3 w-44">
+            <div className="w-full">
+              <p className="mb-1 text-xs text-muted-foreground">Progress {project.progress}%</p>
+              <Progress value={project.progress} />
+            </div>
+            {!isMember && user && (
+              <Button size="sm" onClick={requestJoin} disabled={requesting} className="w-full">
+                {requesting ? "Sending…" : "Request to Join"}
+              </Button>
+            )}
+            {isMember && !isCreator && <Badge variant="secondary">Member</Badge>}
+            {isCreator && <Badge className="bg-primary">Admin · Creator</Badge>}
           </div>
         </div>
       </Card>
 
-      <Tabs defaultValue="workspace">
+      {!isMember && (
+        <Card className="p-4 text-sm text-muted-foreground bg-muted/30">
+          You're viewing this project as a guest. Workspace, tasks, files, and discussion are visible to members only.
+          {user ? " Send a join request above to participate." : " Sign in and request to join to participate."}
+        </Card>
+      )}
+
+      <Tabs defaultValue={isMember ? "workspace" : "members"}>
         <TabsList>
-          <TabsTrigger value="workspace">Workspace</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="files">Files</TabsTrigger>
-          <TabsTrigger value="discussion">Discussion</TabsTrigger>
+          {isMember && <TabsTrigger value="workspace">Workspace</TabsTrigger>}
+          {isMember && <TabsTrigger value="activity">Activity</TabsTrigger>}
+          {isMember && <TabsTrigger value="tasks">Tasks</TabsTrigger>}
+          {isMember && <TabsTrigger value="files">Files</TabsTrigger>}
+          {isMember && <TabsTrigger value="discussion">Discussion</TabsTrigger>}
           <TabsTrigger value="members">Members</TabsTrigger>
         </TabsList>
 
+        {isMember && <>
         <TabsContent value="workspace">
           <ProjectWorkspace
             projectId={projectId}
@@ -491,6 +518,7 @@ function ProjectDetailPage() {
             </Card>
           )}
         </TabsContent>
+        </>}
 
         <TabsContent value="members">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
