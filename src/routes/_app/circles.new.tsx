@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card } from "@/components/ui/card";
 import { SUBJECTS } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
+import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ function CreateCirclePage() {
   const [name, setName] = useState("");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
   const [customSubject, setCustomSubject] = useState("");
+  const [degree, setDegree] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [campusOnly, setCampusOnly] = useState(false);
   const [isPremium, setIsPremium] = useState(true);
@@ -61,6 +63,7 @@ function CreateCirclePage() {
         name: name.trim(),
         subject,
         custom_subject: subject === "Other" ? customSubject.trim() : null,
+        degree,
         description: description.trim() || null,
         leader_id: user.id,
         scope: campusOnly ? ("campus" as const) : ("global" as const),
