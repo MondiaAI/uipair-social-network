@@ -18,11 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppMessagesRouteImport } from './routes/_app/messages'
 import { Route as AppMatchRouteImport } from './routes/_app/match'
-import { Route as AppLabRouteImport } from './routes/_app/lab'
 import { Route as AppJoinRouteImport } from './routes/_app/join'
 import { Route as AppGigsRouteImport } from './routes/_app/gigs'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
 import { Route as AppAmbassadorRouteImport } from './routes/_app/ambassador'
+import { Route as AppLabIndexRouteImport } from './routes/_app/lab.index'
 import { Route as AppCirclesIndexRouteImport } from './routes/_app/circles.index'
 import { Route as AppProfileUserIdRouteImport } from './routes/_app/profile.$userId'
 import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
@@ -76,11 +76,6 @@ const AppMatchRoute = AppMatchRouteImport.update({
   path: '/match',
   getParentRoute: () => AppRoute,
 } as any)
-const AppLabRoute = AppLabRouteImport.update({
-  id: '/lab',
-  path: '/lab',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppJoinRoute = AppJoinRouteImport.update({
   id: '/join',
   path: '/join',
@@ -101,6 +96,11 @@ const AppAmbassadorRoute = AppAmbassadorRouteImport.update({
   path: '/ambassador',
   getParentRoute: () => AppRoute,
 } as any)
+const AppLabIndexRoute = AppLabIndexRouteImport.update({
+  id: '/lab/',
+  path: '/lab/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCirclesIndexRoute = AppCirclesIndexRouteImport.update({
   id: '/circles/',
   path: '/circles/',
@@ -112,9 +112,9 @@ const AppProfileUserIdRoute = AppProfileUserIdRouteImport.update({
   getParentRoute: () => AppRoute,
 } as any)
 const AppLabProjectIdRoute = AppLabProjectIdRouteImport.update({
-  id: '/$projectId',
-  path: '/$projectId',
-  getParentRoute: () => AppLabRoute,
+  id: '/lab/$projectId',
+  path: '/lab/$projectId',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppInviteTokenRoute = AppInviteTokenRouteImport.update({
   id: '/invite/$token',
@@ -153,7 +153,6 @@ export interface FileRoutesByFullPath {
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
   '/join': typeof AppJoinRoute
-  '/lab': typeof AppLabRouteWithChildren
   '/match': typeof AppMatchRoute
   '/messages': typeof AppMessagesRoute
   '/settings': typeof AppSettingsRoute
@@ -164,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/circles/': typeof AppCirclesIndexRoute
+  '/lab/': typeof AppLabIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -176,7 +176,6 @@ export interface FileRoutesByTo {
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
   '/join': typeof AppJoinRoute
-  '/lab': typeof AppLabRouteWithChildren
   '/match': typeof AppMatchRoute
   '/messages': typeof AppMessagesRoute
   '/settings': typeof AppSettingsRoute
@@ -187,6 +186,7 @@ export interface FileRoutesByTo {
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/circles': typeof AppCirclesIndexRoute
+  '/lab': typeof AppLabIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -201,7 +201,6 @@ export interface FileRoutesById {
   '/_app/feed': typeof AppFeedRoute
   '/_app/gigs': typeof AppGigsRoute
   '/_app/join': typeof AppJoinRoute
-  '/_app/lab': typeof AppLabRouteWithChildren
   '/_app/match': typeof AppMatchRoute
   '/_app/messages': typeof AppMessagesRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -212,6 +211,7 @@ export interface FileRoutesById {
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
   '/_app/circles/': typeof AppCirclesIndexRoute
+  '/_app/lab/': typeof AppLabIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -226,7 +226,6 @@ export interface FileRouteTypes {
     | '/feed'
     | '/gigs'
     | '/join'
-    | '/lab'
     | '/match'
     | '/messages'
     | '/settings'
@@ -237,6 +236,7 @@ export interface FileRouteTypes {
     | '/lab/$projectId'
     | '/profile/$userId'
     | '/circles/'
+    | '/lab/'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -249,7 +249,6 @@ export interface FileRouteTypes {
     | '/feed'
     | '/gigs'
     | '/join'
-    | '/lab'
     | '/match'
     | '/messages'
     | '/settings'
@@ -260,6 +259,7 @@ export interface FileRouteTypes {
     | '/lab/$projectId'
     | '/profile/$userId'
     | '/circles'
+    | '/lab'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -273,7 +273,6 @@ export interface FileRouteTypes {
     | '/_app/feed'
     | '/_app/gigs'
     | '/_app/join'
-    | '/_app/lab'
     | '/_app/match'
     | '/_app/messages'
     | '/_app/settings'
@@ -284,6 +283,7 @@ export interface FileRouteTypes {
     | '/_app/lab/$projectId'
     | '/_app/profile/$userId'
     | '/_app/circles/'
+    | '/_app/lab/'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -362,13 +362,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMatchRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/lab': {
-      id: '/_app/lab'
-      path: '/lab'
-      fullPath: '/lab'
-      preLoaderRoute: typeof AppLabRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/join': {
       id: '/_app/join'
       path: '/join'
@@ -397,6 +390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAmbassadorRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/lab/': {
+      id: '/_app/lab/'
+      path: '/lab'
+      fullPath: '/lab/'
+      preLoaderRoute: typeof AppLabIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/circles/': {
       id: '/_app/circles/'
       path: '/circles'
@@ -413,10 +413,10 @@ declare module '@tanstack/react-router' {
     }
     '/_app/lab/$projectId': {
       id: '/_app/lab/$projectId'
-      path: '/$projectId'
+      path: '/lab/$projectId'
       fullPath: '/lab/$projectId'
       preLoaderRoute: typeof AppLabProjectIdRouteImport
-      parentRoute: typeof AppLabRoute
+      parentRoute: typeof AppRoute
     }
     '/_app/invite/$token': {
       id: '/_app/invite/$token'
@@ -456,23 +456,11 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AppLabRouteChildren {
-  AppLabProjectIdRoute: typeof AppLabProjectIdRoute
-}
-
-const AppLabRouteChildren: AppLabRouteChildren = {
-  AppLabProjectIdRoute: AppLabProjectIdRoute,
-}
-
-const AppLabRouteWithChildren =
-  AppLabRoute._addFileChildren(AppLabRouteChildren)
-
 interface AppRouteChildren {
   AppAmbassadorRoute: typeof AppAmbassadorRoute
   AppFeedRoute: typeof AppFeedRoute
   AppGigsRoute: typeof AppGigsRoute
   AppJoinRoute: typeof AppJoinRoute
-  AppLabRoute: typeof AppLabRouteWithChildren
   AppMatchRoute: typeof AppMatchRoute
   AppMessagesRoute: typeof AppMessagesRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -480,8 +468,10 @@ interface AppRouteChildren {
   AppCirclesDiscoverRoute: typeof AppCirclesDiscoverRoute
   AppCirclesNewRoute: typeof AppCirclesNewRoute
   AppInviteTokenRoute: typeof AppInviteTokenRoute
+  AppLabProjectIdRoute: typeof AppLabProjectIdRoute
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
   AppCirclesIndexRoute: typeof AppCirclesIndexRoute
+  AppLabIndexRoute: typeof AppLabIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -489,7 +479,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppFeedRoute: AppFeedRoute,
   AppGigsRoute: AppGigsRoute,
   AppJoinRoute: AppJoinRoute,
-  AppLabRoute: AppLabRouteWithChildren,
   AppMatchRoute: AppMatchRoute,
   AppMessagesRoute: AppMessagesRoute,
   AppSettingsRoute: AppSettingsRoute,
@@ -497,8 +486,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppCirclesDiscoverRoute: AppCirclesDiscoverRoute,
   AppCirclesNewRoute: AppCirclesNewRoute,
   AppInviteTokenRoute: AppInviteTokenRoute,
+  AppLabProjectIdRoute: AppLabProjectIdRoute,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
   AppCirclesIndexRoute: AppCirclesIndexRoute,
+  AppLabIndexRoute: AppLabIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
@@ -515,3 +506,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
