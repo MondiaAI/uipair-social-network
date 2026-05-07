@@ -33,6 +33,8 @@ interface ProjectDetail {
   description: string | null;
   subject: string;
   category: string;
+  custom_category: string | null;
+  custom_roles: string | null;
   open_roles: ProjectRole[];
   team_size_limit: number;
   member_count: number;
