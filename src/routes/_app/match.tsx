@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useFeedMode } from "@/lib/feed-context";
 import { SUBJECTS } from "@/lib/subjects";
+import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { MatchCard, type MatchProfile } from "@/components/peerly/MatchCard";
 import { IncomingFriendRequests } from "@/components/peerly/IncomingFriendRequests";
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
