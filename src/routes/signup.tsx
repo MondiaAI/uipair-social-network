@@ -307,10 +307,15 @@ function SignupPage() {
                   <p className="text-xs text-destructive">That date doesn't look valid.</p>
                 )}
                 {dob && !dobValid && (
-                  <p className="text-xs text-destructive">You must be at least 18 years old to join.</p>
+                  <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                    <strong className="block">You must be 18+ to join UiPair.</strong>
+                    <span>Based on your date of birth, you're {age} year{age === 1 ? "" : "s"} old.</span>
+                  </div>
                 )}
                 {dobValid && (
-                  <p className="text-xs text-emerald-600">You're {age} years old ✓</p>
+                  <div className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400">
+                    ✓ Age confirmed — you're {age} years old and eligible to join.
+                  </div>
                 )}
               </div>
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
