@@ -101,19 +101,19 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
     } else {
       toast.success("Project created!");
     }
-    if (isPublic) {
-      const roleStr = openRoles.length ? ` Looking for: ${openRoles.join(", ")}.` : "";
-      const feeStr =
-        joinFee > 0
-          ? `\n\n💰 Join fee: $${joinFee.toFixed(2)}${feeInterval === "monthly" ? "/month" : " (one-time)"}`
-          : `\n\n✅ Free to join`;
-      const announcement = `🚀 New project in the Lab: ${name.trim()}${description.trim() ? `\n\n${description.trim()}` : ""}${roleStr}${feeStr}\n\n👉 Join here: /lab/${data.id}`;
-      await supabase.from("posts").insert({
-        user_id: user.id,
-        content: announcement,
-        post_type: "partner",
-      });
-    }
+    const roleStr = openRoles.length ? ` Looking for: ${openRoles.join(", ")}.` : "";
+    const feeStr = isPublic
+      ? joinFee > 0
+        ? `\n\n💰 Join fee: $${joinFee.toFixed(2)}${feeInterval === "monthly" ? "/month" : " (one-time)"}`
+        : `\n\n✅ Free to join`
+      : `\n\n🔒 Private project`;
+    const ctaStr = isPublic ? `\n\n👉 Join here: /lab/${data.id}` : `\n\n👉 View: /lab/${data.id}`;
+    const announcement = `🚀 New project in the Lab: ${name.trim()}${description.trim() ? `\n\n${description.trim()}` : ""}${roleStr}${feeStr}${ctaStr}`;
+    await supabase.from("posts").insert({
+      user_id: user.id,
+      content: announcement,
+      post_type: "partner",
+    });
     setSubmitting(false);
     reset();
     onOpenChange(false);
