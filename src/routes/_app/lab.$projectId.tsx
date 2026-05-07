@@ -155,7 +155,40 @@ function ProjectDetailPage() {
     setActivity((a ?? []).map((x) => ({ ...x, profile: pMap.get(x.user_id) })) as ActivityRow[]);
     setComments((c ?? []).map((x) => ({ ...x, profile: pMap.get(x.user_id) })) as CommentRow[]);
     setFiles((f ?? []) as FileRow[]);
+
+    // Load pending join requests if current user is the creator
+    if (user && (p as ProjectDetail).creator_id === user.id) {
+      const { data: jr } = await supabase
+        .from("project_join_requests")
+        .select("id, user_id, created_at, message")
+        .eq("project_id", projectId)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      const reqIds = (jr ?? []).map((r) => r.user_id);
+      const { data: reqProfiles } = reqIds.length
+        ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", reqIds)
+        : { data: [] as Array<{ id: string; full_name: string | null; username: string | null; avatar_url: string | null }> };
+      const rpMap = new Map((reqProfiles ?? []).map((x) => [x.id, x]));
+      setJoinRequests((jr ?? []).map((r) => ({ ...r, profile: rpMap.get(r.user_id) })));
+    } else {
+      setJoinRequests([]);
+    }
+
     setLoading(false);
+  };
+
+  const approveRequest = async (id: string) => {
+    const { error } = await supabase.rpc("approve_project_join_request", { _request_id: id });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Request approved");
+    load();
+  };
+
+  const declineRequest = async (id: string) => {
+    const { error } = await supabase.rpc("decline_project_join_request", { _request_id: id });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Request declined");
+    load();
   };
 
   useEffect(() => {
