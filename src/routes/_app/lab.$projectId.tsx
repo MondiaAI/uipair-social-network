@@ -124,6 +124,15 @@ function ProjectDetailPage() {
     setRequesting(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Join request sent to the project creator");
+    load();
+  };
+
+  const withdrawRequest = async () => {
+    if (!myRequest) return;
+    const { error } = await supabase.from("project_join_requests").delete().eq("id", myRequest.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Join request withdrawn");
+    load();
   };
 
   const load = async () => {
