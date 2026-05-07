@@ -73,19 +73,17 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
     if (!user || !name.trim()) return;
     setSubmitting(true);
     const finalSubject = subject === "Other" && customSubject.trim() ? customSubject.trim() : subject;
-    const extras: string[] = [];
-    if (category === "other" && customCategory.trim()) extras.push(`Category: ${customCategory.trim()}`);
-    if (openRoles.includes("other") && customRole.trim()) extras.push(`Other roles: ${customRole.trim()}`);
-    const finalDescription = [description.trim(), extras.length ? `\n\n${extras.join(" • ")}` : ""].join("").trim() || null;
     const { data, error } = await supabase
       .from("projects")
       .insert({
         creator_id: user.id,
         name: name.trim(),
-        description: finalDescription,
+        description: description.trim() || null,
         subject: finalSubject,
         category,
+        custom_category: category === "other" ? (customCategory.trim() || null) : null,
         open_roles: openRoles,
+        custom_roles: openRoles.includes("other") ? (customRole.trim() || null) : null,
         team_size_limit: teamSize,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         is_public: isPublic,
