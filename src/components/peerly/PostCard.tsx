@@ -19,6 +19,7 @@ export interface FeedPost {
   post_type: PostType;
   university: string | null;
   is_live_session: boolean;
+  media_url?: string | null;
   created_at: string;
   profiles: {
     full_name: string | null;
@@ -279,6 +280,17 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
           </button>
         )}
       </div>
+
+      {post.media_url && (
+        <a href={post.media_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+          <img
+            src={post.media_url}
+            alt="Post attachment"
+            loading="lazy"
+            className="max-h-96 w-full rounded-lg border object-cover"
+          />
+        </a>
+      )}
 
       {linkedProject && (
         <ProjectFeedCard

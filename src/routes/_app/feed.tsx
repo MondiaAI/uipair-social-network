@@ -24,7 +24,7 @@ function FeedPage() {
     setLoading(true);
     let q = supabase
       .from("posts")
-      .select("id, user_id, content, post_type, university, is_live_session, created_at, profiles!posts_user_id_fkey(full_name, username, avatar_url, university)")
+      .select("id, user_id, content, post_type, university, is_live_session, media_url, created_at, profiles!posts_user_id_fkey(full_name, username, avatar_url, university)")
       .order("created_at", { ascending: false })
       .limit(50);
 
