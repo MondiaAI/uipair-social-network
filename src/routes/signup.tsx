@@ -414,35 +414,6 @@ function SignupPage() {
           </>
         )}
 
-        {step === 3 && (
-          <>
-            <h1 className="text-xl font-bold">About you</h1>
-            <p className="text-sm text-muted-foreground mb-4">Step 3 of 4</p>
-            <div className="flex flex-col items-center gap-2 mb-4">
-              <Avatar className="h-20 w-20"><AvatarImage src={avatarPreview} /><AvatarFallback>{fullName.charAt(0) || "?"}</AvatarFallback></Avatar>
-              <label className="cursor-pointer text-sm text-primary inline-flex items-center gap-1">
-                <Camera className="h-4 w-4" /> Upload photo
-                <input type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onPickAvatar(e.target.files[0])} />
-              </label>
-            </div>
-            <div className="space-y-3">
-              <div><Label>Bio</Label><Textarea rows={3} value={bio} onChange={(e) => setBio(e.target.value)} maxLength={200} placeholder="A line about you" /></div>
-              <div>
-                <Label>Skills (3–5)</Label>
-                <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  {SKILL_OPTIONS.map((s) => (
-                    <button type="button" key={s} onClick={() => toggle(skills, s, setSkills)}
-                      className={cn("rounded-full border px-3 py-1 text-xs", skills.includes(s) ? "bg-primary text-primary-foreground border-primary" : "hover:border-foreground/40")}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <Button onClick={() => setStep(4)} disabled={skills.length < 3} className="w-full">Continue</Button>
-            </div>
-          </>
-        )}
-
         {step === 4 && (
           <>
             <h1 className="text-xl font-bold">Pick your interests</h1>
