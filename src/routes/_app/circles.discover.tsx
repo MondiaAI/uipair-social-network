@@ -131,7 +131,10 @@ function DiscoverCirclesPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return circles.filter((c) => {
-      if (subjectFilter !== "all" && c.subject !== subjectFilter) return false;
+      if (subjectFilter !== "all" && subjectFilter !== "Other" && c.subject !== subjectFilter) return false;
+      if (subjectFilter === "Other" && customSubject.trim()) {
+        if (!c.subject.toLowerCase().includes(customSubject.trim().toLowerCase())) return false;
+      }
       if (!matchesDegree(c.subject, degree)) return false;
       if (tier === "free" && c.is_premium) return false;
       if (tier === "premium" && !c.is_premium) return false;
