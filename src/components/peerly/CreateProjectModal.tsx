@@ -37,6 +37,8 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
   const [teamSize, setTeamSize] = useState(5);
   const [deadline, setDeadline] = useState("");
   const [isPublic, setIsPublic] = useState(true);
+  const [joinFee, setJoinFee] = useState(0);
+  const [feeInterval, setFeeInterval] = useState<"one_time" | "monthly">("one_time");
   const [submitting, setSubmitting] = useState(false);
   const [invitees, setInvitees] = useState<string[]>([]);
   const [peopleQuery, setPeopleQuery] = useState("");
@@ -60,7 +62,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
 
   const reset = () => {
     setName(""); setDescription(""); setCategory("other"); setOpenRoles([]);
-    setTeamSize(5); setDeadline(""); setIsPublic(true); setInvitees([]); setPeopleQuery("");
+    setTeamSize(5); setDeadline(""); setIsPublic(true); setJoinFee(0); setFeeInterval("one_time"); setInvitees([]); setPeopleQuery("");
   };
 
   const handleSubmit = async () => {
@@ -78,6 +80,8 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
         team_size_limit: teamSize,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         is_public: isPublic,
+        join_fee_cents: Math.max(0, Math.round(joinFee * 100)),
+        fee_interval: feeInterval,
       })
       .select("id")
       .single();
