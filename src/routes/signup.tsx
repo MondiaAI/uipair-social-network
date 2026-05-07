@@ -66,10 +66,19 @@ function SignupPage() {
     if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return null;
     return dt;
   })();
-  const age = dob ? Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 3600 * 1000)) : 0;
+  const age = (() => {
+    if (!dob) return 0;
+    const today = new Date();
+    let a = today.getUTCFullYear() - dob.getUTCFullYear();
+    const m = today.getUTCMonth() - dob.getUTCMonth();
+    if (m < 0 || (m === 0 && today.getUTCDate() < dob.getUTCDate())) a--;
+    return a;
+  })();
   const dobValid = !!dob && age >= 18;
   const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: 100 }, (_, i) => currentYear - 18 - i);
+  // Cap years so the youngest selectable year still allows turning 18 (validated precisely by `age`)
+  const maxYear = currentYear - 18;
+  const yearOptions = Array.from({ length: 100 }, (_, i) => maxYear - i);
   const monthOptions = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
@@ -298,10 +307,15 @@ function SignupPage() {
                   <p className="text-xs text-destructive">That date doesn't look valid.</p>
                 )}
                 {dob && !dobValid && (
-                  <p className="text-xs text-destructive">You must be at least 18 years old to join.</p>
+                  <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                    <strong className="block">You must be 18+ to join UiPair.</strong>
+                    <span>Based on your date of birth, you're {age} year{age === 1 ? "" : "s"} old.</span>
+                  </div>
                 )}
                 {dobValid && (
-                  <p className="text-xs text-emerald-600">You're {age} years old ✓</p>
+                  <div className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400">
+                    ✓ Age confirmed — you're {age} years old and eligible to join.
+                  </div>
                 )}
               </div>
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
