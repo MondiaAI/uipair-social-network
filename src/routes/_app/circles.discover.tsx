@@ -188,6 +188,17 @@ function DiscoverCirclesPage() {
             </SelectContent>
           </Select>
 
+          {subjectFilter === "Other" && (
+            <div className="sm:col-span-3">
+              <CustomSubjectFilter
+                storageKey="circles.discover.customSubject"
+                value={customSubject}
+                onChange={setCustomSubject}
+                placeholder="Type your subject (auto-saved)…"
+              />
+            </div>
+          )}
+
           <div className="flex rounded-md border p-0.5 bg-background">
             {([
               { v: "all", label: "All", icon: null },
