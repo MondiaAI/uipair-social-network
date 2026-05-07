@@ -5,11 +5,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: async () => {
-    // Wait for Supabase to fully hydrate + revalidate the session before
-    // rendering protected content. Prevents a flash of signed-out UI.
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) {
-      throw redirect({ to: "/login" });
+    // Check the current session locally first. Only redirect to /login when
+    // we are certain there is no session — a transient network/command
+    // failure must NOT auto-log the user out.
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session) {
+        throw redirect({ to: "/login" });
+      }
+    } catch (e: any) {
+      // Re-throw redirects; swallow network errors so the user stays signed in.
+      if (e && typeof e === "object" && "to" in e) throw e;
+      console.error("[_app beforeLoad] session check failed", e);
     }
   },
   component: AppLayout,
