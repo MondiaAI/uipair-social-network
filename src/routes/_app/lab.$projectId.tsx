@@ -254,6 +254,7 @@ function ProjectDetailPage() {
             {project.description && <p className="mt-2 text-sm text-muted-foreground">{project.description}</p>}
             <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" />{project.member_count}/{project.team_size_limit}</span>
+              <span className="inline-flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{project.view_count ?? 0} views</span>
               {dl && isValid(dl) && <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />Due {format(dl, "PP")}</span>}
             </div>
             {project.open_roles?.length > 0 && (
