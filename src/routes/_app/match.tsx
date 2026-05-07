@@ -248,6 +248,16 @@ function MatchPage() {
                   </label>
                 ))}
               </div>
+              {subjects.includes("Other") && (
+                <div className="mt-2 border-t pt-2">
+                  <CustomSubjectFilter
+                    storageKey="match.customSubject"
+                    value={customSubject}
+                    onChange={setCustomSubject}
+                    placeholder="Type your subject (auto-saved)…"
+                  />
+                </div>
+              )}
             </PopoverContent>
           </Popover>
 
