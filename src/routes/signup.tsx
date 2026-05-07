@@ -137,22 +137,33 @@ function SignupPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dobMonth, dobYear]);
 
-  const dob = (() => {
+  // Timezone-safe: treat DOB and "today" as plain calendar dates (y/m/d ints)
+  // so age never flips around midnight regardless of UTC offset / DST.
+  const dobParts = (() => {
     const d = Number(dobDay), m = Number(dobMonth), y = Number(dobYear);
     if (!d || !m || !y) return null;
+    // Validate calendar date (e.g. reject Feb 30) using UTC math (no TZ shift).
     const dt = new Date(Date.UTC(y, m - 1, d));
     if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return null;
-    return dt;
+    return { y, m, d };
   })();
+  const dob = dobParts ? new Date(Date.UTC(dobParts.y, dobParts.m - 1, dobParts.d)) : null;
   const age = (() => {
-    if (!dob) return 0;
-    const today = new Date();
-    let a = today.getUTCFullYear() - dob.getUTCFullYear();
-    const m = today.getUTCMonth() - dob.getUTCMonth();
-    if (m < 0 || (m === 0 && today.getUTCDate() < dob.getUTCDate())) a--;
+    if (!dobParts) return 0;
+    const now = new Date();
+    const ty = now.getFullYear();
+    const tm = now.getMonth() + 1;
+    const td = now.getDate();
+    let a = ty - dobParts.y;
+    if (tm < dobParts.m || (tm === dobParts.m && td < dobParts.d)) a--;
     return a;
   })();
-  const dobValid = !!dob && age >= 18;
+  const dobValid = !!dobParts && age >= 18;
+  // Inline per-field validity (only flag once user has touched the field)
+  const dobDayInvalid = !!dobDay && !!dobMonth && !!dobYear && !dobParts;
+  const dobMonthMissing = (!!dobDay || !!dobYear) && !dobMonth;
+  const dobDayMissing = (!!dobMonth || !!dobYear) && !dobDay;
+  const dobYearMissing = (!!dobDay || !!dobMonth) && !dobYear;
   const currentYear = new Date().getFullYear();
   // Cap years so the youngest selectable year still allows turning 18 (validated precisely by `age`)
   const maxYear = currentYear - 18;
@@ -376,39 +387,44 @@ function SignupPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">You must be at least 18 to use UiPair.</p>
                 <div className="grid grid-cols-3 gap-2">
-                  <div ref={dobDayRef}>
+                  <div ref={dobDayRef} className="space-y-1">
                     <Select value={dobDay} onValueChange={setDobDay}>
-                      <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
+                      <SelectTrigger aria-invalid={dobDayMissing || dobDayInvalid}><SelectValue placeholder="Day" /></SelectTrigger>
                       <SelectContent className="max-h-72">
                         {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
                           <SelectItem key={d} value={String(d)}>{d}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {dobDayMissing && <p className="text-[11px] text-destructive">Select a day</p>}
                   </div>
-                  <div ref={dobMonthRef}>
+                  <div ref={dobMonthRef} className="space-y-1">
                     <Select value={dobMonth} onValueChange={setDobMonth}>
-                      <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
+                      <SelectTrigger aria-invalid={dobMonthMissing}><SelectValue placeholder="Month" /></SelectTrigger>
                       <SelectContent className="max-h-72">
                         {monthOptions.map((name, idx) => (
                           <SelectItem key={name} value={String(idx + 1)}>{name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {dobMonthMissing && <p className="text-[11px] text-destructive">Select a month</p>}
                   </div>
-                  <div ref={dobYearRef}>
+                  <div ref={dobYearRef} className="space-y-1">
                     <Select value={dobYear} onValueChange={setDobYear}>
-                      <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
+                      <SelectTrigger aria-invalid={dobYearMissing}><SelectValue placeholder="Year" /></SelectTrigger>
                       <SelectContent className="max-h-72">
                         {yearOptions.map((y) => (
                           <SelectItem key={y} value={String(y)}>{y}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {dobYearMissing && <p className="text-[11px] text-destructive">Select a year</p>}
                   </div>
                 </div>
-                {dobDay && dobMonth && dobYear && !dob && (
-                  <p className="text-xs text-destructive">That date doesn't look valid.</p>
+                {dobDayInvalid && (
+                  <p className="text-xs text-destructive" role="alert">
+                    That date isn't valid — please pick a real calendar date.
+                  </p>
                 )}
                 {dob && !dobValid && (
                   <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
