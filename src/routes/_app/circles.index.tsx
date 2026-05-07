@@ -209,6 +209,17 @@ function CirclesPage() {
         </Select>
       </div>
 
+      {subjectFilter === "Other" && (
+        <div className="mb-4">
+          <CustomSubjectFilter
+            storageKey="circles.index.customSubject"
+            value={customSubject}
+            onChange={setCustomSubject}
+            placeholder="Type your subject (auto-saved)…"
+          />
+        </div>
+      )}
+
       <div className="mb-6">
         <DegreeFilterBar value={degree} onChange={setDegree} />
       </div>
