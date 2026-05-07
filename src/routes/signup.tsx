@@ -343,7 +343,7 @@ function SignupPage() {
               <div ref={dobRef} className="space-y-1.5 pt-1">
                 <Label>Date of birth</Label>
                 <p className="text-xs text-muted-foreground">You must be at least 18 to use UiPair.</p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2 [&>div]:focus-within:ring-2 [&>div]:focus-within:ring-primary/40 [&>div]:rounded-md">
                   <Select value={dobDay} onValueChange={setDobDay}>
                     <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
                     <SelectContent className="max-h-72">
