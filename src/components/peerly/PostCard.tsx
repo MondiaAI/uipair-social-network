@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { POST_TYPE_META, type PostType } from "@/lib/post-types";
 import { useNavigate } from "@tanstack/react-router";
 import { FeeBadge } from "@/components/peerly/ProjectCard";
+import { ProjectFeedCard } from "@/components/peerly/ProjectFeedCard";
 
 export interface FeedPost {
   id: string;
