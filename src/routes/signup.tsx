@@ -56,6 +56,45 @@ function SignupPage() {
   const [dobMonth, setDobMonth] = useState<string>("");
   const [dobYear, setDobYear] = useState<string>("");
 
+  // Refs for jump-to-field on validation errors
+  const universityRef = useRef<HTMLDivElement>(null);
+  const countryRef = useRef<HTMLDivElement>(null);
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const confirmPwRef = useRef<HTMLDivElement>(null);
+  const dobRef = useRef<HTMLDivElement>(null);
+  const termsRef = useRef<HTMLDivElement>(null);
+  const skillsRef = useRef<HTMLDivElement>(null);
+  const interestsRef = useRef<HTMLDivElement>(null);
+
+  const focusField = (ref: React.RefObject<HTMLDivElement>) => {
+    setTimeout(() => {
+      const el = ref.current;
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      const focusable = el.querySelector<HTMLElement>(
+        'input, select, textarea, button, [tabindex]:not([tabindex="-1"])',
+      );
+      focusable?.focus();
+      el.classList.add("ring-2", "ring-destructive", "rounded-md");
+      setTimeout(() => el.classList.remove("ring-2", "ring-destructive", "rounded-md"), 2000);
+    }, 50);
+  };
+
+  const validateStep2 = (): boolean => {
+    if (!university) { setStep(2); toast.error("Please enter your university"); focusField(universityRef); return false; }
+    if (!country) { setStep(2); toast.error("Please select your country"); focusField(countryRef); return false; }
+    if (!field) { setStep(2); toast.error("Please enter your field of study"); focusField(fieldRef); return false; }
+    if (!passwordsMatch) { setStep(2); toast.error("Passwords don't match"); focusField(confirmPwRef); return false; }
+    if (!dobValid) { setStep(2); toast.error("Please enter a valid date of birth (18+)"); focusField(dobRef); return false; }
+    if (!acceptTerms) { setStep(2); toast.error("Please accept the Terms"); focusField(termsRef); return false; }
+    return true;
+  };
+
+  const validateStep3 = (): boolean => {
+    if (skills.length < 3) { setStep(3); toast.error("Pick at least 3 skills"); focusField(skillsRef); return false; }
+    return true;
+  };
+
   const passwordsMatch = password.length > 0 && password === confirmPassword;
   const passwordStrong = evaluatePassword(password).score >= 2;
 
