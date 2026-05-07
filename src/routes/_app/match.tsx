@@ -79,6 +79,7 @@ function MatchPage() {
   const [loading, setLoading] = useState(true);
 
   const [subjects, setSubjects] = useState<string[]>([]);
+  const [customSubject, setCustomSubject] = useCustomSubject("match.customSubject");
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [yearRange, setYearRange] = useState<[number, number]>([1, 6]);
   const [query, setQuery] = useState("");
