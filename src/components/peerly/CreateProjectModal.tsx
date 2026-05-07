@@ -194,6 +194,31 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
             </div>
             <Switch checked={isPublic} onCheckedChange={setIsPublic} />
           </div>
+          {isPublic && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Join fee (USD)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={joinFee}
+                  onChange={(e) => setJoinFee(Math.max(0, Number(e.target.value) || 0))}
+                  placeholder="0 = free"
+                />
+              </div>
+              <div>
+                <Label>Fee type</Label>
+                <Select value={feeInterval} onValueChange={(v) => setFeeInterval(v as "one_time" | "monthly")}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="one_time">One-time</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Invite teammates</Label>
