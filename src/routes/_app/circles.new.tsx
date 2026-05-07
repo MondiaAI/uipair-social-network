@@ -28,6 +28,7 @@ function CreateCirclePage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
+  const [customSubject, setCustomSubject] = useState("");
   const [description, setDescription] = useState("");
   const [campusOnly, setCampusOnly] = useState(false);
   const [isPremium, setIsPremium] = useState(true);
@@ -49,11 +50,16 @@ function CreateCirclePage() {
       toast.error("Please enter a name for your circle");
       return;
     }
+    if (subject === "Other" && !customSubject.trim()) {
+      toast.error("Please enter a custom subject");
+      return;
+    }
     setSubmitting(true);
     try {
       const payload = {
         name: name.trim(),
         subject,
+        custom_subject: subject === "Other" ? customSubject.trim() : null,
         description: description.trim() || null,
         leader_id: user.id,
         scope: campusOnly ? ("campus" as const) : ("global" as const),
@@ -113,6 +119,15 @@ function CreateCirclePage() {
               {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
+          {subject === "Other" && (
+            <Input
+              className="mt-2"
+              value={customSubject}
+              onChange={(e) => setCustomSubject(e.target.value)}
+              placeholder="Enter subject"
+              maxLength={50}
+            />
+          )}
         </div>
         <div>
           <Label>Description</Label>
