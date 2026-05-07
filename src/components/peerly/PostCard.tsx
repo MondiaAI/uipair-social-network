@@ -40,6 +40,7 @@ const MAX_LINES = 4;
 
 export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChange: () => void }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [myReactions, setMyReactions] = useState<Set<string>>(new Set());
   const [comments, setComments] = useState<Array<{ id: string; content: string; created_at: string; user_id: string; profiles: { username: string | null; avatar_url: string | null } | null }>>([]);
@@ -47,6 +48,17 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
   const [commentText, setCommentText] = useState("");
   const [commentCount, setCommentCount] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  const [linkedProject, setLinkedProject] = useState<{
+    id: string; name: string; is_public: boolean; join_fee_cents: number;
+    fee_interval: "one_time" | "monthly"; member_count: number; team_size_limit: number; creator_id: string;
+  } | null>(null);
+  const [isMember, setIsMember] = useState(false);
+  const [joining, setJoining] = useState(false);
+
+  const projectId = useMemo(() => {
+    const m = post.content.match(/\/lab\/([0-9a-f-]{36})/i);
+    return m?.[1] ?? null;
+  }, [post.content]);
 
   useEffect(() => {
     loadReactions();
