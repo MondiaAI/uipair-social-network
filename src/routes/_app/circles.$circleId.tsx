@@ -31,6 +31,7 @@ interface CircleDetail {
   id: string;
   name: string;
   subject: string;
+  custom_subject: string | null;
   description: string | null;
   scope: "campus" | "global";
   is_premium: boolean;
@@ -423,7 +424,7 @@ function CircleDetailPage() {
             <h1 className="text-2xl font-bold">{circle.name}</h1>
             <div className="flex flex-wrap items-center gap-2 mt-2">
               <span className={cn("text-xs px-2 py-0.5 rounded-full border", subjectChipClass(circle.subject))}>
-                {circle.subject}
+                {circle.subject === "Other" && circle.custom_subject ? circle.custom_subject : circle.subject}
               </span>
               <Badge variant="outline" className="text-[10px] uppercase">{circle.scope}</Badge>
               {circle.is_premium && (
