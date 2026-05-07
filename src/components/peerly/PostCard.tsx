@@ -65,6 +65,40 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
     loadCommentCount();
   }, [post.id]);
 
+  useEffect(() => {
+    if (!projectId) { setLinkedProject(null); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("projects")
+        .select("id, name, is_public, join_fee_cents, fee_interval, member_count, team_size_limit, creator_id")
+        .eq("id", projectId)
+        .maybeSingle();
+      if (!cancelled && data) setLinkedProject(data as typeof linkedProject);
+      if (user && data) {
+        const { data: m } = await supabase
+          .from("project_members")
+          .select("user_id")
+          .eq("project_id", projectId)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (!cancelled) setIsMember(!!m);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId, user]);
+
+  const handleJoinProject = async () => {
+    if (!user || !linkedProject) return;
+    setJoining(true);
+    const { error } = await supabase.rpc("join_public_project", { _project_id: linkedProject.id });
+    setJoining(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Joined ${linkedProject.name}!`);
+    setIsMember(true);
+    navigate({ to: "/lab/$projectId", params: { projectId: linkedProject.id } });
+  };
+
   const loadReactions = async () => {
     const { data } = await supabase
       .from("reactions")
