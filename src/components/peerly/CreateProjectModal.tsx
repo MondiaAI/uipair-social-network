@@ -97,6 +97,15 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
     } else {
       toast.success("Project created!");
     }
+    if (isPublic) {
+      const roleStr = openRoles.length ? ` Looking for: ${openRoles.join(", ")}.` : "";
+      const announcement = `🚀 New project in the Lab: ${name.trim()}${description.trim() ? `\n\n${description.trim()}` : ""}${roleStr}\n\nJoin here: /lab/${data.id}`;
+      await supabase.from("posts").insert({
+        user_id: user.id,
+        content: announcement,
+        post_type: "partner",
+      });
+    }
     setSubmitting(false);
     reset();
     onOpenChange(false);
