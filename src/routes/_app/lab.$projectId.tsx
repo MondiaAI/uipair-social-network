@@ -339,7 +339,7 @@ function ProjectDetailPage() {
           {isMember && <TabsTrigger value="activity">Activity</TabsTrigger>}
           {isMember && <TabsTrigger value="tasks">Tasks</TabsTrigger>}
           {isMember && <TabsTrigger value="files">Files</TabsTrigger>}
-          {isMember && <TabsTrigger value="discussion">Discussion</TabsTrigger>}
+          <TabsTrigger value="discussion">Discussion</TabsTrigger>
           <TabsTrigger value="members">Members</TabsTrigger>
         </TabsList>
 
