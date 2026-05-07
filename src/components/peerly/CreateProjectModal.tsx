@@ -103,7 +103,11 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
     }
     if (isPublic) {
       const roleStr = openRoles.length ? ` Looking for: ${openRoles.join(", ")}.` : "";
-      const announcement = `🚀 New project in the Lab: ${name.trim()}${description.trim() ? `\n\n${description.trim()}` : ""}${roleStr}\n\nJoin here: /lab/${data.id}`;
+      const feeStr =
+        joinFee > 0
+          ? `\n\n💰 Join fee: $${joinFee.toFixed(2)}${feeInterval === "monthly" ? "/month" : " (one-time)"}`
+          : `\n\n✅ Free to join`;
+      const announcement = `🚀 New project in the Lab: ${name.trim()}${description.trim() ? `\n\n${description.trim()}` : ""}${roleStr}${feeStr}\n\n👉 Join here: /lab/${data.id}`;
       await supabase.from("posts").insert({
         user_id: user.id,
         content: announcement,
