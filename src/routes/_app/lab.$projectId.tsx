@@ -245,6 +245,34 @@ function ProjectDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.action, user, project?.id, isMember]);
 
+  // Sync local edit state when project loads
+  useEffect(() => {
+    if (!project) return;
+    setEditCustomCategory(project.custom_category ?? "");
+    setEditCustomRoles(project.custom_roles ?? "");
+  }, [project?.id]);
+
+  // Debounced autosave for custom category / roles (creator only)
+  useEffect(() => {
+    if (!project || !isCreator) return;
+    const nextCat = project.category === "other" ? (editCustomCategory.trim() || null) : null;
+    const nextRoles = project.open_roles?.includes("other") ? (editCustomRoles.trim() || null) : null;
+    if (nextCat === (project.custom_category ?? null) && nextRoles === (project.custom_roles ?? null)) return;
+    setSavingMeta("saving");
+    const handle = setTimeout(async () => {
+      const { error } = await supabase
+        .from("projects")
+        .update({ custom_category: nextCat, custom_roles: nextRoles })
+        .eq("id", projectId);
+      if (error) { toast.error(error.message); setSavingMeta(null); return; }
+      setProject((p) => (p ? { ...p, custom_category: nextCat, custom_roles: nextRoles } : p));
+      setSavingMeta("saved");
+      setTimeout(() => setSavingMeta((s) => (s === "saved" ? null : s)), 1500);
+    }, 600);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editCustomCategory, editCustomRoles, isCreator, project?.id]);
+
   const postActivity = async () => {
     if (!user || !newActivity.trim()) return;
     const { error } = await supabase.from("project_activity").insert({
