@@ -180,8 +180,20 @@ function ProjectDetailPage() {
         : { data: [] as Array<{ id: string; full_name: string | null; username: string | null; avatar_url: string | null }> };
       const rpMap = new Map((reqProfiles ?? []).map((x) => [x.id, x]));
       setJoinRequests((jr ?? []).map((r) => ({ ...r, profile: rpMap.get(r.user_id) })));
+      setMyRequest(null);
     } else {
       setJoinRequests([]);
+      if (user) {
+        const { data: mine } = await supabase
+          .from("project_join_requests")
+          .select("id, status, created_at")
+          .eq("project_id", projectId)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setMyRequest(mine as typeof myRequest);
+      } else {
+        setMyRequest(null);
+      }
     }
 
     setLoading(false);
