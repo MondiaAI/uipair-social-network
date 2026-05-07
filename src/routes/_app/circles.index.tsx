@@ -168,7 +168,7 @@ function CirclesPage() {
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q);
     });
-  }, [circles, search, subjectFilter, degree, mode, userUniversity]);
+  }, [circles, search, subjectFilter, customSubject, degree, mode, userUniversity]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
