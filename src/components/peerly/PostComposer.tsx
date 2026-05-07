@@ -192,20 +192,27 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
                 title="Attach file"
                 aria-label="Attach file"
               >
-                <Paperclip className="h-4 w-4" />
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
               </button>
               <button
                 type="button"
-                onClick={() => setIsLive((v) => !v)}
+                onClick={() => {
+                  setIsLive((v) => {
+                    const next = !v;
+                    if (next) toast.success("Live session ON — your post will be marked LIVE");
+                    else toast("Live session OFF");
+                    return next;
+                  });
+                }}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium hover:bg-muted",
-                  isLive && "bg-destructive/10 text-destructive hover:bg-destructive/15",
+                  "flex items-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium hover:bg-muted transition-colors",
+                  isLive && "bg-destructive/10 text-destructive hover:bg-destructive/15 ring-1 ring-destructive/40",
                 )}
                 title="Toggle live session"
                 aria-pressed={isLive}
               >
                 <Radio className={cn("h-4 w-4", isLive && "animate-pulse")} />
-                {isLive ? "Live ON" : "Live"}
+                {isLive ? "Live • ON" : "Live"}
               </button>
             </div>
             <Button onClick={handleSubmit} disabled={submitting || uploading || (!content.trim() && !mediaUrl)}>
