@@ -102,6 +102,7 @@ function ProjectDetailPage() {
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [files, setFiles] = useState<FileRow[]>([]);
   const [joinRequests, setJoinRequests] = useState<Array<{ id: string; user_id: string; created_at: string; message: string | null; profile?: { full_name: string | null; username: string | null; avatar_url: string | null } }>>([]);
+  const [myRequest, setMyRequest] = useState<{ id: string; status: "pending" | "approved" | "declined"; created_at: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [newActivity, setNewActivity] = useState("");
@@ -123,6 +124,15 @@ function ProjectDetailPage() {
     setRequesting(false);
     if (error) { toast.error(error.message); return; }
     toast.success("Join request sent to the project creator");
+    load();
+  };
+
+  const withdrawRequest = async () => {
+    if (!myRequest) return;
+    const { error } = await supabase.from("project_join_requests").delete().eq("id", myRequest.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Join request withdrawn");
+    load();
   };
 
   const load = async () => {
@@ -170,8 +180,20 @@ function ProjectDetailPage() {
         : { data: [] as Array<{ id: string; full_name: string | null; username: string | null; avatar_url: string | null }> };
       const rpMap = new Map((reqProfiles ?? []).map((x) => [x.id, x]));
       setJoinRequests((jr ?? []).map((r) => ({ ...r, profile: rpMap.get(r.user_id) })));
+      setMyRequest(null);
     } else {
       setJoinRequests([]);
+      if (user) {
+        const { data: mine } = await supabase
+          .from("project_join_requests")
+          .select("id, status, created_at")
+          .eq("project_id", projectId)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setMyRequest(mine as typeof myRequest);
+      } else {
+        setMyRequest(null);
+      }
     }
 
     setLoading(false);
@@ -315,9 +337,33 @@ function ProjectDetailPage() {
               <Progress value={project.progress} />
             </div>
             {!isMember && user && (
-              <Button size="sm" onClick={requestJoin} disabled={requesting} className="w-full">
-                {requesting ? "Sending…" : "Request to Join"}
-              </Button>
+              myRequest?.status === "pending" ? (
+                <div className="w-full space-y-1.5">
+                  <Badge variant="outline" className="w-full justify-center bg-amber-100 text-amber-800 border-amber-200">
+                    Request pending
+                  </Badge>
+                  <Button size="sm" variant="outline" className="w-full" onClick={withdrawRequest}>
+                    Withdraw request
+                  </Button>
+                </div>
+              ) : myRequest?.status === "approved" ? (
+                <Badge variant="outline" className="w-full justify-center bg-emerald-100 text-emerald-800 border-emerald-200">
+                  Request approved
+                </Badge>
+              ) : myRequest?.status === "declined" ? (
+                <div className="w-full space-y-1.5">
+                  <Badge variant="outline" className="w-full justify-center bg-rose-100 text-rose-800 border-rose-200">
+                    Request declined
+                  </Badge>
+                  <Button size="sm" variant="outline" className="w-full" onClick={requestJoin} disabled={requesting}>
+                    {requesting ? "Sending…" : "Request again"}
+                  </Button>
+                </div>
+              ) : (
+                <Button size="sm" onClick={requestJoin} disabled={requesting} className="w-full">
+                  {requesting ? "Sending…" : "Request to Join"}
+                </Button>
+              )
             )}
             {isMember && !isCreator && <Badge variant="secondary">Member</Badge>}
             {isCreator && <Badge className="bg-primary">Admin · Creator</Badge>}
