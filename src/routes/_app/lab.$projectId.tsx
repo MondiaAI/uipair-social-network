@@ -529,33 +529,77 @@ function ProjectDetailPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="discussion" className="space-y-3">
-          {comments.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No comments yet.</p>
-          ) : (
-            comments.map((c) => (
-              <Card key={c.id} className="flex gap-3 p-3">
-                <Avatar className="h-8 w-8"><AvatarImage src={c.profile?.avatar_url ?? undefined} /><AvatarFallback>{(c.profile?.full_name ?? "?").slice(0, 2)}</AvatarFallback></Avatar>
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">{c.profile?.full_name || c.profile?.username}</span>
-                    {" · "}{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}
-                  </p>
-                  <p className="mt-1 whitespace-pre-wrap text-sm">{c.content}</p>
-                </div>
-              </Card>
-            ))
-          )}
-          {isMember && (
-            <Card className="p-3">
-              <Textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Join the discussion…" rows={2} />
-              <div className="mt-2 flex justify-end"><Button size="sm" onClick={postComment} disabled={!newComment.trim()}>Comment</Button></div>
-            </Card>
-          )}
-        </TabsContent>
         </>}
 
-        <TabsContent value="members">
+        <TabsContent value="discussion" className="space-y-3">
+          {!isMember ? (
+            <Card className="p-6 text-center text-sm text-muted-foreground space-y-2">
+              <p className="font-medium text-foreground">Discussion is members-only</p>
+              <p>{user ? "Request to join this project to read and post comments." : "Sign in and request to join to participate in the discussion."}</p>
+            </Card>
+          ) : (
+            <>
+              {comments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No comments yet.</p>
+              ) : (
+                comments.map((c) => (
+                  <Card key={c.id} className="flex gap-3 p-3">
+                    <Avatar className="h-8 w-8"><AvatarImage src={c.profile?.avatar_url ?? undefined} /><AvatarFallback>{(c.profile?.full_name ?? "?").slice(0, 2)}</AvatarFallback></Avatar>
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">{c.profile?.full_name || c.profile?.username}</span>
+                        {" · "}{formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}
+                      </p>
+                      <p className="mt-1 whitespace-pre-wrap text-sm">{c.content}</p>
+                    </div>
+                  </Card>
+                ))
+              )}
+              <Card className="p-3">
+                <Textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} placeholder="Join the discussion…" rows={2} />
+                <div className="mt-2 flex justify-end"><Button size="sm" onClick={postComment} disabled={!newComment.trim()}>Comment</Button></div>
+              </Card>
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="members" className="space-y-4">
+          {isCreator && (
+            <Card className="p-4 space-y-3">
+              <h2 className="text-sm font-semibold">
+                Join Requests <span className="text-muted-foreground">({joinRequests.length})</span>
+              </h2>
+              {joinRequests.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No pending requests.</p>
+              ) : (
+                <div className="space-y-2">
+                  {joinRequests.map((r) => (
+                    <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                      <Link
+                        to="/profile/$userId"
+                        params={{ userId: r.user_id }}
+                        className="flex items-center gap-3 min-w-0 hover:underline"
+                      >
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={r.profile?.avatar_url ?? undefined} />
+                          <AvatarFallback>{(r.profile?.full_name ?? r.profile?.username ?? "?").slice(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{r.profile?.full_name || r.profile?.username || "Student"}</p>
+                          <p className="text-xs text-muted-foreground">requested {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</p>
+                        </div>
+                      </Link>
+                      <div className="flex gap-2 shrink-0">
+                        <Button size="sm" variant="outline" onClick={() => declineRequest(r.id)}>Decline</Button>
+                        <Button size="sm" onClick={() => approveRequest(r.id)}>Approve</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )}
+
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {members.map((m) => (
               <Card key={m.user_id} className={cn("flex flex-col items-center gap-2 p-3 text-center", m.user_id === project.creator_id && "ring-1 ring-primary")}>
