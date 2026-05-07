@@ -1163,6 +1163,36 @@ export type Database = {
           },
         ]
       }
+      project_join_requests: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          project_id: string
+          status: Database["public"]["Enums"]["project_join_request_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          project_id: string
+          status?: Database["public"]["Enums"]["project_join_request_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          project_id?: string
+          status?: Database["public"]["Enums"]["project_join_request_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       project_members: {
         Row: {
           id: string
@@ -1528,7 +1558,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_project_join_request: {
+        Args: { _request_id: string }
+        Returns: undefined
+      }
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
+      decline_project_join_request: {
+        Args: { _request_id: string }
+        Returns: undefined
+      }
       has_active_circle_subscription: {
         Args: { _circle_id: string; _environment?: string; _user_id: string }
         Returns: boolean
@@ -1592,6 +1630,7 @@ export type Database = {
         | "startup"
         | "course"
         | "other"
+      project_join_request_status: "pending" | "approved" | "declined"
       project_role:
         | "creator"
         | "designer"
@@ -1764,6 +1803,7 @@ export const Constants = {
       post_type: ["research", "partner", "brainstorm", "question", "resource"],
       project_application_status: ["pending", "accepted", "declined"],
       project_category: ["hackathon", "research", "startup", "course", "other"],
+      project_join_request_status: ["pending", "approved", "declined"],
       project_role: [
         "creator",
         "designer",
