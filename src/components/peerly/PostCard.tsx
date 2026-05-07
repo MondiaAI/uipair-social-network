@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Lightbulb, Flame, Brain, Bookmark, Check, MessageCircle, Share2, Radio } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Lightbulb, Flame, Brain, Bookmark, Check, MessageCircle, Share2, Radio, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { POST_TYPE_META, type PostType } from "@/lib/post-types";
+import { useNavigate } from "@tanstack/react-router";
+import { FeeBadge } from "@/components/peerly/ProjectCard";
 
 export interface FeedPost {
   id: string;
