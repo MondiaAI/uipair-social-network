@@ -5,8 +5,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "@tanstack/react-router";
 import { ROLE_CHIP, ROLE_LABEL, type ProjectRole } from "@/lib/project-meta";
 import { subjectChipClass } from "@/lib/subjects";
-import { CalendarDays, Users } from "lucide-react";
+import { CalendarDays, Users, Sparkles } from "lucide-react";
 import { format, isValid } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
+import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
 export interface ProjectCardData {
   id: string;
@@ -18,6 +23,9 @@ export interface ProjectCardData {
   team_size_limit: number;
   member_count: number;
   deadline: string | null;
+  is_public?: boolean;
+  join_fee_cents?: number;
+  fee_interval?: "one_time" | "monthly";
   creator?: {
     full_name: string | null;
     username: string | null;
@@ -26,9 +34,47 @@ export interface ProjectCardData {
   } | null;
 }
 
+export function FeeBadge({ cents, interval }: { cents: number; interval?: "one_time" | "monthly" }) {
+  if (!cents || cents <= 0) {
+    return (
+      <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
+        <Sparkles className="mr-1 h-3 w-3" />
+        Free to join
+      </Badge>
+    );
+  }
+  const dollars = (cents / 100).toFixed(2);
+  return (
+    <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
+      ${dollars}
+      {interval === "monthly" ? "/month" : " one-time"}
+    </Badge>
+  );
+}
+
 export function ProjectCard({ project, onApply }: { project: ProjectCardData; onApply?: (p: ProjectCardData) => void }) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [joining, setJoining] = useState(false);
   const deadlineDate = project.deadline ? new Date(project.deadline) : null;
   const initials = (project.creator?.full_name || project.creator?.username || "?").slice(0, 2).toUpperCase();
+  const fee = project.join_fee_cents ?? 0;
+  const isFree = fee <= 0;
+  const isFull = project.member_count >= project.team_size_limit;
+  const canQuickJoin = project.is_public && isFree && !isFull && !!user;
+
+  const handleQuickJoin = async () => {
+    if (!user) return;
+    setJoining(true);
+    const { error } = await supabase.rpc("join_public_project", { _project_id: project.id });
+    setJoining(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Joined ${project.name}!`);
+    navigate({ to: "/lab/$projectId", params: { projectId: project.id } });
+  };
 
   return (
     <Card className="flex flex-col gap-3 p-4">
@@ -43,6 +89,10 @@ export function ProjectCard({ project, onApply }: { project: ProjectCardData; on
         <Badge variant="outline" className={subjectChipClass(project.subject)}>
           {project.subject}
         </Badge>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <FeeBadge cents={fee} interval={project.fee_interval} />
       </div>
 
       {project.description && (
@@ -83,11 +133,15 @@ export function ProjectCard({ project, onApply }: { project: ProjectCardData; on
         )}
       </div>
 
-      {onApply && (
-        <Button size="sm" className="w-full" onClick={() => onApply(project)}>
-          Apply to Join
+      {canQuickJoin ? (
+        <Button size="sm" className="w-full" onClick={handleQuickJoin} disabled={joining}>
+          {joining ? "Joining…" : "Join Project"}
         </Button>
-      )}
+      ) : onApply ? (
+        <Button size="sm" className="w-full" onClick={() => onApply(project)} disabled={isFull}>
+          {isFull ? "Project Full" : isFree ? "Apply to Join" : `Join · $${(fee / 100).toFixed(2)}${project.fee_interval === "monthly" ? "/mo" : ""}`}
+        </Button>
+      ) : null}
     </Card>
   );
 }

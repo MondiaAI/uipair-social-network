@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Lightbulb, Flame, Brain, Bookmark, Check, MessageCircle, Share2, Radio } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Lightbulb, Flame, Brain, Bookmark, Check, MessageCircle, Share2, Radio, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { POST_TYPE_META, type PostType } from "@/lib/post-types";
+import { useNavigate } from "@tanstack/react-router";
+import { FeeBadge } from "@/components/peerly/ProjectCard";
 
 export interface FeedPost {
   id: string;
@@ -38,6 +40,7 @@ const MAX_LINES = 4;
 
 export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChange: () => void }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [myReactions, setMyReactions] = useState<Set<string>>(new Set());
   const [comments, setComments] = useState<Array<{ id: string; content: string; created_at: string; user_id: string; profiles: { username: string | null; avatar_url: string | null } | null }>>([]);
@@ -45,11 +48,56 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
   const [commentText, setCommentText] = useState("");
   const [commentCount, setCommentCount] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  const [linkedProject, setLinkedProject] = useState<{
+    id: string; name: string; is_public: boolean; join_fee_cents: number;
+    fee_interval: "one_time" | "monthly"; member_count: number; team_size_limit: number; creator_id: string;
+  } | null>(null);
+  const [isMember, setIsMember] = useState(false);
+  const [joining, setJoining] = useState(false);
+
+  const projectId = useMemo(() => {
+    const m = post.content.match(/\/lab\/([0-9a-f-]{36})/i);
+    return m?.[1] ?? null;
+  }, [post.content]);
 
   useEffect(() => {
     loadReactions();
     loadCommentCount();
   }, [post.id]);
+
+  useEffect(() => {
+    if (!projectId) { setLinkedProject(null); return; }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("projects")
+        .select("id, name, is_public, join_fee_cents, fee_interval, member_count, team_size_limit, creator_id")
+        .eq("id", projectId)
+        .maybeSingle();
+      if (!cancelled && data) setLinkedProject(data as typeof linkedProject);
+      if (user && data) {
+        const { data: m } = await supabase
+          .from("project_members")
+          .select("user_id")
+          .eq("project_id", projectId)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (!cancelled) setIsMember(!!m);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectId, user]);
+
+  const handleJoinProject = async () => {
+    if (!user || !linkedProject) return;
+    setJoining(true);
+    const { error } = await supabase.rpc("join_public_project", { _project_id: linkedProject.id });
+    setJoining(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Joined ${linkedProject.name}!`);
+    setIsMember(true);
+    navigate({ to: "/lab/$projectId", params: { projectId: linkedProject.id } });
+  };
 
   const loadReactions = async () => {
     const { data } = await supabase
@@ -187,6 +235,37 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
           </button>
         )}
       </div>
+
+      {linkedProject && linkedProject.is_public && (
+        <div className="rounded-xl border bg-muted/40 p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Rocket className="h-4 w-4 text-primary shrink-0" />
+              <span className="text-sm font-semibold truncate">{linkedProject.name}</span>
+            </div>
+            <FeeBadge cents={linkedProject.join_fee_cents} interval={linkedProject.fee_interval} />
+          </div>
+          <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+            <span>{linkedProject.member_count}/{linkedProject.team_size_limit} members</span>
+            {isMember ? (
+              <Button size="sm" variant="secondary" onClick={() => navigate({ to: "/lab/$projectId", params: { projectId: linkedProject.id } })}>
+                Open Project
+              </Button>
+            ) : linkedProject.member_count >= linkedProject.team_size_limit ? (
+              <Button size="sm" disabled>Project Full</Button>
+            ) : linkedProject.join_fee_cents > 0 ? (
+              <Button size="sm" onClick={() => navigate({ to: "/lab/$projectId", params: { projectId: linkedProject.id } })}>
+                Join · ${(linkedProject.join_fee_cents / 100).toFixed(2)}
+                {linkedProject.fee_interval === "monthly" ? "/mo" : ""}
+              </Button>
+            ) : (
+              <Button size="sm" onClick={handleJoinProject} disabled={joining || !user}>
+                {joining ? "Joining…" : "Join Project"}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       <footer className="flex items-center gap-1 pt-2 border-t flex-wrap">
         {REACTIONS.map((r) => {
