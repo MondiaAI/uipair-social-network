@@ -80,8 +80,8 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
         team_size_limit: teamSize,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         is_public: isPublic,
-        join_fee_cents: Math.max(0, Math.round(joinFee * 100)),
-        fee_interval: feeInterval,
+        join_fee_cents: isPublic ? Math.max(0, Math.round(joinFee * 100)) : 0,
+        fee_interval: isPublic ? feeInterval : "one_time",
       })
       .select("id")
       .single();
