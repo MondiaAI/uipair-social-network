@@ -141,7 +141,7 @@ export function CircleCard({
           <DialogHeader>
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <span className={cn("text-xs px-2 py-0.5 rounded-full border", subjectChipClass(circle.subject))}>
-                {circle.subject}
+                {subjectLabel(circle.subject, circle.custom_subject)}
               </span>
               <Badge variant="outline" className="text-[10px] uppercase">{circle.scope}</Badge>
               {circle.is_premium ? (

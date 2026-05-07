@@ -3,8 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "@tanstack/react-router";
-import { ROLE_CHIP, ROLE_LABEL, type ProjectRole } from "@/lib/project-meta";
-import { subjectChipClass } from "@/lib/subjects";
+import { ROLE_CHIP, ROLE_LABEL, projectCategoryLabel, type ProjectCategory, type ProjectRole } from "@/lib/project-meta";
+import { subjectChipClass, subjectLabel } from "@/lib/subjects";
 import { CalendarDays, Users, Sparkles } from "lucide-react";
 import { format, isValid } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,7 +18,9 @@ export interface ProjectCardData {
   name: string;
   description: string | null;
   subject: string;
-  category: string;
+  custom_subject?: string | null;
+  category: ProjectCategory | string;
+  custom_category?: string | null;
   open_roles: ProjectRole[];
   team_size_limit: number;
   member_count: number;
@@ -87,11 +89,14 @@ export function ProjectCard({ project, onApply }: { project: ProjectCardData; on
           {project.name}
         </Link>
         <Badge variant="outline" className={subjectChipClass(project.subject)}>
-          {project.subject}
+          {subjectLabel(project.subject, project.custom_subject)}
         </Badge>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="outline" className="text-[10px]">
+          {projectCategoryLabel(project.category as ProjectCategory, project.custom_category)}
+        </Badge>
         <FeeBadge cents={fee} interval={project.fee_interval} />
       </div>
 
