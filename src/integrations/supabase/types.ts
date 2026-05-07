@@ -926,6 +926,7 @@ export type Database = {
           country: string | null
           cover_url: string | null
           created_at: string
+          date_of_birth: string | null
           field_of_study: string | null
           full_name: string | null
           goals: string | null
@@ -953,6 +954,7 @@ export type Database = {
           country?: string | null
           cover_url?: string | null
           created_at?: string
+          date_of_birth?: string | null
           field_of_study?: string | null
           full_name?: string | null
           goals?: string | null
@@ -980,6 +982,7 @@ export type Database = {
           country?: string | null
           cover_url?: string | null
           created_at?: string
+          date_of_birth?: string | null
           field_of_study?: string | null
           full_name?: string | null
           goals?: string | null
