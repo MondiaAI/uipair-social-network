@@ -62,6 +62,9 @@ function SignupPage() {
   const fieldRef = useRef<HTMLDivElement>(null);
   const confirmPwRef = useRef<HTMLDivElement>(null);
   const dobRef = useRef<HTMLDivElement>(null);
+  const dobDayRef = useRef<HTMLDivElement>(null);
+  const dobMonthRef = useRef<HTMLDivElement>(null);
+  const dobYearRef = useRef<HTMLDivElement>(null);
   const termsRef = useRef<HTMLDivElement>(null);
   const skillsRef = useRef<HTMLDivElement>(null);
   const interestsRef = useRef<HTMLDivElement>(null);
