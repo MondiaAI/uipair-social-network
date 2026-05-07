@@ -52,9 +52,28 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [dobDay, setDobDay] = useState<string>("");
+  const [dobMonth, setDobMonth] = useState<string>("");
+  const [dobYear, setDobYear] = useState<string>("");
 
   const passwordsMatch = password.length > 0 && password === confirmPassword;
   const passwordStrong = evaluatePassword(password).score >= 2;
+
+  const dob = (() => {
+    const d = Number(dobDay), m = Number(dobMonth), y = Number(dobYear);
+    if (!d || !m || !y) return null;
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return null;
+    return dt;
+  })();
+  const age = dob ? Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 3600 * 1000)) : 0;
+  const dobValid = !!dob && age >= 18;
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 100 }, (_, i) => currentYear - 18 - i);
+  const monthOptions = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
 
 
   // If logged in already (e.g. after Google), jump to step 2 to finish profile
@@ -105,6 +124,7 @@ function SignupPage() {
   const finish = async () => {
     if (!user) return;
     if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
+    if (!dobValid) return toast.error("You must be at least 18 years old to use UiPair");
     setLoading(true);
     let avatar_url: string | null = null;
     if (avatarFile) avatar_url = await uploadToBucket("avatars", user.id, avatarFile);
@@ -112,6 +132,7 @@ function SignupPage() {
       university, country, field_of_study: field, year_of_study: year, bio,
       skills, interests, onboarding_completed: true,
       terms_accepted_at: new Date().toISOString(),
+      date_of_birth: dob!.toISOString().slice(0, 10),
     };
     if (avatar_url) update.avatar_url = avatar_url;
     if (fullName) update.full_name = fullName;
@@ -244,6 +265,45 @@ function SignupPage() {
                   </p>
                 )}
               </div>
+              <div className="space-y-1.5 pt-1">
+                <Label>Date of birth</Label>
+                <p className="text-xs text-muted-foreground">You must be at least 18 to use UiPair.</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Select value={dobDay} onValueChange={setDobDay}>
+                    <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                        <SelectItem key={d} value={String(d)}>{d}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={dobMonth} onValueChange={setDobMonth}>
+                    <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {monthOptions.map((name, idx) => (
+                        <SelectItem key={name} value={String(idx + 1)}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={dobYear} onValueChange={setDobYear}>
+                    <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {yearOptions.map((y) => (
+                        <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {dobDay && dobMonth && dobYear && !dob && (
+                  <p className="text-xs text-destructive">That date doesn't look valid.</p>
+                )}
+                {dob && !dobValid && (
+                  <p className="text-xs text-destructive">You must be at least 18 years old to join.</p>
+                )}
+                {dobValid && (
+                  <p className="text-xs text-emerald-600">You're {age} years old ✓</p>
+                )}
+              </div>
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
                 <input
                   type="checkbox"
@@ -258,7 +318,7 @@ function SignupPage() {
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
                 </span>
               </label>
-              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms || !passwordsMatch} className="w-full">Continue</Button>
+              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms || !passwordsMatch || !dobValid} className="w-full">Continue</Button>
             </div>
           </>
         )}
