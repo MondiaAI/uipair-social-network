@@ -65,6 +65,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
 
   const reset = () => {
     setName(""); setDescription(""); setCategory("other"); setOpenRoles([]);
+    setCustomSubject(""); setCustomCategory(""); setCustomRole("");
     setTeamSize(5); setDeadline(""); setIsPublic(true); setJoinFee(0); setFeeInterval("one_time"); setInvitees([]); setPeopleQuery("");
   };
 
