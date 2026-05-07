@@ -35,6 +35,7 @@ function CirclesPage() {
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [degree, setDegree] = useState<DegreeKey>("all");
+  const [customSubject, setCustomSubject] = useCustomSubject("circles.index.customSubject");
   const [inviteInput, setInviteInput] = useState("");
 
   const handleJoinByInvite = () => {
