@@ -163,9 +163,39 @@
     border-color: var(--color-border);
   }
 
+  /* Fluid base font size: 14px on small phones, 15px on tablet, 16px on desktop.
+     This scales every rem-based size (text, spacing, components) uniformly so
+     the whole UI stays comfortable on mobile and tablet without per-component
+     overrides. */
+  html {
+    font-size: clamp(14px, 0.85rem + 0.35vw, 16px);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    /* Prevent horizontal scroll from the rare overflowing element on phones. */
+    overflow-x: hidden;
+  }
+
+  /* Make tap targets meet the 44px iOS guideline on touch devices. */
+  @media (hover: none) and (pointer: coarse) {
+    button,
+    [role="button"],
+    a {
+      touch-action: manipulation;
+    }
+  }
+
+  /* Stop iOS Safari from auto-zooming when focusing inputs (<16px triggers it). */
+  @media (max-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
 
   /* Inline links: brand-purple hover/active */
