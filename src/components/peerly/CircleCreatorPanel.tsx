@@ -57,6 +57,7 @@ export function CircleCreatorPanel({
 }) {
   const [name, setName] = useState(circle.name);
   const [subject, setSubject] = useState(circle.subject);
+  const [customSubject, setCustomSubject] = useState("");
   const [description, setDescription] = useState(circle.description ?? "");
   const [scope, setScope] = useState<"campus" | "global">(circle.scope);
   const [isPremium, setIsPremium] = useState(circle.is_premium);
@@ -86,12 +87,17 @@ export function CircleCreatorPanel({
   }, [circle.id]);
 
   const save = async () => {
+    if (subject === "Other" && !customSubject.trim()) {
+      toast.error("Please enter a custom subject");
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("circles")
       .update({
         name: name.trim(),
         subject,
+        custom_subject: subject === "Other" ? customSubject.trim() : null,
         description: description.trim() || null,
         scope,
         is_premium: isPremium,
@@ -153,6 +159,15 @@ export function CircleCreatorPanel({
                   {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
+              {subject === "Other" && (
+                <Input
+                  className="mt-2"
+                  value={customSubject}
+                  onChange={(e) => setCustomSubject(e.target.value)}
+                  placeholder="Enter subject"
+                  maxLength={50}
+                />
+              )}
             </div>
             <div>
               <Label>Scope</Label>

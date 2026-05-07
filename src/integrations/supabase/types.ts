@@ -60,6 +60,7 @@ export type Database = {
         Row: {
           claimer_id: string | null
           created_at: string
+          custom_subject: string | null
           deadline: string | null
           description: string | null
           id: string
@@ -73,6 +74,7 @@ export type Database = {
         Insert: {
           claimer_id?: string | null
           created_at?: string
+          custom_subject?: string | null
           deadline?: string | null
           description?: string | null
           id?: string
@@ -86,6 +88,7 @@ export type Database = {
         Update: {
           claimer_id?: string | null
           created_at?: string
+          custom_subject?: string | null
           deadline?: string | null
           description?: string | null
           id?: string
@@ -397,6 +400,7 @@ export type Database = {
         Row: {
           cover_color: string | null
           created_at: string
+          custom_subject: string | null
           description: string | null
           id: string
           is_premium: boolean
@@ -414,6 +418,7 @@ export type Database = {
         Insert: {
           cover_color?: string | null
           created_at?: string
+          custom_subject?: string | null
           description?: string | null
           id?: string
           is_premium?: boolean
@@ -431,6 +436,7 @@ export type Database = {
         Update: {
           cover_color?: string | null
           created_at?: string
+          custom_subject?: string | null
           description?: string | null
           id?: string
           is_premium?: boolean
@@ -691,6 +697,7 @@ export type Database = {
         Row: {
           category: Database["public"]["Enums"]["gig_category"]
           created_at: string
+          custom_category: string | null
           delivery_days: number
           description: string | null
           id: string
@@ -708,6 +715,7 @@ export type Database = {
         Insert: {
           category?: Database["public"]["Enums"]["gig_category"]
           created_at?: string
+          custom_category?: string | null
           delivery_days?: number
           description?: string | null
           id?: string
@@ -725,6 +733,7 @@ export type Database = {
         Update: {
           category?: Database["public"]["Enums"]["gig_category"]
           created_at?: string
+          custom_category?: string | null
           delivery_days?: number
           description?: string | null
           id?: string
@@ -1624,6 +1633,13 @@ export type Database = {
         | "proofreading"
         | "other"
         | "writing"
+        | "video_editing"
+        | "data_analysis"
+        | "presentations"
+        | "language_practice"
+        | "music"
+        | "photography"
+        | "marketing"
       gig_order_status:
         | "pending"
         | "in_progress"
@@ -1639,6 +1655,11 @@ export type Database = {
         | "startup"
         | "course"
         | "other"
+        | "open_source"
+        | "thesis"
+        | "competition"
+        | "club"
+        | "nonprofit"
       project_join_request_status: "pending" | "approved" | "declined"
       project_role:
         | "creator"
@@ -1800,6 +1821,13 @@ export const Constants = {
         "proofreading",
         "other",
         "writing",
+        "video_editing",
+        "data_analysis",
+        "presentations",
+        "language_practice",
+        "music",
+        "photography",
+        "marketing",
       ],
       gig_order_status: [
         "pending",
@@ -1811,7 +1839,18 @@ export const Constants = {
       ],
       post_type: ["research", "partner", "brainstorm", "question", "resource"],
       project_application_status: ["pending", "accepted", "declined"],
-      project_category: ["hackathon", "research", "startup", "course", "other"],
+      project_category: [
+        "hackathon",
+        "research",
+        "startup",
+        "course",
+        "other",
+        "open_source",
+        "thesis",
+        "competition",
+        "club",
+        "nonprofit",
+      ],
       project_join_request_status: ["pending", "approved", "declined"],
       project_role: [
         "creator",

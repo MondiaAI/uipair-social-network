@@ -15,23 +15,28 @@ export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boole
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
+  const [customSubject, setCustomSubject] = useState("");
   const [reward, setReward] = useState(8);
   const [submitting, setSubmitting] = useState(false);
 
   const submit = async () => {
     if (!user || !title.trim()) return;
+    if (subject === "Other" && !customSubject.trim()) {
+      return toast.error("Please enter a custom subject");
+    }
     setSubmitting(true);
     const { error } = await supabase.from("bounties").insert({
       poster_id: user.id,
       title: title.trim(),
       description: description.trim() || null,
       subject,
+      custom_subject: subject === "Other" ? customSubject.trim() : null,
       reward_cents: Math.round(reward * 100),
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Bounty posted!");
-    setTitle(""); setDescription(""); setReward(8);
+    setTitle(""); setDescription(""); setReward(8); setCustomSubject("");
     onOpenChange(false);
     onCreated?.();
   };
@@ -56,6 +61,15 @@ export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boole
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
+              {subject === "Other" && (
+                <Input
+                  className="mt-2"
+                  value={customSubject}
+                  onChange={(e) => setCustomSubject(e.target.value)}
+                  placeholder="Enter subject"
+                  maxLength={50}
+                />
+              )}
             </div>
             <div>
               <Label>Reward ($)</Label>

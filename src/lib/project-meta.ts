@@ -1,4 +1,15 @@
-export const PROJECT_CATEGORIES = ["hackathon", "research", "startup", "course", "other"] as const;
+export const PROJECT_CATEGORIES = [
+  "hackathon",
+  "research",
+  "startup",
+  "course",
+  "open_source",
+  "thesis",
+  "competition",
+  "club",
+  "nonprofit",
+  "other",
+] as const;
 export type ProjectCategory = (typeof PROJECT_CATEGORIES)[number];
 
 export const PROJECT_ROLES = ["designer", "coder", "researcher", "writer", "other"] as const;
@@ -9,6 +20,11 @@ export const CATEGORY_LABEL: Record<ProjectCategory, string> = {
   research: "Pair-research",
   startup: "Startup",
   course: "Course Projects",
+  open_source: "Open source",
+  thesis: "Thesis",
+  competition: "Competition",
+  club: "Student club",
+  nonprofit: "Nonprofit",
   other: "Other",
 };
 
@@ -34,4 +50,9 @@ export const CATEGORY_FILTERS: { value: ProjectCategory | "all"; label: string }
   { value: "research", label: "Pair-research" },
   { value: "startup", label: "Startup" },
   { value: "course", label: "Course Projects" },
+  { value: "open_source", label: "Open source" },
+  { value: "thesis", label: "Thesis" },
+  { value: "competition", label: "Competition" },
+  { value: "club", label: "Student club" },
+  { value: "nonprofit", label: "Nonprofit" },
 ];

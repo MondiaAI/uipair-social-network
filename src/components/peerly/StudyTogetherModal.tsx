@@ -21,6 +21,7 @@ interface Props {
 export function StudyTogetherModal({ open, onOpenChange, partnerId, partnerName, defaultSubject }: Props) {
   const { user } = useAuth();
   const [subject, setSubject] = useState(defaultSubject ?? SUBJECTS[0]);
+  const [customSubject, setCustomSubject] = useState("");
   const [proposedAt, setProposedAt] = useState(() => {
     const d = new Date(Date.now() + 60 * 60 * 1000);
     d.setMinutes(0, 0, 0);
@@ -32,11 +33,16 @@ export function StudyTogetherModal({ open, onOpenChange, partnerId, partnerName,
 
   const submit = async () => {
     if (!user) return;
+    if (subject === "Other" && !customSubject.trim()) {
+      toast.error("Please enter a custom subject");
+      return;
+    }
     setLoading(true);
+    const finalSubject = subject === "Other" ? customSubject.trim() : subject;
     const { error } = await supabase.from("study_requests").insert({
       sender_id: user.id,
       recipient_id: partnerId,
-      subject,
+      subject: finalSubject,
       message: message || null,
       proposed_at: new Date(proposedAt).toISOString(),
       duration_minutes: duration,
@@ -65,6 +71,15 @@ export function StudyTogetherModal({ open, onOpenChange, partnerId, partnerName,
                 {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
+            {subject === "Other" && (
+              <Input
+                className="mt-2"
+                value={customSubject}
+                onChange={(e) => setCustomSubject(e.target.value)}
+                placeholder="Enter subject"
+                maxLength={50}
+              />
+            )}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
