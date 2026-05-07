@@ -77,7 +77,7 @@ export function ProjectFeedCard({
           <ExternalLink className="h-3.5 w-3.5" />
           View
         </Button>
-        {project.is_public && (
+        {project.is_public ? (
           isMember ? (
             <Button size="sm" className="flex-1" variant="secondary" onClick={view}>
               Open
@@ -94,6 +94,15 @@ export function ProjectFeedCard({
               {project.fee_interval === "monthly" ? "/mo" : ""}
             </Button>
           )
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="flex-1">
+                <Button size="sm" className="w-full" disabled>Join</Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>This is a private project — you need an invite to join.</TooltipContent>
+          </Tooltip>
         )}
       </div>
     </div>
