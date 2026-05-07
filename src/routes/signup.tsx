@@ -499,6 +499,9 @@ function SignupPage() {
                 {loading ? "Finishing…" : "Finish & enter UiPair"}
               </Button>
             </div>
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              By joining, you confirm you're at least 18 years old.
+            </p>
           </>
         )}
       </div>
