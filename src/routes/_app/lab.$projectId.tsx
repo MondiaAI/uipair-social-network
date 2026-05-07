@@ -101,6 +101,7 @@ function ProjectDetailPage() {
   const [activity, setActivity] = useState<ActivityRow[]>([]);
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [files, setFiles] = useState<FileRow[]>([]);
+  const [joinRequests, setJoinRequests] = useState<Array<{ id: string; user_id: string; created_at: string; message: string | null; profile?: { full_name: string | null; username: string | null; avatar_url: string | null } }>>([]);
   const [loading, setLoading] = useState(true);
 
   const [newActivity, setNewActivity] = useState("");
@@ -154,7 +155,40 @@ function ProjectDetailPage() {
     setActivity((a ?? []).map((x) => ({ ...x, profile: pMap.get(x.user_id) })) as ActivityRow[]);
     setComments((c ?? []).map((x) => ({ ...x, profile: pMap.get(x.user_id) })) as CommentRow[]);
     setFiles((f ?? []) as FileRow[]);
+
+    // Load pending join requests if current user is the creator
+    if (user && (p as ProjectDetail).creator_id === user.id) {
+      const { data: jr } = await supabase
+        .from("project_join_requests")
+        .select("id, user_id, created_at, message")
+        .eq("project_id", projectId)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      const reqIds = (jr ?? []).map((r) => r.user_id);
+      const { data: reqProfiles } = reqIds.length
+        ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", reqIds)
+        : { data: [] as Array<{ id: string; full_name: string | null; username: string | null; avatar_url: string | null }> };
+      const rpMap = new Map((reqProfiles ?? []).map((x) => [x.id, x]));
+      setJoinRequests((jr ?? []).map((r) => ({ ...r, profile: rpMap.get(r.user_id) })));
+    } else {
+      setJoinRequests([]);
+    }
+
     setLoading(false);
+  };
+
+  const approveRequest = async (id: string) => {
+    const { error } = await supabase.rpc("approve_project_join_request", { _request_id: id });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Request approved");
+    load();
+  };
+
+  const declineRequest = async (id: string) => {
+    const { error } = await supabase.rpc("decline_project_join_request", { _request_id: id });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Request declined");
+    load();
   };
 
   useEffect(() => {
@@ -290,6 +324,34 @@ function ProjectDetailPage() {
           </div>
         </div>
       </Card>
+
+      {isCreator && joinRequests.length > 0 && (
+        <Card className="p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Join Requests <span className="text-muted-foreground">({joinRequests.length})</span></h2>
+          </div>
+          <div className="space-y-2">
+            {joinRequests.map((r) => (
+              <div key={r.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage src={r.profile?.avatar_url ?? undefined} />
+                    <AvatarFallback>{(r.profile?.full_name ?? r.profile?.username ?? "?").slice(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">{r.profile?.full_name || r.profile?.username || "Student"}</p>
+                    <p className="text-xs text-muted-foreground">requested {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button size="sm" variant="outline" onClick={() => declineRequest(r.id)}>Decline</Button>
+                  <Button size="sm" onClick={() => approveRequest(r.id)}>Approve</Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {!isMember && (
         <Card className="p-4 text-sm text-muted-foreground bg-muted/30">
