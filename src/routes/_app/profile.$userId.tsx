@@ -7,11 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon } from "lucide-react";
+import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon, Pencil } from "lucide-react";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   deriveStatus,
   sendFriendRequest,
@@ -43,6 +46,7 @@ function ProfilePage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [stats, setStats] = useState({ posts: 0, circles: 0, gigs: 0 });
   const [following, setFollowing] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const load = async () => {
     const { data: p } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
@@ -126,7 +130,14 @@ function ProfilePage() {
                 <FriendActions otherId={userId} otherName={name} />
               </>
             )}
-            {isMe && <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>}
+            {isMe && (
+              <>
+                <Button size="sm" onClick={() => setEditOpen(true)}>
+                  <Pencil className="h-4 w-4" /> Edit profile
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -228,7 +239,118 @@ function ProfilePage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {isMe && (
+        <EditProfileDialog
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          profile={profile}
+          onSaved={async () => { await refreshProfile(); load(); }}
+        />
+      )}
     </div>
+  );
+}
+
+function EditProfileDialog({
+  open, onOpenChange, profile, onSaved,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  profile: any;
+  onSaved: () => void | Promise<void>;
+}) {
+  const { user } = useAuth();
+  const [fullName, setFullName] = useState(profile?.full_name ?? "");
+  const [username, setUsername] = useState(profile?.username ?? "");
+  const [bio, setBio] = useState(profile?.bio ?? "");
+  const [field, setField] = useState(profile?.field_of_study ?? "");
+  const [year, setYear] = useState<string>(profile?.year_of_study?.toString() ?? "");
+  const [skills, setSkills] = useState<string>((profile?.skills ?? []).join(", "));
+  const [interests, setInterests] = useState<string>((profile?.interests ?? []).join(", "));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setFullName(profile?.full_name ?? "");
+    setUsername(profile?.username ?? "");
+    setBio(profile?.bio ?? "");
+    setField(profile?.field_of_study ?? "");
+    setYear(profile?.year_of_study?.toString() ?? "");
+    setSkills((profile?.skills ?? []).join(", "));
+    setInterests((profile?.interests ?? []).join(", "));
+  }, [open, profile]);
+
+  const save = async () => {
+    if (!user) return;
+    setSaving(true);
+    const yearNum = year ? parseInt(year, 10) : null;
+    const update: any = {
+      full_name: fullName.trim() || null,
+      username: username.trim() || null,
+      bio: bio.trim() || null,
+      field_of_study: field.trim() || null,
+      year_of_study: Number.isFinite(yearNum as number) ? yearNum : null,
+      skills: skills.split(",").map((s) => s.trim()).filter(Boolean),
+      interests: interests.split(",").map((s) => s.trim()).filter(Boolean),
+    };
+    const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    toast.success("Profile updated");
+    onOpenChange(false);
+    await onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Edit profile</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="ep-name">Full name</Label>
+            <Input id="ep-name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ep-username">Username</Label>
+            <Input id="ep-username" value={username} onChange={(e) => setUsername(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ep-bio">Bio</Label>
+            <Textarea id="ep-bio" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="ep-field">Field of study</Label>
+              <Input id="ep-field" value={field} onChange={(e) => setField(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="ep-year">Year</Label>
+              <Input id="ep-year" type="number" min={1} max={10} value={year} onChange={(e) => setYear(e.target.value)} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ep-skills">Skills (comma-separated)</Label>
+            <Input id="ep-skills" value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="React, Figma, Python" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ep-interests">Interests (comma-separated)</Label>
+            <Input id="ep-interests" value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="AI, Startups, Music" />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            University & country can be updated in <span className="underline">Settings</span>.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={saving}>Cancel</Button>
+          <Button onClick={save} disabled={saving}>
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />} Save changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
