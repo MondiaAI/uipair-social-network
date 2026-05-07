@@ -239,10 +239,11 @@ function SignupPage() {
             <div className="space-y-3">
               <div>
                 <Label>University</Label>
-                <Select value={university} onValueChange={setUniversity}>
-                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                  <SelectContent>{UNIVERSITIES.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
-                </Select>
+                <UniversityField
+                  userId={user?.id}
+                  value={university}
+                  onChange={setUniversity}
+                />
               </div>
               <div>
                 <Label>Country</Label>
