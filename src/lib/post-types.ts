@@ -5,7 +5,7 @@ export const POST_TYPE_META: Record<
   { label: string; emoji: string; bar: string; chipBg: string; chipText: string; ring: string }
 > = {
   research: {
-    label: "Research",
+    label: "Pair research",
     emoji: "🔬",
     bar: "border-t-[var(--post-research)]",
     chipBg: "bg-[var(--post-research-soft)]",
