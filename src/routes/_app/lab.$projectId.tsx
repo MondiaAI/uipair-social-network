@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, CalendarDays, Plus, Trash2, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Eye, Plus, Trash2, Users } from "lucide-react";
 import { format, formatDistanceToNow, isValid } from "date-fns";
 import { toast } from "sonner";
 import { ROLE_CHIP, ROLE_LABEL, type ProjectRole } from "@/lib/project-meta";
