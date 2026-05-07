@@ -12,13 +12,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { subjectChipClass } from "@/lib/subjects";
+import { subjectChipClass, subjectLabel } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 
 export interface CircleCardData {
   id: string;
   name: string;
   subject: string;
+  custom_subject?: string | null;
   description: string | null;
   scope: "campus" | "global";
   is_premium: boolean;
@@ -59,7 +60,7 @@ export function CircleCard({
 
       <div className="flex flex-wrap items-center gap-2">
         <span className={cn("text-xs px-2 py-0.5 rounded-full border", subjectChipClass(circle.subject))}>
-          {circle.subject}
+          {subjectLabel(circle.subject, circle.custom_subject)}
         </span>
         <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
           {circle.scope}

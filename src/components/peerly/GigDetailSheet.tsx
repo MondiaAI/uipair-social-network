@@ -36,7 +36,7 @@ export function GigDetailSheet({ gigId, open, onOpenChange }: { gigId: string | 
     (async () => {
       const { data } = await supabase
         .from("gigs")
-        .select("id,title,category,description,included_items,price_cents,delivery_days,rating_avg,review_count,order_count,seller_id,seller:profiles!gigs_seller_id_fkey(username,full_name,avatar_url,university)")
+        .select("id,title,category,custom_category,description,included_items,price_cents,delivery_days,rating_avg,review_count,order_count,seller_id,seller:profiles!gigs_seller_id_fkey(username,full_name,avatar_url,university)")
         .eq("id", gigId)
         .maybeSingle();
       // fallback if FK alias not present

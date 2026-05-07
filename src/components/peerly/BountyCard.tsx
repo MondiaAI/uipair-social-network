@@ -3,13 +3,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPrice, timeAgo } from "@/lib/gig-meta";
-import { subjectChipClass } from "@/lib/subjects";
+import { subjectChipClass, subjectLabel } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 
 export type BountyCardData = {
   id: string;
   title: string;
   subject: string;
+  custom_subject?: string | null;
   reward_cents: number;
   status: string;
   created_at: string;
@@ -18,10 +19,11 @@ export type BountyCardData = {
 
 export function BountyCard({ bounty, onClaim }: { bounty: BountyCardData; onClaim: (id: string) => void }) {
   const name = bounty.poster?.full_name ?? bounty.poster?.username ?? "User";
+  const subj = subjectLabel(bounty.subject, bounty.custom_subject);
   return (
     <Card className="flex w-72 shrink-0 flex-col gap-2 p-3">
       <div className="flex items-center justify-between">
-        <Badge variant="outline" className={cn(subjectChipClass(bounty.subject))}>{bounty.subject}</Badge>
+        <Badge variant="outline" className={cn(subjectChipClass(bounty.subject))}>{subj}</Badge>
         <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border border-emerald-200">{formatPrice(bounty.reward_cents)}</Badge>
       </div>
       <h4 className="line-clamp-2 text-sm font-semibold">{bounty.title}</h4>
