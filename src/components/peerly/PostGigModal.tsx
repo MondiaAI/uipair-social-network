@@ -15,6 +15,7 @@ export function PostGigModal({ open, onOpenChange, onCreated }: { open: boolean;
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState<GigCategory>("tutoring");
+  const [customCategory, setCustomCategory] = useState("");
   const [description, setDescription] = useState("");
   const [includedRaw, setIncludedRaw] = useState("");
   const [price, setPrice] = useState(20);
@@ -26,10 +27,15 @@ export function PostGigModal({ open, onOpenChange, onCreated }: { open: boolean;
     if (!user || !title.trim()) return;
     setSubmitting(true);
     const items = includedRaw.split("\n").map((s) => s.trim()).filter(Boolean);
+    if (category === "other" && !customCategory.trim()) {
+      setSubmitting(false);
+      return toast.error("Please enter a custom category");
+    }
     const { error } = await supabase.from("gigs").insert({
       seller_id: user.id,
       title: title.trim(),
       category,
+      custom_category: category === "other" ? customCategory.trim() : null,
       description: description.trim() || null,
       included_items: items,
       price_cents: Math.round(price * 100),
@@ -39,7 +45,7 @@ export function PostGigModal({ open, onOpenChange, onCreated }: { open: boolean;
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Gig posted!");
-    setTitle(""); setDescription(""); setIncludedRaw(""); setPrice(20); setDays(3); setRequiresFile(false);
+    setTitle(""); setDescription(""); setIncludedRaw(""); setPrice(20); setDays(3); setRequiresFile(false); setCustomCategory("");
     onOpenChange(false);
     onCreated?.();
   };
@@ -59,6 +65,15 @@ export function PostGigModal({ open, onOpenChange, onCreated }: { open: boolean;
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{GIG_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{CATEGORY_LABEL[c]}</SelectItem>)}</SelectContent>
             </Select>
+            {category === "other" && (
+              <Input
+                className="mt-2"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder="Enter your category"
+                maxLength={50}
+              />
+            )}
           </div>
           <div>
             <Label>Description</Label>
