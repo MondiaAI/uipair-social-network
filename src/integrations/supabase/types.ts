@@ -1319,6 +1319,8 @@ export type Database = {
           cover_color: string | null
           created_at: string
           creator_id: string
+          custom_category: string | null
+          custom_roles: string | null
           deadline: string | null
           description: string | null
           fee_interval: string
@@ -1339,6 +1341,8 @@ export type Database = {
           cover_color?: string | null
           created_at?: string
           creator_id: string
+          custom_category?: string | null
+          custom_roles?: string | null
           deadline?: string | null
           description?: string | null
           fee_interval?: string
@@ -1359,6 +1363,8 @@ export type Database = {
           cover_color?: string | null
           created_at?: string
           creator_id?: string
+          custom_category?: string | null
+          custom_roles?: string | null
           deadline?: string | null
           description?: string | null
           fee_interval?: string
