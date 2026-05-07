@@ -2,7 +2,6 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth-context";
 import { FeedProvider } from "@/lib/feed-context";
-import { NotificationsProvider } from "@/lib/notifications-context";
 import { Toaster } from "@/components/ui/sonner";
 import { installGlobalErrorLogger } from "@/lib/client-logger";
 
@@ -98,14 +97,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   useEffect(() => { installGlobalErrorLogger(); }, []);
+  // NotificationsProvider moved into _app so public routes (login/signup) don't
+  // pay for an authenticated realtime subscription + initial fetch.
   return (
     <AuthProvider>
-      <NotificationsProvider>
-        <FeedProvider>
-          <Outlet />
-          <Toaster />
-        </FeedProvider>
-      </NotificationsProvider>
+      <FeedProvider>
+        <Outlet />
+        <Toaster />
+      </FeedProvider>
     </AuthProvider>
   );
 }

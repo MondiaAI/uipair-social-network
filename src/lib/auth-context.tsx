@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }).catch(() => setLoading(false));
 
     // Safety: never stay in loading forever
-    const timeout = setTimeout(() => setLoading(false), 3000);
+    const timeout = setTimeout(() => setLoading(false), 1500);
 
     return () => { subscription.unsubscribe(); clearTimeout(timeout); };
   }, []);
