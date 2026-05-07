@@ -19,6 +19,7 @@ export interface FeedPost {
   post_type: PostType;
   university: string | null;
   is_live_session: boolean;
+  media_url?: string | null;
   created_at: string;
   profiles: {
     full_name: string | null;
