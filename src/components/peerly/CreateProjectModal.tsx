@@ -79,6 +79,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
     if (!user || !name.trim()) return;
     setSubmitting(true);
     const finalSubject = subject === "Other" && customSubject.trim() ? customSubject.trim() : subject;
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
     const { data, error } = await supabase
       .from("projects")
       .insert({
