@@ -550,7 +550,7 @@ function CircleDetailPage() {
               <div className="flex flex-wrap gap-1.5">
                 {([
                   { k: "discussion", label: "Discussion", Icon: MessageSquare },
-                  { k: "research", label: "Research", Icon: Beaker },
+                  { k: "research", label: "Pair research", Icon: Beaker },
                   { k: "partner", label: "Find partner", Icon: Handshake },
                   { k: "question", label: "Question", Icon: HelpCircle },
                   { k: "resource", label: "Resource", Icon: BookOpen },
@@ -599,7 +599,7 @@ function CircleDetailPage() {
             const init = name.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
             const KIND_META: Record<PostKind, { label: string; cls: string }> = {
               discussion: { label: "Discussion", cls: "bg-muted text-foreground" },
-              research: { label: "Research", cls: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
+              research: { label: "Pair research", cls: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
               partner: { label: "Partner", cls: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
               question: { label: "Question", cls: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
               resource: { label: "Resource", cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
