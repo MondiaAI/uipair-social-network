@@ -41,14 +41,18 @@ export function ProjectFeedCard({
     navigate({ to: "/lab/$projectId", params: { projectId: project.id } });
 
   const join = async () => {
-    if (!user) return;
+    if (!user) {
+      // Send unauthenticated users via the join deep link so they auto-join after login
+      navigate({ to: "/lab/$projectId", params: { projectId: project.id }, search: { action: "join" } });
+      return;
+    }
     setJoining(true);
     const { error } = await supabase.rpc("join_public_project", { _project_id: project.id });
     setJoining(false);
     if (error) { toast.error(error.message); return; }
     toast.success(`Joined ${project.name}!`);
     onJoined?.();
-    view();
+    navigate({ to: "/lab/$projectId", params: { projectId: project.id } });
   };
 
   return (
