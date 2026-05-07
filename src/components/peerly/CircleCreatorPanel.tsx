@@ -165,6 +165,7 @@ export function CircleCreatorPanel({
                 </SelectContent>
               </Select>
               <DegreeQuickPicks value={subject} onSelect={setSubject} />
+              <DegreePicker value={degree} onChange={setDegree} />
               {subject === "Other" && (
                 <Input
                   className="mt-2"

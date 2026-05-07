@@ -155,6 +155,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
                 <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
               <DegreeQuickPicks value={subject} onSelect={setSubject} />
+              <DegreePicker value={degree} onChange={setDegree} />
               {subject === "Other" && (
                 <Input
                   className="mt-2"
