@@ -63,6 +63,7 @@ export function ProjectFeedCard({
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
               <Users className="h-3 w-3" />
               <span>{project.member_count}/{project.team_size_limit} members</span>
+              <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3" />{project.view_count ?? 0}</span>
               {!project.is_public && (
                 <Badge variant="outline" className="ml-1 text-[10px] py-0">Private</Badge>
               )}
