@@ -98,14 +98,14 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   useEffect(() => { installGlobalErrorLogger(); }, []);
+  // NotificationsProvider moved into _app so public routes (login/signup) don't
+  // pay for an authenticated realtime subscription + initial fetch.
   return (
     <AuthProvider>
-      <NotificationsProvider>
-        <FeedProvider>
-          <Outlet />
-          <Toaster />
-        </FeedProvider>
-      </NotificationsProvider>
+      <FeedProvider>
+        <Outlet />
+        <Toaster />
+      </FeedProvider>
     </AuthProvider>
   );
 }
