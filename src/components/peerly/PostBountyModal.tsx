@@ -66,6 +66,7 @@ export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boole
                 <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
               <DegreeQuickPicks value={subject} onSelect={setSubject} />
+              <DegreePicker value={degree} onChange={setDegree} />
               {subject === "Other" && (
                 <Input
                   className="mt-2"
