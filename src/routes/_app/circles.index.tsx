@@ -11,7 +11,7 @@ import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard"
 
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { SUBJECTS } from "@/lib/subjects";
-import { DegreeFilterBar, matchesDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
+import { DegreeFilterBar, matchesDegree, useSharedDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
 import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { toast } from "sonner";
 import { Link, useNavigate } from "@tanstack/react-router";
