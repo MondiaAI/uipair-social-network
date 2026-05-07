@@ -62,3 +62,8 @@ const SUBJECT_COLORS: Record<string, string> = {
 export function subjectChipClass(subject: string) {
   return SUBJECT_COLORS[subject] ?? SUBJECT_COLORS.Other;
 }
+
+export function subjectLabel(subject: string, customSubject?: string | null) {
+  if (subject === "Other" && customSubject && customSubject.trim()) return customSubject.trim();
+  return subject;
+}

@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Star, Check, Clock } from "lucide-react";
-import { CATEGORY_CHIP, CATEGORY_LABEL, formatPrice, type GigCategory } from "@/lib/gig-meta";
+import { gigCategoryChip, gigCategoryLabel, formatPrice, type GigCategory } from "@/lib/gig-meta";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ type GigDetail = {
   id: string;
   title: string;
   category: GigCategory;
+  custom_category: string | null;
   description: string | null;
   included_items: string[];
   price_cents: number;
@@ -35,7 +36,7 @@ export function GigDetailSheet({ gigId, open, onOpenChange }: { gigId: string | 
     (async () => {
       const { data } = await supabase
         .from("gigs")
-        .select("id,title,category,description,included_items,price_cents,delivery_days,rating_avg,review_count,order_count,seller_id,seller:profiles!gigs_seller_id_fkey(username,full_name,avatar_url,university)")
+        .select("id,title,category,custom_category,description,included_items,price_cents,delivery_days,rating_avg,review_count,order_count,seller_id,seller:profiles!gigs_seller_id_fkey(username,full_name,avatar_url,university)")
         .eq("id", gigId)
         .maybeSingle();
       // fallback if FK alias not present
@@ -81,7 +82,7 @@ export function GigDetailSheet({ gigId, open, onOpenChange }: { gigId: string | 
               <SheetTitle className="text-left">{gig.title}</SheetTitle>
             </SheetHeader>
             <div className="mx-auto mt-4 max-w-2xl space-y-5">
-              <Badge variant="outline" className={cn("w-fit", CATEGORY_CHIP[gig.category])}>{CATEGORY_LABEL[gig.category]}</Badge>
+              <Badge variant="outline" className={cn("w-fit", gigCategoryChip(gig.category))}>{gigCategoryLabel(gig.category, gig.custom_category)}</Badge>
 
               {gig.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{gig.description}</p>}
 

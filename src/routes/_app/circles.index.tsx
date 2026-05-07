@@ -50,7 +50,7 @@ function CirclesPage() {
     setLoading(true);
     const { data: rows } = await supabase
       .from("circles")
-      .select("id,name,subject,description,scope,is_premium,price_monthly,member_count,leader_id,university")
+      .select("id,name,subject,custom_subject,description,scope,is_premium,price_monthly,member_count,leader_id,university")
       .order("created_at", { ascending: false });
 
     const leaderIds = Array.from(new Set((rows ?? []).map((r) => r.leader_id)));
@@ -64,6 +64,7 @@ function CirclesPage() {
         id: r.id,
         name: r.name,
         subject: r.subject,
+        custom_subject: r.custom_subject,
         description: r.description,
         scope: r.scope as "campus" | "global",
         is_premium: r.is_premium,

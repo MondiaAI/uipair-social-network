@@ -48,7 +48,7 @@ function LabPage() {
       supabase
         .from("projects")
         .select(
-          "id, name, description, subject, category, open_roles, team_size_limit, member_count, deadline, is_public, join_fee_cents, fee_interval, progress, creator_id, updated_at",
+          "id, name, description, subject, category, custom_category, open_roles, team_size_limit, member_count, deadline, is_public, join_fee_cents, fee_interval, progress, creator_id, updated_at",
         )
         .order("created_at", { ascending: false })
         .limit(60),
