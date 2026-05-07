@@ -391,27 +391,37 @@ function ProjectDetailPage() {
               </div>
             )}
             {isCreator && (project.category === "other" || project.open_roles?.includes("other")) && (
-              <div className="mt-3 space-y-2 rounded-md border border-dashed p-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-muted-foreground">Customize "Other"</p>
-                  {savingMeta === "saving" && <span className="text-[11px] text-muted-foreground">Saving…</span>}
-                  {savingMeta === "saved" && <span className="text-[11px] text-emerald-600">Saved ✓</span>}
-                </div>
+              <div className="mt-3 space-y-3 rounded-md border border-dashed p-3">
+                <p className="text-xs font-medium text-muted-foreground">Customize "Other"</p>
                 {project.category === "other" && (
-                  <Input
-                    value={editCustomCategory}
-                    onChange={(e) => setEditCustomCategory(e.target.value)}
-                    placeholder="Custom category (e.g. Side project)"
-                    maxLength={50}
-                  />
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] text-muted-foreground">Category</label>
+                      {savingCategory === "saving" && <span className="text-[11px] text-muted-foreground">Saving…</span>}
+                      {savingCategory === "saved" && <span className="text-[11px] text-emerald-600">Saved ✓</span>}
+                    </div>
+                    <Input
+                      value={editCustomCategory}
+                      onChange={(e) => setEditCustomCategory(e.target.value)}
+                      placeholder="Custom category (e.g. Side project)"
+                      maxLength={50}
+                    />
+                  </div>
                 )}
                 {project.open_roles?.includes("other") && (
-                  <Input
-                    value={editCustomRoles}
-                    onChange={(e) => setEditCustomRoles(e.target.value)}
-                    placeholder="Other roles (e.g. Marketer, PM)"
-                    maxLength={80}
-                  />
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] text-muted-foreground">Other roles</label>
+                      {savingRoles === "saving" && <span className="text-[11px] text-muted-foreground">Saving…</span>}
+                      {savingRoles === "saved" && <span className="text-[11px] text-emerald-600">Saved ✓</span>}
+                    </div>
+                    <Input
+                      value={editCustomRoles}
+                      onChange={(e) => setEditCustomRoles(e.target.value)}
+                      placeholder="Other roles (e.g. Marketer, PM)"
+                      maxLength={80}
+                    />
+                  </div>
                 )}
               </div>
             )}
