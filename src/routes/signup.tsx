@@ -418,7 +418,7 @@ function SignupPage() {
           <>
             <h1 className="text-xl font-bold">Pick your interests</h1>
             <p className="text-sm text-muted-foreground mb-4">Step 4 of 4 — choose 3+ to personalize your feed</p>
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div ref={interestsRef} className="grid grid-cols-2 gap-2 mb-4">
               {SUBJECTS.map((s) => {
                 const on = interests.includes(s);
                 return (
@@ -429,9 +429,12 @@ function SignupPage() {
                 );
               })}
             </div>
-            <Button onClick={finish} disabled={loading || interests.length < 3 || !acceptTerms} className="w-full">
-              {loading ? "Finishing…" : "Finish & enter UiPair"}
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setStep(3)} className="flex-1" disabled={loading}>Back</Button>
+              <Button onClick={finish} disabled={loading} className="flex-1">
+                {loading ? "Finishing…" : "Finish & enter UiPair"}
+              </Button>
+            </div>
           </>
         )}
       </div>
