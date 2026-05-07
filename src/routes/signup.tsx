@@ -276,7 +276,7 @@ function SignupPage() {
             <h1 className="text-xl font-bold">Academic info</h1>
             <p className="text-sm text-muted-foreground mb-4">Step 2 of 4</p>
             <div className="space-y-3">
-              <div>
+              <div ref={universityRef}>
                 <Label>University</Label>
                 <UniversityField
                   userId={user?.id}
@@ -284,14 +284,14 @@ function SignupPage() {
                   onChange={setUniversity}
                 />
               </div>
-              <div>
+              <div ref={countryRef}>
                 <Label>Country</Label>
                 <Select value={country} onValueChange={setCountry}>
                   <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                   <SelectContent>{COUNTRIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div><Label>Field of study</Label><Input value={field} onChange={(e) => setField(e.target.value)} placeholder="e.g. Computer Science" /></div>
+              <div ref={fieldRef}><Label>Field of study</Label><Input value={field} onChange={(e) => setField(e.target.value)} placeholder="e.g. Computer Science" /></div>
               <div>
                 <Label>Year of study</Label>
                 <Select value={String(year)} onValueChange={(v) => setYear(Number(v))}>
@@ -299,7 +299,7 @@ function SignupPage() {
                   <SelectContent>{[1, 2, 3, 4, 5, 6].map((y) => <SelectItem key={y} value={String(y)}>Year {y}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5 pt-1">
+              <div ref={confirmPwRef} className="space-y-1.5 pt-1">
                 <Label>Confirm password</Label>
                 <PasswordInput
                   required
@@ -314,7 +314,7 @@ function SignupPage() {
                   </p>
                 )}
               </div>
-              <div className="space-y-1.5 pt-1">
+              <div ref={dobRef} className="space-y-1.5 pt-1">
                 <Label>Date of birth</Label>
                 <p className="text-xs text-muted-foreground">You must be at least 18 to use UiPair.</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -358,7 +358,7 @@ function SignupPage() {
                   </div>
                 )}
               </div>
-              <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
+              <label ref={termsRef} className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
                 <input
                   type="checkbox"
                   className="mt-0.5 h-4 w-4 rounded border-input accent-primary"
@@ -372,7 +372,42 @@ function SignupPage() {
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
                 </span>
               </label>
-              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms || !passwordsMatch || !dobValid} className="w-full">Continue</Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setStep(1)} className="flex-1">Back</Button>
+                <Button onClick={() => { if (validateStep2()) setStep(3); }} className="flex-1">Continue</Button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {step === 3 && (
+          <>
+            <h1 className="text-xl font-bold">About you</h1>
+            <p className="text-sm text-muted-foreground mb-4">Step 3 of 4</p>
+            <div className="flex flex-col items-center gap-2 mb-4">
+              <Avatar className="h-20 w-20"><AvatarImage src={avatarPreview} /><AvatarFallback>{fullName.charAt(0) || "?"}</AvatarFallback></Avatar>
+              <label className="cursor-pointer text-sm text-primary inline-flex items-center gap-1">
+                <Camera className="h-4 w-4" /> Upload photo
+                <input type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onPickAvatar(e.target.files[0])} />
+              </label>
+            </div>
+            <div className="space-y-3">
+              <div><Label>Bio</Label><Textarea rows={3} value={bio} onChange={(e) => setBio(e.target.value)} maxLength={200} placeholder="A line about you" /></div>
+              <div ref={skillsRef}>
+                <Label>Skills (3–5)</Label>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
+                  {SKILL_OPTIONS.map((s) => (
+                    <button type="button" key={s} onClick={() => toggle(skills, s, setSkills)}
+                      className={cn("rounded-full border px-3 py-1 text-xs", skills.includes(s) ? "bg-primary text-primary-foreground border-primary" : "hover:border-foreground/40")}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setStep(2)} className="flex-1">Back</Button>
+                <Button onClick={() => { if (validateStep3()) setStep(4); }} className="flex-1">Continue</Button>
+              </div>
             </div>
           </>
         )}
