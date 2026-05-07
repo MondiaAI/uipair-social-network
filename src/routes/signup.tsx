@@ -66,10 +66,19 @@ function SignupPage() {
     if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return null;
     return dt;
   })();
-  const age = dob ? Math.floor((Date.now() - dob.getTime()) / (365.25 * 24 * 3600 * 1000)) : 0;
+  const age = (() => {
+    if (!dob) return 0;
+    const today = new Date();
+    let a = today.getUTCFullYear() - dob.getUTCFullYear();
+    const m = today.getUTCMonth() - dob.getUTCMonth();
+    if (m < 0 || (m === 0 && today.getUTCDate() < dob.getUTCDate())) a--;
+    return a;
+  })();
   const dobValid = !!dob && age >= 18;
   const currentYear = new Date().getFullYear();
-  const yearOptions = Array.from({ length: 100 }, (_, i) => currentYear - 18 - i);
+  // Cap years so the youngest selectable year still allows turning 18 (validated precisely by `age`)
+  const maxYear = currentYear - 18;
+  const yearOptions = Array.from({ length: 100 }, (_, i) => maxYear - i);
   const monthOptions = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December",
