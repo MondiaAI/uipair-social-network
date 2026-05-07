@@ -113,6 +113,16 @@ function ProjectDetailPage() {
 
   const isMember = !!user && members.some((m) => m.user_id === user.id);
   const isCreator = !!user && project?.creator_id === user.id;
+  const [requesting, setRequesting] = useState(false);
+
+  const requestJoin = async () => {
+    if (!user || !project) return;
+    setRequesting(true);
+    const { error } = await supabase.rpc("request_project_join", { _project_id: projectId });
+    setRequesting(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Join request sent to the project creator");
+  };
 
   const load = async () => {
     setLoading(true);
