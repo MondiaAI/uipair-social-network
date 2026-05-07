@@ -265,6 +265,45 @@ function SignupPage() {
                   </p>
                 )}
               </div>
+              <div className="space-y-1.5 pt-1">
+                <Label>Date of birth</Label>
+                <p className="text-xs text-muted-foreground">You must be at least 18 to use UiPair.</p>
+                <div className="grid grid-cols-3 gap-2">
+                  <Select value={dobDay} onValueChange={setDobDay}>
+                    <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                        <SelectItem key={d} value={String(d)}>{d}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={dobMonth} onValueChange={setDobMonth}>
+                    <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {monthOptions.map((name, idx) => (
+                        <SelectItem key={name} value={String(idx + 1)}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={dobYear} onValueChange={setDobYear}>
+                    <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
+                    <SelectContent className="max-h-72">
+                      {yearOptions.map((y) => (
+                        <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {dobDay && dobMonth && dobYear && !dob && (
+                  <p className="text-xs text-destructive">That date doesn't look valid.</p>
+                )}
+                {dob && !dobValid && (
+                  <p className="text-xs text-destructive">You must be at least 18 years old to join.</p>
+                )}
+                {dobValid && (
+                  <p className="text-xs text-emerald-600">You're {age} years old ✓</p>
+                )}
+              </div>
               <label className="flex items-start gap-2 text-xs text-muted-foreground cursor-pointer pt-1">
                 <input
                   type="checkbox"
@@ -279,7 +318,7 @@ function SignupPage() {
                   <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
                 </span>
               </label>
-              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms || !passwordsMatch} className="w-full">Continue</Button>
+              <Button onClick={() => setStep(3)} disabled={!university || !country || !field || !acceptTerms || !passwordsMatch || !dobValid} className="w-full">Continue</Button>
             </div>
           </>
         )}
