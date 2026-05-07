@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useFeedMode } from "@/lib/feed-context";
 import { SUBJECTS } from "@/lib/subjects";
+import { useAllSubjects } from "@/lib/use-all-subjects";
+import { addCustomSubject } from "@/lib/subjects";
 import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { MatchCard, type MatchProfile } from "@/components/peerly/MatchCard";
 import { IncomingFriendRequests } from "@/components/peerly/IncomingFriendRequests";
@@ -72,6 +74,7 @@ function computeScore(me: ProfileRow, other: ProfileRow): number {
 }
 
 function MatchPage() {
+  const allSubjects = useAllSubjects();
   const { user, profile } = useAuth();
   const { mode, setMode } = useFeedMode();
   const { edges } = useFriendships();
@@ -241,7 +244,7 @@ function MatchPage() {
             </PopoverTrigger>
             <PopoverContent className="max-h-72 w-64 overflow-auto">
               <div className="space-y-1">
-                {SUBJECTS.map((s) => (
+                {allSubjects.map((s) => (
                   <label key={s} className="flex cursor-pointer items-center gap-2 rounded p-1 hover:bg-accent">
                     <Checkbox checked={subjects.includes(s)} onCheckedChange={() => toggleSubject(s)} />
                     <span className="text-sm">{s}</span>

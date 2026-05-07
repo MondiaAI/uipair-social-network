@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard";
 import { SUBJECTS } from "@/lib/subjects";
+import { useAllSubjects } from "@/lib/use-all-subjects";
+import { addCustomSubject } from "@/lib/subjects";
 import { DegreeFilterBar, matchesDegree, useSharedDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
 import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,7 @@ type Tier = "all" | "free" | "premium";
 type Scope = "all" | "campus" | "global";
 
 function DiscoverCirclesPage() {
+  const allSubjects = useAllSubjects();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [circles, setCircles] = useState<CircleRow[]>([]);
@@ -184,7 +187,7 @@ function DiscoverCirclesPage() {
             <SelectTrigger><SelectValue placeholder="Subject" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All subjects</SelectItem>
-              {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
 

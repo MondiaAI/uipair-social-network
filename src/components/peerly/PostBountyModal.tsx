@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SUBJECTS } from "@/lib/subjects";
+import { useAllSubjects } from "@/lib/use-all-subjects";
+import { addCustomSubject } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +15,7 @@ import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 
 export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boolean; onOpenChange: (o: boolean) => void; onCreated?: () => void }) {
+  const allSubjects = useAllSubjects();
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -27,7 +30,9 @@ export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boole
     if (subject === "Other" && !customSubject.trim()) {
       return toast.error("Please enter a custom subject");
     }
-    setSubmitting(true);
+    
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
+setSubmitting(true);
     const { error } = await supabase.from("bounties").insert({
       poster_id: user.id,
       title: title.trim(),
@@ -63,7 +68,7 @@ export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boole
               <Label>Subject</Label>
               <Select value={subject} onValueChange={setSubject}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                <SelectContent>{allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
               <DegreeQuickPicks value={subject} onSelect={setSubject} />
               <DegreePicker value={degree} onChange={setDegree} />

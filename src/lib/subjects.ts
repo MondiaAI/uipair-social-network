@@ -109,3 +109,53 @@ export function subjectLabel(subject: string, customSubject?: string | null) {
   if (subject === "Other" && customSubject && customSubject.trim()) return customSubject.trim();
   return subject;
 }
+
+// ---------- User-added custom subjects (synced across the app) ----------
+
+const CUSTOM_SUBJECTS_KEY = "peerly.subjects.custom";
+export const CUSTOM_SUBJECTS_EVT = "peerly:custom-subjects-changed";
+
+function readCustomSubjects(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(CUSTOM_SUBJECTS_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCustomSubjects(list: string[]) {
+  try {
+    localStorage.setItem(CUSTOM_SUBJECTS_KEY, JSON.stringify(list));
+  } catch {}
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent(CUSTOM_SUBJECTS_EVT, { detail: list }));
+  }
+}
+
+/** Add a manually typed subject to the global list (deduped, case-insensitive). */
+export function addCustomSubject(value: string) {
+  const v = value.trim();
+  if (!v) return;
+  const lower = v.toLowerCase();
+  if ((SUBJECTS as readonly string[]).some((s) => s.toLowerCase() === lower)) return;
+  const current = readCustomSubjects();
+  if (current.some((s) => s.toLowerCase() === lower)) return;
+  writeCustomSubjects([...current, v]);
+}
+
+export function getCustomSubjects(): string[] {
+  return readCustomSubjects();
+}
+
+/** Combined list: built-in SUBJECTS + user-added customs (Other stays last). */
+export function getAllSubjects(): string[] {
+  const base = SUBJECTS as readonly string[];
+  const custom = readCustomSubjects();
+  const idx = base.indexOf("Other");
+  if (idx === -1) return [...base, ...custom];
+  return [...base.slice(0, idx), ...custom, "Other"];
+}

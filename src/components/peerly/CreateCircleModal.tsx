@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SUBJECTS } from "@/lib/subjects";
+import { useAllSubjects } from "@/lib/use-all-subjects";
+import { addCustomSubject } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +17,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const allSubjects = useAllSubjects();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -44,7 +47,9 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
       toast.error("Please enter a custom subject");
       return;
     }
-    setSubmitting(true);
+    
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
+setSubmitting(true);
     const { data, error } = await supabase
       .from("circles")
       .insert({
@@ -90,7 +95,7 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
             <Select value={subject} onValueChange={setSubject}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
             <DegreeQuickPicks value={subject} onSelect={setSubject} />

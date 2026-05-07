@@ -11,6 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Check, Search } from "lucide-react";
 import { useNetworkPeople } from "@/hooks/use-network-people";
 import { SUBJECTS } from "@/lib/subjects";
+import { useAllSubjects } from "@/lib/use-all-subjects";
+import { addCustomSubject } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { DegreePicker } from "@/components/peerly/DegreePicker";
 import {
@@ -29,6 +31,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const allSubjects = useAllSubjects();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -76,6 +79,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
     if (!user || !name.trim()) return;
     setSubmitting(true);
     const finalSubject = subject === "Other" && customSubject.trim() ? customSubject.trim() : subject;
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
     const { data, error } = await supabase
       .from("projects")
       .insert({
@@ -152,7 +156,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
               <Label>Subject Area</Label>
               <Select value={subject} onValueChange={setSubject}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                <SelectContent>{allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
               <DegreeQuickPicks value={subject} onSelect={setSubject} />
               <DegreePicker value={degree} onChange={setDegree} />

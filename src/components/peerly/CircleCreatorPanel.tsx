@@ -12,6 +12,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SUBJECTS } from "@/lib/subjects";
+import { useAllSubjects } from "@/lib/use-all-subjects";
+import { addCustomSubject } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { toast } from "sonner";
@@ -58,6 +60,7 @@ export function CircleCreatorPanel({
   onUpdated: () => void;
   onMemberRemoved: (userId: string) => void;
 }) {
+  const allSubjects = useAllSubjects();
   const [name, setName] = useState(circle.name);
   const [subject, setSubject] = useState(circle.subject);
   const [customSubject, setCustomSubject] = useState("");
@@ -95,7 +98,9 @@ export function CircleCreatorPanel({
       toast.error("Please enter a custom subject");
       return;
     }
-    setSaving(true);
+    
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
+setSaving(true);
     const { error } = await supabase
       .from("circles")
       .update({
@@ -161,7 +166,7 @@ export function CircleCreatorPanel({
               <Select value={subject} onValueChange={setSubject}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
               <DegreeQuickPicks value={subject} onSelect={setSubject} />

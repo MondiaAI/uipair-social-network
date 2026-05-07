@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { addCustomSubject } from "@/lib/subjects";
 
 const SHARED_KEY = "peerly.filters.customSubject";
 const EVT = "peerly:custom-subject-changed";
@@ -67,11 +68,19 @@ interface Props {
 }
 
 export function CustomSubjectFilter({ value, onChange, placeholder }: Props) {
+  // Auto-promote the typed term into the global subject list (debounced).
+  useEffect(() => {
+    if (!value || value.trim().length < 2) return;
+    const t = setTimeout(() => addCustomSubject(value), 600);
+    return () => clearTimeout(t);
+  }, [value]);
+
   return (
     <Input
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder ?? "Type your subject (synced everywhere)…"}
+      onBlur={() => addCustomSubject(value)}
+      placeholder={placeholder ?? "Type your subject (added to the list)…"}
       className="text-sm"
     />
   );

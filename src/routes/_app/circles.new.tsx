@@ -9,6 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { SUBJECTS } from "@/lib/subjects";
+import { useAllSubjects } from "@/lib/use-all-subjects";
+import { addCustomSubject } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,6 +28,7 @@ export const Route = createFileRoute("/_app/circles/new")({
 });
 
 function CreateCirclePage() {
+  const allSubjects = useAllSubjects();
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
@@ -57,7 +60,9 @@ function CreateCirclePage() {
       toast.error("Please enter a custom subject");
       return;
     }
-    setSubmitting(true);
+    
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
+setSubmitting(true);
     try {
       const payload = {
         name: name.trim(),
@@ -120,7 +125,7 @@ function CreateCirclePage() {
           <Select value={subject} onValueChange={setSubject}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
           <DegreeQuickPicks value={subject} onSelect={setSubject} />
