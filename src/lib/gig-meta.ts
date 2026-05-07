@@ -16,7 +16,7 @@ export const CATEGORY_LABEL: Record<GigCategory, string> = {
   tutoring: "Tutoring",
   notes: "Notes",
   coding: "Coding",
-  research: "Research",
+  research: "Pair research",
   design: "Design",
   writing: "Writing",
   translation: "Translation",
