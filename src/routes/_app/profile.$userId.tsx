@@ -7,11 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon } from "lucide-react";
+import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon, Pencil } from "lucide-react";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   deriveStatus,
   sendFriendRequest,
