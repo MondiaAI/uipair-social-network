@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Image as ImageIcon, Paperclip, Radio, X, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { COMPOSER_TAGS, POST_TYPE_META, type PostType } from "@/lib/post-types";
+import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { toast } from "sonner";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -17,6 +18,7 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
   const [postType, setPostType] = useState<PostType>("brainstorm");
   const [isLive, setIsLive] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [degree, setDegree] = useState<string | null>(null);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const [mediaName, setMediaName] = useState<string | null>(null);
   const [mediaIsImage, setMediaIsImage] = useState(false);
@@ -80,12 +82,14 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
       is_live_session: isLive,
       university: profile?.university ?? null,
       media_url: mediaIsImage ? mediaUrl : null,
+      degree,
     });
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
     setContent("");
     setPostType("brainstorm");
     setIsLive(false);
+    setDegree(null);
     clearMedia();
     onPosted();
   };
@@ -128,6 +132,8 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
               );
             })}
           </div>
+
+          <DegreePicker value={degree} onChange={setDegree} label="Qualification" />
 
           {mediaUrl && (
             <div className="relative inline-block max-w-full rounded-lg border bg-muted/40 p-2">
