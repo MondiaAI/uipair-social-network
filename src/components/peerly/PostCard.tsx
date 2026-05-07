@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Lightbulb, Flame, Brain, Bookmark, Check, MessageCircle, Share2, Radio, Rocket } from "lucide-react";
+import { Lightbulb, Flame, Brain, Bookmark, Check, MessageCircle, Share2, Radio } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,7 +10,7 @@ import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { POST_TYPE_META, type PostType } from "@/lib/post-types";
 import { useNavigate } from "@tanstack/react-router";
-import { FeeBadge } from "@/components/peerly/ProjectCard";
+import { ProjectFeedCard } from "@/components/peerly/ProjectFeedCard";
 
 export interface FeedPost {
   id: string;
@@ -279,35 +279,15 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
         )}
       </div>
 
-      {linkedProject && linkedProject.is_public && (
-        <div className="rounded-xl border bg-muted/40 p-3 space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <Rocket className="h-4 w-4 text-primary shrink-0" />
-              <span className="text-sm font-semibold truncate">{linkedProject.name}</span>
-            </div>
-            <FeeBadge cents={linkedProject.join_fee_cents} interval={linkedProject.fee_interval} />
-          </div>
-          <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span>{linkedProject.member_count}/{linkedProject.team_size_limit} members</span>
-            {isMember ? (
-              <Button size="sm" variant="secondary" onClick={() => navigate({ to: "/lab/$projectId", params: { projectId: linkedProject.id } })}>
-                Open Project
-              </Button>
-            ) : linkedProject.member_count >= linkedProject.team_size_limit ? (
-              <Button size="sm" disabled>Project Full</Button>
-            ) : linkedProject.join_fee_cents > 0 ? (
-              <Button size="sm" onClick={() => navigate({ to: "/lab/$projectId", params: { projectId: linkedProject.id } })}>
-                Join · ${(linkedProject.join_fee_cents / 100).toFixed(2)}
-                {linkedProject.fee_interval === "monthly" ? "/mo" : ""}
-              </Button>
-            ) : (
-              <Button size="sm" onClick={handleJoinProject} disabled={joining || !user}>
-                {joining ? "Joining…" : "Join Project"}
-              </Button>
-            )}
-          </div>
-        </div>
+      {linkedProject && (
+        <ProjectFeedCard
+          project={linkedProject}
+          isMember={isMember}
+          onJoined={() => {
+            setIsMember(true);
+            setLinkedProject({ ...linkedProject, member_count: linkedProject.member_count + 1 });
+          }}
+        />
       )}
 
       <footer className="flex items-center gap-1 pt-2 border-t flex-wrap">
