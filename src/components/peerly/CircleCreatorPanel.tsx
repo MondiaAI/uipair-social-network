@@ -98,7 +98,9 @@ export function CircleCreatorPanel({
       toast.error("Please enter a custom subject");
       return;
     }
-    setSaving(true);
+    
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
+setSaving(true);
     const { error } = await supabase
       .from("circles")
       .update({

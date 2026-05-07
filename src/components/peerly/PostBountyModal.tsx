@@ -30,7 +30,9 @@ export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boole
     if (subject === "Other" && !customSubject.trim()) {
       return toast.error("Please enter a custom subject");
     }
-    setSubmitting(true);
+    
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
+setSubmitting(true);
     const { error } = await supabase.from("bounties").insert({
       poster_id: user.id,
       title: title.trim(),

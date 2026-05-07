@@ -47,7 +47,9 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
       toast.error("Please enter a custom subject");
       return;
     }
-    setSubmitting(true);
+    
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
+setSubmitting(true);
     const { data, error } = await supabase
       .from("circles")
       .insert({

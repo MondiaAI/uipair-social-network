@@ -60,7 +60,9 @@ function CreateCirclePage() {
       toast.error("Please enter a custom subject");
       return;
     }
-    setSubmitting(true);
+    
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
+setSubmitting(true);
     try {
       const payload = {
         name: name.trim(),

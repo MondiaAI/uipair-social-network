@@ -41,7 +41,9 @@ export function StudyTogetherModal({ open, onOpenChange, partnerId, partnerName,
       toast.error("Please enter a custom subject");
       return;
     }
-    setLoading(true);
+    
+    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
+setLoading(true);
     const finalSubject = subject === "Other" ? customSubject.trim() : subject;
     const { error } = await supabase.from("study_requests").insert({
       sender_id: user.id,
