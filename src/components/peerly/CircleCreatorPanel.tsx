@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SUBJECTS } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
+import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -27,6 +28,7 @@ interface CircleEditable {
   meeting_schedule: string | null;
   resources_folder_url: string | null;
   leader_id: string;
+  degree?: string | null;
 }
 
 interface MemberLite {
@@ -59,6 +61,7 @@ export function CircleCreatorPanel({
   const [name, setName] = useState(circle.name);
   const [subject, setSubject] = useState(circle.subject);
   const [customSubject, setCustomSubject] = useState("");
+  const [degree, setDegree] = useState<string | null>(circle.degree ?? null);
   const [description, setDescription] = useState(circle.description ?? "");
   const [scope, setScope] = useState<"campus" | "global">(circle.scope);
   const [isPremium, setIsPremium] = useState(circle.is_premium);
@@ -99,6 +102,7 @@ export function CircleCreatorPanel({
         name: name.trim(),
         subject,
         custom_subject: subject === "Other" ? customSubject.trim() : null,
+        degree,
         description: description.trim() || null,
         scope,
         is_premium: isPremium,
@@ -161,6 +165,7 @@ export function CircleCreatorPanel({
                 </SelectContent>
               </Select>
               <DegreeQuickPicks value={subject} onSelect={setSubject} />
+              <DegreePicker value={degree} onChange={setDegree} />
               {subject === "Other" && (
                 <Input
                   className="mt-2"

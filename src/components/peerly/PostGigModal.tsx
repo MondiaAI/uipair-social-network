@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { GIG_CATEGORIES, CATEGORY_LABEL, type GigCategory } from "@/lib/gig-meta";
+import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ export function PostGigModal({ open, onOpenChange, onCreated }: { open: boolean;
   const [price, setPrice] = useState(20);
   const [days, setDays] = useState(3);
   const [requiresFile, setRequiresFile] = useState(false);
+  const [degree, setDegree] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const submit = async () => {
@@ -41,11 +43,12 @@ export function PostGigModal({ open, onOpenChange, onCreated }: { open: boolean;
       price_cents: Math.round(price * 100),
       delivery_days: days,
       requires_file_upload: requiresFile,
+      degree,
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Gig posted!");
-    setTitle(""); setDescription(""); setIncludedRaw(""); setPrice(20); setDays(3); setRequiresFile(false); setCustomCategory("");
+    setTitle(""); setDescription(""); setIncludedRaw(""); setPrice(20); setDays(3); setRequiresFile(false); setCustomCategory(""); setDegree(null);
     onOpenChange(false);
     onCreated?.();
   };
@@ -74,6 +77,10 @@ export function PostGigModal({ open, onOpenChange, onCreated }: { open: boolean;
                 maxLength={50}
               />
             )}
+          </div>
+          <div>
+            <Label>Qualification level (optional)</Label>
+            <DegreePicker value={degree} onChange={setDegree} label="Pick" />
           </div>
           <div>
             <Label>Description</Label>

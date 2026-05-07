@@ -12,6 +12,7 @@ import { Check, Search } from "lucide-react";
 import { useNetworkPeople } from "@/hooks/use-network-people";
 import { SUBJECTS } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
+import { DegreePicker } from "@/components/peerly/DegreePicker";
 import {
   PROJECT_CATEGORIES,
   PROJECT_ROLES,
@@ -34,6 +35,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
   const [description, setDescription] = useState("");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
   const [customSubject, setCustomSubject] = useState("");
+  const [degree, setDegree] = useState<string | null>(null);
   const [category, setCategory] = useState<ProjectCategory>("other");
   const [customCategory, setCustomCategory] = useState("");
   const [openRoles, setOpenRoles] = useState<ProjectRole[]>([]);
@@ -83,6 +85,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
         subject: finalSubject,
         category,
         custom_category: category === "other" ? (customCategory.trim() || null) : null,
+        degree,
         open_roles: openRoles,
         custom_roles: openRoles.includes("other") ? (customRole.trim() || null) : null,
         team_size_limit: teamSize,
@@ -152,6 +155,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
                 <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
               <DegreeQuickPicks value={subject} onSelect={setSubject} />
+              <DegreePicker value={degree} onChange={setDegree} />
               {subject === "Other" && (
                 <Input
                   className="mt-2"

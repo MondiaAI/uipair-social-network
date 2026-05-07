@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SUBJECTS } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
+import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useNavigate } from "@tanstack/react-router";
@@ -19,6 +20,7 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
   const [name, setName] = useState("");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
   const [customSubject, setCustomSubject] = useState("");
+  const [degree, setDegree] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [campusOnly, setCampusOnly] = useState(false);
   // Global circles are premium-paid by default; campus circles are free unless toggled.
@@ -49,6 +51,7 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
         name: name.trim(),
         subject,
         custom_subject: subject === "Other" ? customSubject.trim() : null,
+        degree,
         description: description.trim() || null,
         leader_id: user.id,
         scope: campusOnly ? "campus" : "global",
@@ -91,6 +94,7 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
               </SelectContent>
             </Select>
             <DegreeQuickPicks value={subject} onSelect={setSubject} />
+            <DegreePicker value={degree} onChange={setDegree} />
             {subject === "Other" && (
               <Input
                 className="mt-2"

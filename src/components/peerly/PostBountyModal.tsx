@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SUBJECTS } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
+import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -17,6 +18,7 @@ export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boole
   const [description, setDescription] = useState("");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
   const [customSubject, setCustomSubject] = useState("");
+  const [degree, setDegree] = useState<string | null>(null);
   const [reward, setReward] = useState(8);
   const [submitting, setSubmitting] = useState(false);
 
@@ -32,12 +34,13 @@ export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boole
       description: description.trim() || null,
       subject,
       custom_subject: subject === "Other" ? customSubject.trim() : null,
+      degree,
       reward_cents: Math.round(reward * 100),
     });
     setSubmitting(false);
     if (error) return toast.error(error.message);
     toast.success("Bounty posted!");
-    setTitle(""); setDescription(""); setReward(8); setCustomSubject("");
+    setTitle(""); setDescription(""); setReward(8); setCustomSubject(""); setDegree(null);
     onOpenChange(false);
     onCreated?.();
   };
@@ -63,6 +66,7 @@ export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boole
                 <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
               <DegreeQuickPicks value={subject} onSelect={setSubject} />
+              <DegreePicker value={degree} onChange={setDegree} />
               {subject === "Other" && (
                 <Input
                   className="mt-2"

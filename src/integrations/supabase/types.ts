@@ -62,6 +62,7 @@ export type Database = {
           created_at: string
           custom_subject: string | null
           deadline: string | null
+          degree: string | null
           description: string | null
           id: string
           poster_id: string
@@ -76,6 +77,7 @@ export type Database = {
           created_at?: string
           custom_subject?: string | null
           deadline?: string | null
+          degree?: string | null
           description?: string | null
           id?: string
           poster_id: string
@@ -90,6 +92,7 @@ export type Database = {
           created_at?: string
           custom_subject?: string | null
           deadline?: string | null
+          degree?: string | null
           description?: string | null
           id?: string
           poster_id?: string
@@ -401,6 +404,7 @@ export type Database = {
           cover_color: string | null
           created_at: string
           custom_subject: string | null
+          degree: string | null
           description: string | null
           id: string
           is_premium: boolean
@@ -419,6 +423,7 @@ export type Database = {
           cover_color?: string | null
           created_at?: string
           custom_subject?: string | null
+          degree?: string | null
           description?: string | null
           id?: string
           is_premium?: boolean
@@ -437,6 +442,7 @@ export type Database = {
           cover_color?: string | null
           created_at?: string
           custom_subject?: string | null
+          degree?: string | null
           description?: string | null
           id?: string
           is_premium?: boolean
@@ -698,6 +704,7 @@ export type Database = {
           category: Database["public"]["Enums"]["gig_category"]
           created_at: string
           custom_category: string | null
+          degree: string | null
           delivery_days: number
           description: string | null
           id: string
@@ -716,6 +723,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["gig_category"]
           created_at?: string
           custom_category?: string | null
+          degree?: string | null
           delivery_days?: number
           description?: string | null
           id?: string
@@ -734,6 +742,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["gig_category"]
           created_at?: string
           custom_category?: string | null
+          degree?: string | null
           delivery_days?: number
           description?: string | null
           id?: string
@@ -884,6 +893,7 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          degree: string | null
           id: string
           is_live_session: boolean
           media_url: string | null
@@ -896,6 +906,7 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string
+          degree?: string | null
           id?: string
           is_live_session?: boolean
           media_url?: string | null
@@ -908,6 +919,7 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string
+          degree?: string | null
           id?: string
           is_live_session?: boolean
           media_url?: string | null
@@ -1334,6 +1346,7 @@ export type Database = {
           custom_category: string | null
           custom_roles: string | null
           deadline: string | null
+          degree: string | null
           description: string | null
           fee_interval: string
           id: string
@@ -1356,6 +1369,7 @@ export type Database = {
           custom_category?: string | null
           custom_roles?: string | null
           deadline?: string | null
+          degree?: string | null
           description?: string | null
           fee_interval?: string
           id?: string
@@ -1378,6 +1392,7 @@ export type Database = {
           custom_category?: string | null
           custom_roles?: string | null
           deadline?: string | null
+          degree?: string | null
           description?: string | null
           fee_interval?: string
           id?: string
