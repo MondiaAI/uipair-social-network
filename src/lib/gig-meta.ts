@@ -7,6 +7,13 @@ export const GIG_CATEGORIES = [
   "writing",
   "translation",
   "proofreading",
+  "video_editing",
+  "data_analysis",
+  "presentations",
+  "language_practice",
+  "music",
+  "photography",
+  "marketing",
   "other",
 ] as const;
 
@@ -21,6 +28,13 @@ export const CATEGORY_LABEL: Record<GigCategory, string> = {
   writing: "Writing",
   translation: "Translation",
   proofreading: "Proofreading",
+  video_editing: "Video editing",
+  data_analysis: "Data analysis",
+  presentations: "Presentations",
+  language_practice: "Language practice",
+  music: "Music",
+  photography: "Photography",
+  marketing: "Marketing",
   other: "Other",
 };
 
@@ -33,6 +47,13 @@ export const CATEGORY_CHIP: Record<GigCategory, string> = {
   writing: "bg-orange-100 text-orange-700 border-orange-200",
   translation: "bg-cyan-100 text-cyan-700 border-cyan-200",
   proofreading: "bg-rose-100 text-rose-700 border-rose-200",
+  video_editing: "bg-red-100 text-red-700 border-red-200",
+  data_analysis: "bg-indigo-100 text-indigo-700 border-indigo-200",
+  presentations: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  language_practice: "bg-teal-100 text-teal-700 border-teal-200",
+  music: "bg-violet-100 text-violet-700 border-violet-200",
+  photography: "bg-stone-100 text-stone-700 border-stone-200",
+  marketing: "bg-lime-100 text-lime-700 border-lime-200",
   other: "bg-gray-100 text-gray-700 border-gray-200",
 };
 
