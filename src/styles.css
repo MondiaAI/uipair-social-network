@@ -239,3 +239,28 @@
     border-color: color-mix(in oklch, var(--primary) 40%, var(--border));
   }
 }
+
+@layer base {
+  /* Responsive buttons across the whole app:
+     - Never overflow their container
+     - On phones, allow long labels to wrap instead of getting clipped
+     - Meet the 44px touch target on coarse pointers */
+  button, [role="button"], a[class*="bg-primary"], a[class*="border"] {
+    max-width: 100%;
+  }
+
+  @media (max-width: 640px) {
+    button:not([class*="w-"]):not([class*="icon"]),
+    [data-slot="button"]:not([class*="w-"]):not([class*="icon"]) {
+      white-space: normal;
+      word-break: break-word;
+    }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    button:not([class*="h-7"]):not([class*="h-6"]):not([class*="h-5"]),
+    [role="button"]:not([class*="h-7"]):not([class*="h-6"]):not([class*="h-5"]) {
+      min-height: 44px;
+    }
+  }
+}
