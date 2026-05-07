@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard";
 import { SUBJECTS } from "@/lib/subjects";
-import { DegreeFilterBar, matchesDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
+import { DegreeFilterBar, matchesDegree, useSharedDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
 import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
