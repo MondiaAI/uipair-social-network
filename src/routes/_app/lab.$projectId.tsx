@@ -337,9 +337,33 @@ function ProjectDetailPage() {
               <Progress value={project.progress} />
             </div>
             {!isMember && user && (
-              <Button size="sm" onClick={requestJoin} disabled={requesting} className="w-full">
-                {requesting ? "Sending…" : "Request to Join"}
-              </Button>
+              myRequest?.status === "pending" ? (
+                <div className="w-full space-y-1.5">
+                  <Badge variant="outline" className="w-full justify-center bg-amber-100 text-amber-800 border-amber-200">
+                    Request pending
+                  </Badge>
+                  <Button size="sm" variant="outline" className="w-full" onClick={withdrawRequest}>
+                    Withdraw request
+                  </Button>
+                </div>
+              ) : myRequest?.status === "approved" ? (
+                <Badge variant="outline" className="w-full justify-center bg-emerald-100 text-emerald-800 border-emerald-200">
+                  Request approved
+                </Badge>
+              ) : myRequest?.status === "declined" ? (
+                <div className="w-full space-y-1.5">
+                  <Badge variant="outline" className="w-full justify-center bg-rose-100 text-rose-800 border-rose-200">
+                    Request declined
+                  </Badge>
+                  <Button size="sm" variant="outline" className="w-full" onClick={requestJoin} disabled={requesting}>
+                    {requesting ? "Sending…" : "Request again"}
+                  </Button>
+                </div>
+              ) : (
+                <Button size="sm" onClick={requestJoin} disabled={requesting} className="w-full">
+                  {requesting ? "Sending…" : "Request to Join"}
+                </Button>
+              )
             )}
             {isMember && !isCreator && <Badge variant="secondary">Member</Badge>}
             {isCreator && <Badge className="bg-primary">Admin · Creator</Badge>}
