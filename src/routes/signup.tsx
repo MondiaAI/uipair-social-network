@@ -85,7 +85,24 @@ function SignupPage() {
     if (!country) { setStep(2); toast.error("Please select your country"); focusField(countryRef); return false; }
     if (!field) { setStep(2); toast.error("Please enter your field of study"); focusField(fieldRef); return false; }
     if (!passwordsMatch) { setStep(2); toast.error("Passwords don't match"); focusField(confirmPwRef); return false; }
-    if (!dobValid) { setStep(2); toast.error("Please enter a valid date of birth (18+)"); focusField(dobRef); return false; }
+    if (!dob) {
+      setStep(2);
+      const missingRef = !dobDay ? dobDayRef : !dobMonth ? dobMonthRef : !dobYear ? dobYearRef : dobDayRef;
+      toast.error(
+        !dobDay ? "Please select your day of birth"
+        : !dobMonth ? "Please select your month of birth"
+        : !dobYear ? "Please select your year of birth"
+        : "That date doesn't look valid — please correct it",
+      );
+      focusField(missingRef);
+      return false;
+    }
+    if (!dobValid) {
+      setStep(2);
+      toast.error(`You must be 18+ to join (you're ${age})`);
+      focusField(dobYearRef);
+      return false;
+    }
     if (!acceptTerms) { setStep(2); toast.error("Please accept the Terms"); focusField(termsRef); return false; }
     return true;
   };
