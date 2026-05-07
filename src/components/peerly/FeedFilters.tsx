@@ -5,7 +5,7 @@ export type FeedFilter = PostType | "all";
 
 const LABELS: Record<FeedFilter, string> = {
   all: "All",
-  research: "Pair research",
+  research: "Pair-research",
   partner: "Partner",
   brainstorm: "Brainstorm",
   question: "Questions",
