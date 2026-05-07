@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Lightbulb, Flame, Brain, Bookmark, Check, MessageCircle, Share2, Radio, Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -37,6 +37,49 @@ const REACTIONS = [
 ] as const;
 
 const MAX_LINES = 4;
+
+const LINK_REGEX = /(\/lab\/[0-9a-f-]{36}|https?:\/\/[^\s)]+)/gi;
+
+function renderContentWithLinks(text: string, navigate: ReturnType<typeof useNavigate>): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  const re = new RegExp(LINK_REGEX);
+  let i = 0;
+  while ((match = re.exec(text)) !== null) {
+    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
+    const url = match[0];
+    if (url.startsWith("/lab/")) {
+      const projectId = url.slice("/lab/".length);
+      parts.push(
+        <button
+          key={`lnk-${i++}`}
+          type="button"
+          onClick={(e) => { e.stopPropagation(); navigate({ to: "/lab/$projectId", params: { projectId } }); }}
+          className="text-primary font-medium hover:underline"
+        >
+          {url}
+        </button>
+      );
+    } else {
+      parts.push(
+        <a
+          key={`lnk-${i++}`}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="text-primary font-medium hover:underline break-all"
+        >
+          {url}
+        </a>
+      );
+    }
+    lastIndex = match.index + url.length;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+  return parts;
+}
 
 export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChange: () => void }) {
   const { user } = useAuth();
@@ -224,7 +267,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
         <p
           className={cn("whitespace-pre-wrap text-[15px] leading-relaxed", !expanded && isLong && "line-clamp-4")}
         >
-          {post.content}
+          {renderContentWithLinks(post.content, navigate)}
         </p>
         {isLong && (
           <button
