@@ -2,7 +2,6 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import { useEffect } from "react";
 import { AuthProvider } from "@/lib/auth-context";
 import { FeedProvider } from "@/lib/feed-context";
-import { NotificationsProvider } from "@/lib/notifications-context";
 import { Toaster } from "@/components/ui/sonner";
 import { installGlobalErrorLogger } from "@/lib/client-logger";
 
