@@ -39,6 +39,8 @@ interface ProjectDetail {
   deadline: string | null;
   is_public: boolean;
   progress: number;
+  view_count: number;
+  join_fee_cents: number;
 }
 
 interface MemberRow {
