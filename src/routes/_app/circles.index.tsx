@@ -34,8 +34,8 @@ function CirclesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [degree, setDegree] = useState<DegreeKey>("all");
-  const [customSubject, setCustomSubject] = useCustomSubject("circles.index.customSubject");
+  const [degree, setDegree] = useSharedDegree();
+  const [customSubject, setCustomSubject] = useCustomSubject();
   const [inviteInput, setInviteInput] = useState("");
 
   const handleJoinByInvite = () => {
