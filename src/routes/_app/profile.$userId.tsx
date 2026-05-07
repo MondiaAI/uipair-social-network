@@ -130,7 +130,14 @@ function ProfilePage() {
                 <FriendActions otherId={userId} otherName={name} />
               </>
             )}
-            {isMe && <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>}
+            {isMe && (
+              <>
+                <Button size="sm" onClick={() => setEditOpen(true)}>
+                  <Pencil className="h-4 w-4" /> Edit profile
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>
+              </>
+            )}
           </div>
         </div>
 
