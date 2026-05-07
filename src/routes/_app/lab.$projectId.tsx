@@ -253,26 +253,47 @@ function ProjectDetailPage() {
     setEditCustomRoles(project.custom_roles ?? "");
   }, [project?.id]);
 
-  // Debounced autosave for custom category / roles (creator only)
+  // Debounced autosave for custom category (creator only)
   useEffect(() => {
     if (!project || !isCreator) return;
-    const nextCat = project.category === "other" ? (editCustomCategory.trim() || null) : null;
-    const nextRoles = project.open_roles?.includes("other") ? (editCustomRoles.trim() || null) : null;
-    if (nextCat === (project.custom_category ?? null) && nextRoles === (project.custom_roles ?? null)) return;
-    setSavingMeta("saving");
+    if (project.category !== "other") return;
+    const nextCat = editCustomCategory.trim() || null;
+    if (nextCat === (project.custom_category ?? null)) return;
+    setSavingCategory("saving");
     const handle = setTimeout(async () => {
       const { error } = await supabase
         .from("projects")
-        .update({ custom_category: nextCat, custom_roles: nextRoles })
+        .update({ custom_category: nextCat })
         .eq("id", projectId);
-      if (error) { toast.error(error.message); setSavingMeta(null); return; }
-      setProject((p) => (p ? { ...p, custom_category: nextCat, custom_roles: nextRoles } : p));
-      setSavingMeta("saved");
-      setTimeout(() => setSavingMeta((s) => (s === "saved" ? null : s)), 1500);
+      if (error) { toast.error(error.message); setSavingCategory(null); return; }
+      setProject((p) => (p ? { ...p, custom_category: nextCat } : p));
+      setSavingCategory("saved");
+      setTimeout(() => setSavingCategory((s) => (s === "saved" ? null : s)), 1500);
     }, 600);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editCustomCategory, editCustomRoles, isCreator, project?.id]);
+  }, [editCustomCategory, isCreator, project?.id]);
+
+  // Debounced autosave for custom roles (creator only)
+  useEffect(() => {
+    if (!project || !isCreator) return;
+    if (!project.open_roles?.includes("other")) return;
+    const nextRoles = editCustomRoles.trim() || null;
+    if (nextRoles === (project.custom_roles ?? null)) return;
+    setSavingRoles("saving");
+    const handle = setTimeout(async () => {
+      const { error } = await supabase
+        .from("projects")
+        .update({ custom_roles: nextRoles })
+        .eq("id", projectId);
+      if (error) { toast.error(error.message); setSavingRoles(null); return; }
+      setProject((p) => (p ? { ...p, custom_roles: nextRoles } : p));
+      setSavingRoles("saved");
+      setTimeout(() => setSavingRoles((s) => (s === "saved" ? null : s)), 1500);
+    }, 600);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editCustomRoles, isCreator, project?.id]);
 
   const postActivity = async () => {
     if (!user || !newActivity.trim()) return;
