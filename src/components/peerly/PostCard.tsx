@@ -94,6 +94,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
   const [linkedProject, setLinkedProject] = useState<{
     id: string; name: string; is_public: boolean; join_fee_cents: number;
     fee_interval: "one_time" | "monthly"; member_count: number; team_size_limit: number; creator_id: string;
+    view_count: number;
   } | null>(null);
   const [isMember, setIsMember] = useState(false);
   const [joining, setJoining] = useState(false);
@@ -114,7 +115,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
     (async () => {
       const { data } = await supabase
         .from("projects")
-        .select("id, name, is_public, join_fee_cents, fee_interval, member_count, team_size_limit, creator_id")
+        .select("id, name, is_public, join_fee_cents, fee_interval, member_count, team_size_limit, creator_id, view_count")
         .eq("id", projectId)
         .maybeSingle();
       if (!cancelled && data) setLinkedProject(data as typeof linkedProject);

@@ -1,4 +1,4 @@
-import { Rocket, Users, ExternalLink } from "lucide-react";
+import { Rocket, Users, ExternalLink, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +18,7 @@ export interface ProjectFeedCardData {
   member_count: number;
   team_size_limit: number;
   creator_id: string;
+  view_count?: number;
 }
 
 export function ProjectFeedCard({
@@ -40,14 +41,18 @@ export function ProjectFeedCard({
     navigate({ to: "/lab/$projectId", params: { projectId: project.id } });
 
   const join = async () => {
-    if (!user) return;
+    if (!user) {
+      // Send unauthenticated users via the join deep link so they auto-join after login
+      navigate({ to: "/lab/$projectId", params: { projectId: project.id }, search: { action: "join" } });
+      return;
+    }
     setJoining(true);
     const { error } = await supabase.rpc("join_public_project", { _project_id: project.id });
     setJoining(false);
     if (error) { toast.error(error.message); return; }
     toast.success(`Joined ${project.name}!`);
     onJoined?.();
-    view();
+    navigate({ to: "/lab/$projectId", params: { projectId: project.id } });
   };
 
   return (
@@ -62,6 +67,7 @@ export function ProjectFeedCard({
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
               <Users className="h-3 w-3" />
               <span>{project.member_count}/{project.team_size_limit} members</span>
+              <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3" />{project.view_count ?? 0}</span>
               {!project.is_public && (
                 <Badge variant="outline" className="ml-1 text-[10px] py-0">Private</Badge>
               )}

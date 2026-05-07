@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, CalendarDays, Plus, Trash2, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Eye, Plus, Trash2, Users } from "lucide-react";
 import { format, formatDistanceToNow, isValid } from "date-fns";
 import { toast } from "sonner";
 import { ROLE_CHIP, ROLE_LABEL, type ProjectRole } from "@/lib/project-meta";
@@ -21,6 +21,9 @@ import { ProjectWorkspace } from "@/components/peerly/ProjectWorkspace";
 
 export const Route = createFileRoute("/_app/lab/$projectId")({
   component: ProjectDetailPage,
+  validateSearch: (s: Record<string, unknown>) => ({
+    action: typeof s.action === "string" ? (s.action as string) : undefined,
+  }),
 });
 
 interface ProjectDetail {
@@ -36,6 +39,8 @@ interface ProjectDetail {
   deadline: string | null;
   is_public: boolean;
   progress: number;
+  view_count: number;
+  join_fee_cents: number;
 }
 
 interface MemberRow {
@@ -87,6 +92,8 @@ const TASK_COLUMNS: { status: TaskRow["status"]; label: string }[] = [
 
 function ProjectDetailPage() {
   const { projectId } = useParams({ from: "/_app/lab/$projectId" });
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { user } = useAuth();
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [members, setMembers] = useState<MemberRow[]>([]);
@@ -142,8 +149,29 @@ function ProjectDetailPage() {
 
   useEffect(() => {
     load();
+    // Increment view counter (fire-and-forget)
+    supabase.rpc("increment_project_view", { _project_id: projectId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
+
+  // Auto-join when arriving with ?action=join on a free public project
+  useEffect(() => {
+    if (search.action !== "join" || !user || !project) return;
+    if (isMember) {
+      navigate({ to: "/lab/$projectId", params: { projectId }, search: {} });
+      return;
+    }
+    if (!project.is_public || project.join_fee_cents > 0) return;
+    if (project.member_count >= project.team_size_limit) return;
+    (async () => {
+      const { error } = await supabase.rpc("join_public_project", { _project_id: projectId });
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Joined ${project.name}!`);
+      navigate({ to: "/lab/$projectId", params: { projectId }, search: {} });
+      load();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.action, user, project?.id, isMember]);
 
   const postActivity = async () => {
     if (!user || !newActivity.trim()) return;
@@ -226,6 +254,7 @@ function ProjectDetailPage() {
             {project.description && <p className="mt-2 text-sm text-muted-foreground">{project.description}</p>}
             <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" />{project.member_count}/{project.team_size_limit}</span>
+              <span className="inline-flex items-center gap-1"><Eye className="h-3.5 w-3.5" />{project.view_count ?? 0} views</span>
               {dl && isValid(dl) && <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />Due {format(dl, "PP")}</span>}
             </div>
             {project.open_roles?.length > 0 && (
