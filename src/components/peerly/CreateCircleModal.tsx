@@ -17,6 +17,7 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
+  const [customSubject, setCustomSubject] = useState("");
   const [description, setDescription] = useState("");
   const [campusOnly, setCampusOnly] = useState(false);
   // Global circles are premium-paid by default; campus circles are free unless toggled.
@@ -36,12 +37,17 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
 
   const handleSubmit = async () => {
     if (!user || !name.trim() || !subject) return;
+    if (subject === "Other" && !customSubject.trim()) {
+      toast.error("Please enter a custom subject");
+      return;
+    }
     setSubmitting(true);
     const { data, error } = await supabase
       .from("circles")
       .insert({
         name: name.trim(),
         subject,
+        custom_subject: subject === "Other" ? customSubject.trim() : null,
         description: description.trim() || null,
         leader_id: user.id,
         scope: campusOnly ? "campus" : "global",
@@ -83,6 +89,15 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
                 {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
+            {subject === "Other" && (
+              <Input
+                className="mt-2"
+                value={customSubject}
+                onChange={(e) => setCustomSubject(e.target.value)}
+                placeholder="Enter subject"
+                maxLength={50}
+              />
+            )}
           </div>
           <div>
             <Label>Description</Label>
