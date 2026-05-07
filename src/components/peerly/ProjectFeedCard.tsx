@@ -96,14 +96,16 @@ export function ProjectFeedCard({
             </Button>
           )
         ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="flex-1">
-                <Button size="sm" className="w-full" disabled>Join</Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>This is a private project — you need an invite to join.</TooltipContent>
-          </Tooltip>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="flex-1">
+                  <Button size="sm" className="w-full" disabled>Join</Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>This is a private project — you need an invite to join.</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
     </div>
