@@ -11,6 +11,7 @@ import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard"
 
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { SUBJECTS } from "@/lib/subjects";
+import { DegreeFilterBar, matchesDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
 import { toast } from "sonner";
 import { Link, useNavigate } from "@tanstack/react-router";
 
@@ -32,6 +33,7 @@ function CirclesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
+  const [degree, setDegree] = useState<DegreeKey>("all");
   const [inviteInput, setInviteInput] = useState("");
 
   const handleJoinByInvite = () => {
@@ -151,6 +153,7 @@ function CirclesPage() {
     const q = search.trim().toLowerCase();
     return circles.filter((c) => {
       if (subjectFilter !== "all" && c.subject !== subjectFilter) return false;
+      if (!matchesDegree(c.subject, degree)) return false;
       if (mode === "campus") {
         if (c.scope !== "campus") return false;
         if (userUniversity && c.university && c.university !== userUniversity) return false;
@@ -160,7 +163,7 @@ function CirclesPage() {
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q);
     });
-  }, [circles, search, subjectFilter, mode, userUniversity]);
+  }, [circles, search, subjectFilter, degree, mode, userUniversity]);
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
@@ -199,6 +202,10 @@ function CirclesPage() {
             {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+      </div>
+
+      <div className="mb-6">
+        <DegreeFilterBar value={degree} onChange={setDegree} />
       </div>
 
       <div className="rounded-xl border bg-card p-3 mb-6 flex flex-col sm:flex-row gap-2 sm:items-center">

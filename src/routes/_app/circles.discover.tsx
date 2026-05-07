@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard";
 import { SUBJECTS } from "@/lib/subjects";
+import { DegreeFilterBar, matchesDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -32,6 +33,7 @@ function DiscoverCirclesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
+  const [degree, setDegree] = useState<DegreeKey>("all");
   const [tier, setTier] = useState<Tier>("all");
   const [scope, setScope] = useState<Scope>("all");
   const [campusOnlyMine, setCampusOnlyMine] = useState(true);
@@ -128,6 +130,7 @@ function DiscoverCirclesPage() {
     const q = search.trim().toLowerCase();
     return circles.filter((c) => {
       if (subjectFilter !== "all" && c.subject !== subjectFilter) return false;
+      if (!matchesDegree(c.subject, degree)) return false;
       if (tier === "free" && c.is_premium) return false;
       if (tier === "premium" && !c.is_premium) return false;
       if (scope !== "all" && c.scope !== scope) return false;
@@ -135,10 +138,11 @@ function DiscoverCirclesPage() {
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q) || c.subject.toLowerCase().includes(q);
     });
-  }, [circles, search, subjectFilter, tier, scope, campusOnlyMine, userUniversity]);
+  }, [circles, search, subjectFilter, degree, tier, scope, campusOnlyMine, userUniversity]);
 
   const activeFilters = [
     subjectFilter !== "all" && { label: subjectFilter, clear: () => setSubjectFilter("all") },
+    degree !== "all" && { label: degree, clear: () => setDegree("all") },
     tier !== "all" && { label: tier === "free" ? "Free" : "Premium", clear: () => setTier("all") },
     scope !== "all" && { label: scope === "campus" ? "Campus" : "Global", clear: () => setScope("all") },
     scope === "campus" && campusOnlyMine && userUniversity && {
@@ -219,6 +223,8 @@ function DiscoverCirclesPage() {
             ))}
           </div>
         </div>
+
+        <DegreeFilterBar value={degree} onChange={setDegree} />
 
         {scope === "campus" && userUniversity && (
           <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
