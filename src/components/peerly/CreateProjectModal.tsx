@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Check, Search } from "lucide-react";
 import { useNetworkPeople } from "@/hooks/use-network-people";
 import { SUBJECTS } from "@/lib/subjects";
+import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import {
   PROJECT_CATEGORIES,
   PROJECT_ROLES,
@@ -150,6 +151,7 @@ export function CreateProjectModal({ open, onOpenChange }: { open: boolean; onOp
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
+              <DegreeQuickPicks value={subject} onSelect={setSubject} />
               {subject === "Other" && (
                 <Input
                   className="mt-2"

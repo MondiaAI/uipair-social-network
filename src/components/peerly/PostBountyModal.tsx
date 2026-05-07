@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SUBJECTS } from "@/lib/subjects";
+import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -61,12 +62,13 @@ export function PostBountyModal({ open, onOpenChange, onCreated }: { open: boole
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
               </Select>
+              <DegreeQuickPicks value={subject} onSelect={setSubject} />
               {subject === "Other" && (
                 <Input
                   className="mt-2"
                   value={customSubject}
                   onChange={(e) => setCustomSubject(e.target.value)}
-                  placeholder="Enter subject"
+                  placeholder="Enter custom subject"
                   maxLength={50}
                 />
               )}

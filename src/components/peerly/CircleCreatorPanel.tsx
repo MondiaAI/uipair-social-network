@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SUBJECTS } from "@/lib/subjects";
+import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -159,6 +160,7 @@ export function CircleCreatorPanel({
                   {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
+              <DegreeQuickPicks value={subject} onSelect={setSubject} />
               {subject === "Other" && (
                 <Input
                   className="mt-2"

@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { SUBJECTS } from "@/lib/subjects";
+import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -119,6 +120,7 @@ function CreateCirclePage() {
               {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
+          <DegreeQuickPicks value={subject} onSelect={setSubject} />
           {subject === "Other" && (
             <Input
               className="mt-2"
