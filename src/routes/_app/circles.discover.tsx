@@ -182,9 +182,6 @@ function DiscoverCirclesPage() {
               {SUBJECTS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
-        </div>
-
-        <DegreeFilterBar value={degree} onChange={setDegree} />
 
           <div className="flex rounded-md border p-0.5 bg-background">
             {([
