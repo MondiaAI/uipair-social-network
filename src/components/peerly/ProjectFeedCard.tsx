@@ -1,4 +1,4 @@
-import { Rocket, Users, ExternalLink } from "lucide-react";
+import { Rocket, Users, ExternalLink, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
