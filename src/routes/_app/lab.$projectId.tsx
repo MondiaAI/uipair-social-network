@@ -121,7 +121,8 @@ function ProjectDetailPage() {
   const [editCustomCategory, setEditCustomCategory] = useState("");
   const [editCustomRoles, setEditCustomRoles] = useState("");
   const [editCustomSubject, setEditCustomSubject] = useState("");
-  const [savingMeta, setSavingMeta] = useState<null | "saving" | "saved">(null);
+  const [savingCategory, setSavingCategory] = useState<null | "saving" | "saved">(null);
+  const [savingRoles, setSavingRoles] = useState<null | "saving" | "saved">(null);
 
   const requestJoin = async () => {
     if (!user || !project) return;
@@ -252,26 +253,47 @@ function ProjectDetailPage() {
     setEditCustomRoles(project.custom_roles ?? "");
   }, [project?.id]);
 
-  // Debounced autosave for custom category / roles (creator only)
+  // Debounced autosave for custom category (creator only)
   useEffect(() => {
     if (!project || !isCreator) return;
-    const nextCat = project.category === "other" ? (editCustomCategory.trim() || null) : null;
-    const nextRoles = project.open_roles?.includes("other") ? (editCustomRoles.trim() || null) : null;
-    if (nextCat === (project.custom_category ?? null) && nextRoles === (project.custom_roles ?? null)) return;
-    setSavingMeta("saving");
+    if (project.category !== "other") return;
+    const nextCat = editCustomCategory.trim() || null;
+    if (nextCat === (project.custom_category ?? null)) return;
+    setSavingCategory("saving");
     const handle = setTimeout(async () => {
       const { error } = await supabase
         .from("projects")
-        .update({ custom_category: nextCat, custom_roles: nextRoles })
+        .update({ custom_category: nextCat })
         .eq("id", projectId);
-      if (error) { toast.error(error.message); setSavingMeta(null); return; }
-      setProject((p) => (p ? { ...p, custom_category: nextCat, custom_roles: nextRoles } : p));
-      setSavingMeta("saved");
-      setTimeout(() => setSavingMeta((s) => (s === "saved" ? null : s)), 1500);
+      if (error) { toast.error(error.message); setSavingCategory(null); return; }
+      setProject((p) => (p ? { ...p, custom_category: nextCat } : p));
+      setSavingCategory("saved");
+      setTimeout(() => setSavingCategory((s) => (s === "saved" ? null : s)), 1500);
     }, 600);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editCustomCategory, editCustomRoles, isCreator, project?.id]);
+  }, [editCustomCategory, isCreator, project?.id]);
+
+  // Debounced autosave for custom roles (creator only)
+  useEffect(() => {
+    if (!project || !isCreator) return;
+    if (!project.open_roles?.includes("other")) return;
+    const nextRoles = editCustomRoles.trim() || null;
+    if (nextRoles === (project.custom_roles ?? null)) return;
+    setSavingRoles("saving");
+    const handle = setTimeout(async () => {
+      const { error } = await supabase
+        .from("projects")
+        .update({ custom_roles: nextRoles })
+        .eq("id", projectId);
+      if (error) { toast.error(error.message); setSavingRoles(null); return; }
+      setProject((p) => (p ? { ...p, custom_roles: nextRoles } : p));
+      setSavingRoles("saved");
+      setTimeout(() => setSavingRoles((s) => (s === "saved" ? null : s)), 1500);
+    }, 600);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editCustomRoles, isCreator, project?.id]);
 
   const postActivity = async () => {
     if (!user || !newActivity.trim()) return;
@@ -369,27 +391,37 @@ function ProjectDetailPage() {
               </div>
             )}
             {isCreator && (project.category === "other" || project.open_roles?.includes("other")) && (
-              <div className="mt-3 space-y-2 rounded-md border border-dashed p-3">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-muted-foreground">Customize "Other"</p>
-                  {savingMeta === "saving" && <span className="text-[11px] text-muted-foreground">Saving…</span>}
-                  {savingMeta === "saved" && <span className="text-[11px] text-emerald-600">Saved ✓</span>}
-                </div>
+              <div className="mt-3 space-y-3 rounded-md border border-dashed p-3">
+                <p className="text-xs font-medium text-muted-foreground">Customize "Other"</p>
                 {project.category === "other" && (
-                  <Input
-                    value={editCustomCategory}
-                    onChange={(e) => setEditCustomCategory(e.target.value)}
-                    placeholder="Custom category (e.g. Side project)"
-                    maxLength={50}
-                  />
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] text-muted-foreground">Category</label>
+                      {savingCategory === "saving" && <span className="text-[11px] text-muted-foreground">Saving…</span>}
+                      {savingCategory === "saved" && <span className="text-[11px] text-emerald-600">Saved ✓</span>}
+                    </div>
+                    <Input
+                      value={editCustomCategory}
+                      onChange={(e) => setEditCustomCategory(e.target.value)}
+                      placeholder="Custom category (e.g. Side project)"
+                      maxLength={50}
+                    />
+                  </div>
                 )}
                 {project.open_roles?.includes("other") && (
-                  <Input
-                    value={editCustomRoles}
-                    onChange={(e) => setEditCustomRoles(e.target.value)}
-                    placeholder="Other roles (e.g. Marketer, PM)"
-                    maxLength={80}
-                  />
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] text-muted-foreground">Other roles</label>
+                      {savingRoles === "saving" && <span className="text-[11px] text-muted-foreground">Saving…</span>}
+                      {savingRoles === "saved" && <span className="text-[11px] text-emerald-600">Saved ✓</span>}
+                    </div>
+                    <Input
+                      value={editCustomRoles}
+                      onChange={(e) => setEditCustomRoles(e.target.value)}
+                      placeholder="Other roles (e.g. Marketer, PM)"
+                      maxLength={80}
+                    />
+                  </div>
                 )}
               </div>
             )}
