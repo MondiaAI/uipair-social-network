@@ -18,7 +18,7 @@ import { ProjectCard, type ProjectCardData } from "@/components/peerly/ProjectCa
 import { ApplyToProjectModal } from "@/components/peerly/ApplyToProjectModal";
 import { HackathonBanner } from "@/components/peerly/HackathonBanner";
 
-export const Route = createFileRoute("/_app/lab")({
+export const Route = createFileRoute("/_app/lab/")({
   component: LabPage,
 });
 
