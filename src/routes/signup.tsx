@@ -66,7 +66,7 @@ function SignupPage() {
   const skillsRef = useRef<HTMLDivElement>(null);
   const interestsRef = useRef<HTMLDivElement>(null);
 
-  const focusField = (ref: React.RefObject<HTMLDivElement>) => {
+  const focusField = (ref: React.RefObject<HTMLDivElement | null>) => {
     setTimeout(() => {
       const el = ref.current;
       if (!el) return;
