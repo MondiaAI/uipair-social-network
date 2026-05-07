@@ -239,10 +239,11 @@ function SignupPage() {
             <div className="space-y-3">
               <div>
                 <Label>University</Label>
-                <Select value={university} onValueChange={setUniversity}>
-                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                  <SelectContent>{UNIVERSITIES.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
-                </Select>
+                <UniversityField
+                  userId={user?.id}
+                  value={university}
+                  onChange={setUniversity}
+                />
               </div>
               <div>
                 <Label>Country</Label>
@@ -398,5 +399,94 @@ function SignupPage() {
       </p>
       </div>
     </SplitAuthLayout>
+  );
+}
+
+function UniversityField({
+  userId,
+  value,
+  onChange,
+}: {
+  userId: string | undefined;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [editing, setEditing] = useState(!value);
+  const [draft, setDraft] = useState(value);
+  const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => { setDraft(value); }, [value]);
+
+  const persist = async (next: string) => {
+    onChange(next);
+    if (!userId) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ university: next || null })
+      .eq("id", userId);
+    setSaving(false);
+    if (error) {
+      toast.error("Couldn't save university");
+      return;
+    }
+    setSavedAt(Date.now());
+  };
+
+  const onDraftChange = (v: string) => {
+    setDraft(v);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      persist(v.trim());
+    }, 700);
+  };
+
+  if (!editing) {
+    return (
+      <div className="flex items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2">
+        <span className="truncate text-sm">{value || "—"}</span>
+        <Button type="button" size="sm" variant="outline" onClick={() => setEditing(true)}>
+          Edit
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex gap-2">
+        <Input
+          list="university-options"
+          value={draft}
+          onChange={(e) => onDraftChange(e.target.value)}
+          onBlur={() => {
+            if (debounceRef.current) clearTimeout(debounceRef.current);
+            if (draft.trim() !== value) persist(draft.trim());
+          }}
+          placeholder="Type your university name"
+          autoFocus
+        />
+        {value && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setEditing(false)}
+          >
+            Done
+          </Button>
+        )}
+      </div>
+      <datalist id="university-options">
+        {UNIVERSITIES.filter((u) => u !== "Other").map((u) => (
+          <option key={u} value={u} />
+        ))}
+      </datalist>
+      <p className="text-xs text-muted-foreground">
+        {saving ? "Saving…" : savedAt ? "✓ Saved" : "Autosaves as you type"}
+      </p>
+    </div>
   );
 }
