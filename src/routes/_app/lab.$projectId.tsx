@@ -149,8 +149,29 @@ function ProjectDetailPage() {
 
   useEffect(() => {
     load();
+    // Increment view counter (fire-and-forget)
+    supabase.rpc("increment_project_view", { _project_id: projectId });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId]);
+
+  // Auto-join when arriving with ?action=join on a free public project
+  useEffect(() => {
+    if (search.action !== "join" || !user || !project) return;
+    if (isMember) {
+      navigate({ to: "/lab/$projectId", params: { projectId }, search: {} });
+      return;
+    }
+    if (!project.is_public || project.join_fee_cents > 0) return;
+    if (project.member_count >= project.team_size_limit) return;
+    (async () => {
+      const { error } = await supabase.rpc("join_public_project", { _project_id: projectId });
+      if (error) { toast.error(error.message); return; }
+      toast.success(`Joined ${project.name}!`);
+      navigate({ to: "/lab/$projectId", params: { projectId }, search: {} });
+      load();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.action, user, project?.id, isMember]);
 
   const postActivity = async () => {
     if (!user || !newActivity.trim()) return;
