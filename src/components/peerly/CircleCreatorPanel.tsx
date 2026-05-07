@@ -50,7 +50,6 @@ interface SubscriptionRow {
 }
 
 export function CircleCreatorPanel({
-  const allSubjects = useAllSubjects();
   circle,
   members,
   onUpdated,
@@ -61,6 +60,7 @@ export function CircleCreatorPanel({
   onUpdated: () => void;
   onMemberRemoved: (userId: string) => void;
 }) {
+  const allSubjects = useAllSubjects();
   const [name, setName] = useState(circle.name);
   const [subject, setSubject] = useState(circle.subject);
   const [customSubject, setCustomSubject] = useState("");
