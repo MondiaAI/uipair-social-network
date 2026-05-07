@@ -243,7 +243,7 @@ function MatchPage() {
             </PopoverTrigger>
             <PopoverContent className="max-h-72 w-64 overflow-auto">
               <div className="space-y-1">
-                {useAllSubjectsList.map((s) => (
+                {allSubjects.map((s) => (
                   <label key={s} className="flex cursor-pointer items-center gap-2 rounded p-1 hover:bg-accent">
                     <Checkbox checked={subjects.includes(s)} onCheckedChange={() => toggleSubject(s)} />
                     <span className="text-sm">{s}</span>

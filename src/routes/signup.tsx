@@ -501,7 +501,7 @@ function SignupPage() {
             <h1 className="text-xl font-bold">Pick your interests</h1>
             <p className="text-sm text-muted-foreground mb-4">Step 4 of 4 — choose 3+ to personalize your feed</p>
             <div ref={interestsRef} className="grid grid-cols-2 gap-2 mb-4">
-              {useAllSubjectsList.map((s) => {
+              {allSubjects.map((s) => {
                 const on = interests.includes(s);
                 return (
                   <button key={s} type="button" onClick={() => toggle(interests, s, setInterests)}

@@ -206,7 +206,7 @@ function CirclesPage() {
           <SelectTrigger className="w-full sm:w-48"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All subjects</SelectItem>
-            {useAllSubjectsList.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>

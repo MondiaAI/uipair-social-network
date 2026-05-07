@@ -186,7 +186,7 @@ function DiscoverCirclesPage() {
             <SelectTrigger><SelectValue placeholder="Subject" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All subjects</SelectItem>
-              {useAllSubjectsList.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
 

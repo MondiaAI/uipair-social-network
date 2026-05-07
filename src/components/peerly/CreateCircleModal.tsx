@@ -92,7 +92,7 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
             <Select value={subject} onValueChange={setSubject}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {useAllSubjectsList.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
               </SelectContent>
             </Select>
             <DegreeQuickPicks value={subject} onSelect={setSubject} />
