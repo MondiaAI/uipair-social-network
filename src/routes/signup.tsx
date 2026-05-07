@@ -387,39 +387,44 @@ function SignupPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">You must be at least 18 to use UiPair.</p>
                 <div className="grid grid-cols-3 gap-2">
-                  <div ref={dobDayRef}>
+                  <div ref={dobDayRef} className="space-y-1">
                     <Select value={dobDay} onValueChange={setDobDay}>
-                      <SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger>
+                      <SelectTrigger aria-invalid={dobDayMissing || dobDayInvalid}><SelectValue placeholder="Day" /></SelectTrigger>
                       <SelectContent className="max-h-72">
                         {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
                           <SelectItem key={d} value={String(d)}>{d}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {dobDayMissing && <p className="text-[11px] text-destructive">Select a day</p>}
                   </div>
-                  <div ref={dobMonthRef}>
+                  <div ref={dobMonthRef} className="space-y-1">
                     <Select value={dobMonth} onValueChange={setDobMonth}>
-                      <SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger>
+                      <SelectTrigger aria-invalid={dobMonthMissing}><SelectValue placeholder="Month" /></SelectTrigger>
                       <SelectContent className="max-h-72">
                         {monthOptions.map((name, idx) => (
                           <SelectItem key={name} value={String(idx + 1)}>{name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {dobMonthMissing && <p className="text-[11px] text-destructive">Select a month</p>}
                   </div>
-                  <div ref={dobYearRef}>
+                  <div ref={dobYearRef} className="space-y-1">
                     <Select value={dobYear} onValueChange={setDobYear}>
-                      <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
+                      <SelectTrigger aria-invalid={dobYearMissing}><SelectValue placeholder="Year" /></SelectTrigger>
                       <SelectContent className="max-h-72">
                         {yearOptions.map((y) => (
                           <SelectItem key={y} value={String(y)}>{y}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {dobYearMissing && <p className="text-[11px] text-destructive">Select a year</p>}
                   </div>
                 </div>
-                {dobDay && dobMonth && dobYear && !dob && (
-                  <p className="text-xs text-destructive">That date doesn't look valid.</p>
+                {dobDayInvalid && (
+                  <p className="text-xs text-destructive" role="alert">
+                    That date isn't valid — please pick a real calendar date.
+                  </p>
                 )}
                 {dob && !dobValid && (
                   <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
