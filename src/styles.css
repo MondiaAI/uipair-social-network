@@ -104,8 +104,8 @@
   --post-partner-soft: oklch(0.96 0.05 158);
   --post-brainstorm: oklch(0.66 0.16 65);     /* #D97706 amber */
   --post-brainstorm-soft: oklch(0.96 0.05 80);
-  --post-question: oklch(0.45 0.16 285);      /* peerly purple */
-  --post-question-soft: oklch(0.95 0.04 285);
+  --post-question: oklch(0.55 0.18 245);      /* blue */
+  --post-question-soft: oklch(0.96 0.04 245);
   --post-resource: oklch(0.55 0.15 158);
   --post-resource-soft: oklch(0.96 0.05 158);
 
