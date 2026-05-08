@@ -30,11 +30,11 @@ export interface FeedPost {
 }
 
 const REACTIONS = [
-  { type: "lightbulb", icon: Lightbulb, label: "Insightful", color: "lightbulb" },
-  { type: "fire", icon: Flame, label: "Hot take", color: "fire" },
-  { type: "brain", icon: Brain, label: "Mind blown", color: "brain" },
-  { type: "bookmark", icon: Bookmark, label: "Save", color: "bookmark" },
-  { type: "agree", icon: Check, label: "I agree", color: "agree" },
+  { type: "lightbulb", icon: Lightbulb, emoji: "💡", label: "Insightful", tip: "Insightful — this taught me something", color: "lightbulb" },
+  { type: "fire", icon: Flame, emoji: "🔥", label: "Hot Take", tip: "Hot Take — bold idea, I love it", color: "fire" },
+  { type: "brain", icon: Brain, emoji: "🧠", label: "Mind Blown", tip: "Mind Blown — this changed how I think", color: "brain" },
+  { type: "bookmark", icon: Bookmark, emoji: "🔖", label: "Save", tip: "Save — I need to come back to this", color: "bookmark" },
+  { type: "agree", icon: Check, emoji: "✅", label: "I Agree", tip: "I Agree — I stand with this", color: "agree" },
 ] as const;
 
 const MAX_LINES = 4;
@@ -305,21 +305,21 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
 
       <footer className="flex items-center gap-1 pt-2 border-t flex-wrap">
         {REACTIONS.map((r) => {
-          const Icon = r.icon;
           const active = myReactions.has(r.type);
           const count = counts[r.type] ?? 0;
           return (
             <button
               key={r.type}
               onClick={() => toggleReaction(r.type)}
-              title={r.label}
+              title={r.tip}
+              aria-label={r.label}
               className={cn(
-                "flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-muted",
-                active && `bg-[var(--reaction-${r.color}-soft)] text-[var(--reaction-${r.color})]`,
+                "flex items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-muted",
+                active && `bg-[var(--reaction-${r.color}-soft)] text-[var(--reaction-${r.color})] ring-1 ring-[var(--reaction-${r.color})]/30`,
               )}
             >
-              <Icon className={cn("h-4 w-4", active && "fill-current")} />
-              {count > 0 && <span>{count}</span>}
+              <span aria-hidden className="text-base leading-none">{r.emoji}</span>
+              {count > 0 && <span className="text-xs">{count}</span>}
             </button>
           );
         })}
