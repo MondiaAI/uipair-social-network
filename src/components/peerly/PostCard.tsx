@@ -30,11 +30,11 @@ export interface FeedPost {
 }
 
 const REACTIONS = [
-  { type: "lightbulb", icon: Lightbulb, label: "Insightful", color: "lightbulb" },
-  { type: "fire", icon: Flame, label: "Hot take", color: "fire" },
-  { type: "brain", icon: Brain, label: "Mind blown", color: "brain" },
-  { type: "bookmark", icon: Bookmark, label: "Save", color: "bookmark" },
-  { type: "agree", icon: Check, label: "I agree", color: "agree" },
+  { type: "lightbulb", icon: Lightbulb, emoji: "💡", label: "Insightful", tip: "Insightful — this taught me something", color: "lightbulb" },
+  { type: "fire", icon: Flame, emoji: "🔥", label: "Hot Take", tip: "Hot Take — bold idea, I love it", color: "fire" },
+  { type: "brain", icon: Brain, emoji: "🧠", label: "Mind Blown", tip: "Mind Blown — this changed how I think", color: "brain" },
+  { type: "bookmark", icon: Bookmark, emoji: "🔖", label: "Save", tip: "Save — I need to come back to this", color: "bookmark" },
+  { type: "agree", icon: Check, emoji: "✅", label: "I Agree", tip: "I Agree — I stand with this", color: "agree" },
 ] as const;
 
 const MAX_LINES = 4;
