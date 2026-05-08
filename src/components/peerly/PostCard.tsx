@@ -305,21 +305,21 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
 
       <footer className="flex items-center gap-1 pt-2 border-t flex-wrap">
         {REACTIONS.map((r) => {
-          const Icon = r.icon;
           const active = myReactions.has(r.type);
           const count = counts[r.type] ?? 0;
           return (
             <button
               key={r.type}
               onClick={() => toggleReaction(r.type)}
-              title={r.label}
+              title={r.tip}
+              aria-label={r.label}
               className={cn(
-                "flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-muted",
-                active && `bg-[var(--reaction-${r.color}-soft)] text-[var(--reaction-${r.color})]`,
+                "flex items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-muted",
+                active && `bg-[var(--reaction-${r.color}-soft)] text-[var(--reaction-${r.color})] ring-1 ring-[var(--reaction-${r.color})]/30`,
               )}
             >
-              <Icon className={cn("h-4 w-4", active && "fill-current")} />
-              {count > 0 && <span>{count}</span>}
+              <span aria-hidden className="text-base leading-none">{r.emoji}</span>
+              {count > 0 && <span className="text-xs">{count}</span>}
             </button>
           );
         })}
