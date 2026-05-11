@@ -122,7 +122,7 @@ function ProfilePage() {
               </label>
             )}
           </div>
-          <div className="flex flex-wrap gap-2 mb-1">
+          <div className="flex flex-wrap items-center gap-2 mb-1">
             {!isMe && user && (
               <>
                 <Button size="sm" variant={following ? "outline" : "default"} onClick={toggleFollow}>
