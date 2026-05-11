@@ -1,0 +1,1 @@
+CREATE POLICY "Senders update own messages" ON public.messages FOR UPDATE TO authenticated USING (sender_id = auth.uid()) WITH CHECK (sender_id = auth.uid());
