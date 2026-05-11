@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon, Pencil } from "lucide-react";
+import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon, Pencil, Settings as SettingsIcon } from "lucide-react";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -135,6 +135,9 @@ function ProfilePage() {
               <>
                 <Button size="sm" onClick={() => setEditOpen(true)}>
                   <Pencil className="h-4 w-4" /> Edit profile
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => navigate({ to: "/settings" })}>
+                  <SettingsIcon className="h-4 w-4" /> Settings
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>
               </>
