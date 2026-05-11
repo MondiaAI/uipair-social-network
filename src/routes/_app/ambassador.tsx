@@ -28,6 +28,9 @@ function AmbassadorPage() {
   const [university, setUniversity] = useState("");
   const [social, setSocial] = useState("");
   const [motivation, setMotivation] = useState("");
+  const [studentIdFile, setStudentIdFile] = useState<File | null>(null);
+  const [passportFile, setPassportFile] = useState<File | null>(null);
+  const [fullPicFile, setFullPicFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -40,12 +43,39 @@ function AmbassadorPage() {
     })();
   }, [user, profile]);
 
+  const uploadDoc = async (file: File, kind: string): Promise<string | null> => {
+    if (!user) return null;
+    const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+    const path = `${user.id}/${kind}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("ambassador-applications").upload(path, file, { upsert: true });
+    if (error) { toast.error(`Upload failed: ${error.message}`); return null; }
+    return path;
+  };
+
   const submit = async () => {
     if (!user) return;
+    if (!social.trim()) return toast.error("Social media handle is required");
+    if (!studentIdFile) return toast.error("Student identity card is required");
+    if (!passportFile) return toast.error("Passport photo is required");
+    if (!fullPicFile) return toast.error("Full picture is required");
     setSubmitting(true);
+    const [studentIdUrl, passportUrl, fullPicUrl] = await Promise.all([
+      uploadDoc(studentIdFile, "student-id"),
+      uploadDoc(passportFile, "passport"),
+      uploadDoc(fullPicFile, "full-picture"),
+    ]);
+    if (!studentIdUrl || !passportUrl || !fullPicUrl) { setSubmitting(false); return; }
     const { data, error } = await supabase
       .from("ambassador_applications")
-      .insert({ user_id: user.id, university, social_handles: social || null, motivation })
+      .insert({
+        user_id: user.id,
+        university,
+        social_handles: social,
+        motivation,
+        student_id_card_url: studentIdUrl,
+        passport_photo_url: passportUrl,
+        full_picture_url: fullPicUrl,
+      })
       .select()
       .maybeSingle();
     setSubmitting(false);
