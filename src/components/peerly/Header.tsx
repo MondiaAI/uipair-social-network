@@ -108,7 +108,9 @@ export function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => user && navigate({ to: "/profile/$userId", params: { userId: user.id } })}>View Profile</DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setProOpen(true)}>UiPair Pro</DropdownMenuItem>
+              {!native && (
+                <DropdownMenuItem onClick={() => setProOpen(true)}>UiPair Pro</DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={async () => {
