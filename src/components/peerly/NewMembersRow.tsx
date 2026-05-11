@@ -26,9 +26,11 @@ interface Props {
   title?: string;
   limit?: number;
   scoped?: boolean;
+  /** Minimum horizontal distance in pixels to register a swipe. Default 40. */
+  swipeThreshold?: number;
 }
 
-export function NewMembersRow({ title = "New on UiPair", limit = 12, scoped = true }: Props) {
+export function NewMembersRow({ title = "New on UiPair", limit = 12, scoped = true, swipeThreshold = 40 }: Props) {
   const { user, profile } = useAuth();
   const { mode } = useFeedMode();
   const { following, follow, unfollow } = useFollows();
