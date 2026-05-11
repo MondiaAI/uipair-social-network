@@ -2,10 +2,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Check, Sparkles, ShieldAlert } from "lucide-react";
+import { Check, Sparkles, ShieldAlert, Globe } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { isNativeApp, WEB_UPGRADE_URL } from "@/lib/platform";
 
 const FEATURES = [
   "Unlimited Lab project sessions",
