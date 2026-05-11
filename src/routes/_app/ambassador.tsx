@@ -8,7 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Sparkles, Users, DollarSign, Rocket, Briefcase, GraduationCap, ShoppingBag, FlaskConical, Megaphone } from "lucide-react";
+import { Copy, Sparkles, Users, DollarSign, Rocket, Briefcase, GraduationCap, ShoppingBag, FlaskConical, Megaphone, CheckCircle2, HelpCircle } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app/ambassador")({
