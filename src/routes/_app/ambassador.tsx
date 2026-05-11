@@ -346,7 +346,7 @@ function FileUpload({ icon: Icon, label, hint, file, onChange }: { icon: any; la
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  const handle = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handle = (e: ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null;
     if (f && f.size > 10 * 1024 * 1024) { toast.error("File too large (max 10MB)"); return; }
     onChange(f);
