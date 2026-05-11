@@ -336,3 +336,37 @@ function BenefitCard({ icon: Icon, title, body }: { icon: any; title: string; bo
     </Card>
   );
 }
+
+function FileUpload({ icon: Icon, label, hint, file, onChange }: { icon: any; label: string; hint: string; file: File | null; onChange: (f: File | null) => void }) {
+  const [preview, setPreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (!file) { setPreview(null); return; }
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const handle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] ?? null;
+    if (f && f.size > 10 * 1024 * 1024) { toast.error("File too large (max 10MB)"); return; }
+    onChange(f);
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label className="flex items-center gap-2"><Icon className="h-4 w-4 text-primary" />{label} <span className="text-destructive">*</span></Label>
+      <label className="flex items-center gap-3 rounded-md border border-dashed p-3 cursor-pointer hover:bg-muted/40 transition">
+        {preview ? (
+          <img src={preview} alt={label} className="h-14 w-14 rounded object-cover" />
+        ) : (
+          <div className="h-14 w-14 rounded bg-muted flex items-center justify-center"><Upload className="h-5 w-5 text-muted-foreground" /></div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{file ? file.name : "Tap to upload"}</p>
+          <p className="text-xs text-muted-foreground">{hint}</p>
+        </div>
+        <input type="file" accept="image/*" className="hidden" onChange={handle} />
+      </label>
+    </div>
+  );
+}
