@@ -28,6 +28,7 @@ import { PostCard } from "@/components/peerly/PostCard";
 import { GigCard } from "@/components/peerly/GigCard";
 import { ResourceCard } from "@/components/peerly/ResourceCard";
 import { timeAgo } from "@/lib/gig-meta";
+import { UniversitySelector } from "@/components/peerly/UniversitySelector";
 
 export const Route = createFileRoute("/_app/profile/$userId")({
   component: ProfilePage,
