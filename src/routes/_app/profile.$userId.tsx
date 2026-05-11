@@ -262,6 +262,7 @@ function EditProfileDialog({
   onSaved: () => void | Promise<void>;
 }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [fullName, setFullName] = useState(profile?.full_name ?? "");
   const [username, setUsername] = useState(profile?.username ?? "");
   const [bio, setBio] = useState(profile?.bio ?? "");
