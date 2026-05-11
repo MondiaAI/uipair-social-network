@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -28,6 +28,7 @@ import { PostCard } from "@/components/peerly/PostCard";
 import { GigCard } from "@/components/peerly/GigCard";
 import { ResourceCard } from "@/components/peerly/ResourceCard";
 import { timeAgo } from "@/lib/gig-meta";
+import { UniversitySelector } from "@/components/peerly/UniversitySelector";
 
 export const Route = createFileRoute("/_app/profile/$userId")({
   component: ProfilePage,
@@ -268,6 +269,9 @@ function EditProfileDialog({
   const [year, setYear] = useState<string>(profile?.year_of_study?.toString() ?? "");
   const [skills, setSkills] = useState<string>((profile?.skills ?? []).join(", "));
   const [interests, setInterests] = useState<string>((profile?.interests ?? []).join(", "));
+  const [universityId, setUniversityId] = useState<string | null>(profile?.university_id ?? null);
+  const [universityName, setUniversityName] = useState<string | null>(profile?.university ?? null);
+  const [country, setCountry] = useState<string | null>(profile?.country ?? null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -279,6 +283,9 @@ function EditProfileDialog({
     setYear(profile?.year_of_study?.toString() ?? "");
     setSkills((profile?.skills ?? []).join(", "));
     setInterests((profile?.interests ?? []).join(", "));
+    setUniversityId(profile?.university_id ?? null);
+    setUniversityName(profile?.university ?? null);
+    setCountry(profile?.country ?? null);
   }, [open, profile]);
 
   const save = async () => {
@@ -293,6 +300,9 @@ function EditProfileDialog({
       year_of_study: Number.isFinite(yearNum as number) ? yearNum : null,
       skills: skills.split(",").map((s) => s.trim()).filter(Boolean),
       interests: interests.split(",").map((s) => s.trim()).filter(Boolean),
+      university_id: universityId,
+      university: universityName,
+      country: country,
     };
     const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
     setSaving(false);
@@ -339,8 +349,28 @@ function EditProfileDialog({
             <Label htmlFor="ep-interests">Interests (comma-separated)</Label>
             <Input id="ep-interests" value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="AI, Startups, Music" />
           </div>
+          <div className="space-y-1.5 rounded-lg border bg-muted/30 p-3">
+            <Label className="text-sm">University & country</Label>
+            <UniversitySelector
+              value={universityId}
+              country={country}
+              onChange={({ universityId: id, universityName: name, country: c }) => {
+                setUniversityId(id);
+                setUniversityName(name);
+                setCountry(c);
+              }}
+            />
+          </div>
           <p className="text-xs text-muted-foreground">
-            University & country can be updated in <span className="underline">Settings</span>.
+            You can also manage these from{" "}
+            <Link
+              to="/settings"
+              onClick={() => onOpenChange(false)}
+              className="underline hover:text-foreground"
+            >
+              Settings
+            </Link>
+            .
           </p>
         </div>
         <DialogFooter>
