@@ -349,8 +349,28 @@ function EditProfileDialog({
             <Label htmlFor="ep-interests">Interests (comma-separated)</Label>
             <Input id="ep-interests" value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="AI, Startups, Music" />
           </div>
+          <div className="space-y-1.5 rounded-lg border bg-muted/30 p-3">
+            <Label className="text-sm">University & country</Label>
+            <UniversitySelector
+              value={universityId}
+              country={country}
+              onChange={({ universityId: id, universityName: name, country: c }) => {
+                setUniversityId(id);
+                setUniversityName(name);
+                setCountry(c);
+              }}
+            />
+          </div>
           <p className="text-xs text-muted-foreground">
-            University & country can be updated in <span className="underline">Settings</span>.
+            You can also manage these from{" "}
+            <Link
+              to="/settings"
+              onClick={() => onOpenChange(false)}
+              className="underline hover:text-foreground"
+            >
+              Settings
+            </Link>
+            .
           </p>
         </div>
         <DialogFooter>
