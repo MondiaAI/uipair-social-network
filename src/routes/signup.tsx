@@ -326,6 +326,14 @@ function SignupPage() {
                 </span>
               </label>
               <Button type="submit" className="w-full" disabled={loading || !acceptTerms || !passwordStrong}>{loading ? "Creating…" : "Continue"}</Button>
+              <p className="text-[11px] leading-relaxed text-muted-foreground pt-2 border-t mt-3">
+                UiPair is built exclusively for university students. By creating an account you confirm that you are{" "}
+                <strong className="font-semibold text-foreground">at least 18 years old</strong> and{" "}
+                <strong className="font-semibold text-foreground">currently enrolled at, admitted to, or affiliated with a recognised university</strong>. We may ask you to verify your age and student status at any time, and accounts that fail verification may be suspended. Read the full eligibility rules in our{" "}
+                <Link to="/terms" target="_blank" className="text-primary hover:underline">Terms of Service</Link>{" "}
+                and how we handle your data in our{" "}
+                <Link to="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</Link>.
+              </p>
             </form>
           </>
         )}
