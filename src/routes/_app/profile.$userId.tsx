@@ -262,6 +262,7 @@ function EditProfileDialog({
   onSaved: () => void | Promise<void>;
 }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [fullName, setFullName] = useState(profile?.full_name ?? "");
   const [username, setUsername] = useState(profile?.username ?? "");
   const [bio, setBio] = useState(profile?.bio ?? "");
@@ -363,13 +364,16 @@ function EditProfileDialog({
           </div>
           <p className="text-xs text-muted-foreground">
             You can also manage these from{" "}
-            <Link
-              to="/settings"
-              onClick={() => onOpenChange(false)}
-              className="underline hover:text-foreground"
+            <button
+              type="button"
+              onClick={() => {
+                onOpenChange(false);
+                navigate({ to: "/settings" });
+              }}
+              className="underline underline-offset-2 hover:text-foreground font-medium text-primary"
             >
               Settings
-            </Link>
+            </button>
             .
           </p>
         </div>
