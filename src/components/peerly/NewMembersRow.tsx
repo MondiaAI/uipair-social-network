@@ -39,6 +39,9 @@ export function NewMembersRow({ title = "New on UiPair", limit = 12, scoped = tr
   const [activePage, setActivePage] = useState(0);
   const [pageCount, setPageCount] = useState(1);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const touchStartScroll = useRef<number>(0);
 
   const updatePaging = () => {
     const el = scrollerRef.current;
