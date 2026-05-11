@@ -26,7 +26,8 @@ export function Header() {
   const { unread } = useNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
   const [proOpen, setProOpen] = useState(false);
-  
+  const native = isNativeApp();
+
 
   const initials = (profile?.full_name || profile?.username || "?")
     .split(" ")
