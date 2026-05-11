@@ -434,7 +434,16 @@ function CommentRow({ comment, isOwner, onUpdated, onDeleted }: CommentRowProps)
         </div>
         {editing ? (
           <div className="mt-1 space-y-2">
-            <Textarea value={draft} onChange={(e) => setDraft(e.target.value)} className="min-h-[60px] text-sm" />
+            <Textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); save(); }
+                if (e.key === "Escape") { e.preventDefault(); setEditing(false); }
+              }}
+              autoFocus
+              className="min-h-[60px] text-sm"
+            />
             <div className="flex gap-2">
               <Button size="sm" onClick={save} disabled={saving || !draft.trim()}>Save</Button>
               <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
