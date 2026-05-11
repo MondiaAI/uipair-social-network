@@ -61,6 +61,15 @@ export function ProUpgradeModal({ open, onOpenChange }: { open: boolean; onOpenC
 
         <Button onClick={startTrial} className="w-full" size="lg">Start 7-day free trial</Button>
         <p className="text-center text-xs text-muted-foreground">Powered by Stripe • Cancel anytime</p>
+
+        <p className="text-[11px] leading-relaxed text-muted-foreground">
+          By subscribing, you agree to our{" "}
+          <a href="/terms" className="underline hover:text-foreground">purchaser terms</a>.
+          Subscriptions auto-renew until you cancel. You can cancel anytime, but
+          at least <span className="font-medium">24 hours prior to renewal</span> to
+          avoid additional charges. Prices are subject to change. Manage your
+          subscription through the platform you subscribed on.
+        </p>
       </DialogContent>
     </Dialog>
   );
