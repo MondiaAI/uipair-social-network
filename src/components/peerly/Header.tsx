@@ -17,6 +17,7 @@ import { NotificationPanel } from "./NotificationPanel";
 import { ProUpgradeModal } from "./ProUpgradeModal";
 import { PeerlyLogo } from "./PeerlyLogo";
 import { useNotifications } from "@/lib/notifications-context";
+import { isNativeApp } from "@/lib/platform";
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
