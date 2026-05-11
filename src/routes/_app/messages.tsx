@@ -830,15 +830,51 @@ function MessagesPage() {
                         : { ok: true as const, plaintext: m.content };
                       const displayText = decrypted.ok ? decrypted.plaintext : m.content;
                       const showFallback = !decrypted.ok;
+                      const isEditing = editingId === m.id;
                       return (
-                        <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
+                        <div key={m.id} className={cn("group flex items-end gap-1", mine ? "justify-end" : "justify-start")}>
+                          {mine && !isEditing && (
+                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => { setEditingId(m.id); setEditDraft(decrypted.ok ? decrypted.plaintext : ""); }}
+                                disabled={!decrypted.ok}
+                                title="Edit"
+                                className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => deleteMessage(m.id)}
+                                title="Delete"
+                                className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          )}
                           <div
                             className={cn(
                               "max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow-sm",
                               mine ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                             )}
                           >
-                            {showFallback ? (
+                            {isEditing ? (
+                              <div className="space-y-2 min-w-[220px]">
+                                <Textarea
+                                  value={editDraft}
+                                  onChange={(e) => setEditDraft(e.target.value)}
+                                  className="min-h-[60px] text-sm bg-background text-foreground"
+                                />
+                                <div className="flex gap-2 justify-end">
+                                  <Button size="sm" variant="ghost" onClick={() => { setEditingId(null); setEditDraft(""); }}>
+                                    Cancel
+                                  </Button>
+                                  <Button size="sm" onClick={() => saveEdit(m)} disabled={!editDraft.trim()}>
+                                    Save
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : showFallback ? (
                               <p className={cn("italic", mine ? "text-primary-foreground/80" : "text-muted-foreground")}>
                                 {fallbackLabel(decrypted.reason)}
                               </p>
@@ -859,9 +895,11 @@ function MessagesPage() {
                                 )
                               )
                             )}
-                            <p className={cn("mt-1 text-[10px]", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                              {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
-                            </p>
+                            {!isEditing && (
+                              <p className={cn("mt-1 text-[10px]", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                                {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
+                              </p>
+                            )}
                           </div>
                         </div>
                       );
