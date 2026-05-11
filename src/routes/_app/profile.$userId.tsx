@@ -70,6 +70,20 @@ function ProfilePage() {
 
   useEffect(() => { load(); }, [userId, user]);
 
+  // Realtime: keep this profile page fresh when the owner edits their profile,
+  // posts new content, or others follow/unfollow them.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`profile-live-${userId}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "posts", filter: `user_id=eq.${userId}` }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "follows", filter: `following_id=eq.${userId}` }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "gigs", filter: `seller_id=eq.${userId}` }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+     
+  }, [userId]);
+
   const onUpload = async (kind: "avatar" | "cover", file: File) => {
     if (!user || !isMe) return;
     const url = await uploadToBucket(kind === "avatar" ? "avatars" : "covers", user.id, file);
