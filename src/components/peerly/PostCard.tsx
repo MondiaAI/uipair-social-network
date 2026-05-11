@@ -373,3 +373,73 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
     </article>
   );
 }
+
+interface CommentRowProps {
+  comment: { id: string; content: string; created_at: string; user_id: string; profiles: { username: string | null; avatar_url: string | null } | null };
+  isOwner: boolean;
+  onUpdated: (content: string) => void;
+  onDeleted: () => void;
+}
+
+function CommentRow({ comment, isOwner, onUpdated, onDeleted }: CommentRowProps) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(comment.content);
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    const next = draft.trim();
+    if (!next || next === comment.content) { setEditing(false); return; }
+    setSaving(true);
+    const { error } = await supabase.from("comments").update({ content: next }).eq("id", comment.id);
+    setSaving(false);
+    if (error) { toast.error(error.message); return; }
+    onUpdated(next);
+    setEditing(false);
+  };
+
+  const remove = async () => {
+    if (!confirm("Delete this comment?")) return;
+    const { error } = await supabase.from("comments").delete().eq("id", comment.id);
+    if (error) { toast.error(error.message); return; }
+    onDeleted();
+  };
+
+  return (
+    <div className="flex gap-2 group">
+      <Avatar className="h-7 w-7">
+        <AvatarImage src={comment.profiles?.avatar_url ?? undefined} />
+        <AvatarFallback className="text-[10px]">
+          {(comment.profiles?.username || "?").slice(0, 2).toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+      <div className="flex-1 rounded-lg bg-muted px-3 py-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-xs font-semibold">@{comment.profiles?.username}</div>
+          {isOwner && !editing && (
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button onClick={() => { setDraft(comment.content); setEditing(true); }} title="Edit" className="p-1 rounded hover:bg-background text-muted-foreground hover:text-foreground">
+                <Pencil className="h-3 w-3" />
+              </button>
+              <button onClick={remove} title="Delete" className="p-1 rounded hover:bg-background text-muted-foreground hover:text-destructive">
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+        </div>
+        {editing ? (
+          <div className="mt-1 space-y-2">
+            <Textarea value={draft} onChange={(e) => setDraft(e.target.value)} className="min-h-[60px] text-sm" />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={save} disabled={saving || !draft.trim()}>Save</Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+                <X className="h-3 w-3 mr-1" /> Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm whitespace-pre-wrap break-words">{comment.content}</div>
+        )}
+      </div>
+    </div>
+  );
+}
