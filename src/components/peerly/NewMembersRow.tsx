@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -7,7 +7,7 @@ import { useFollows } from "@/hooks/use-follows";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, BadgeCheck, Crown, UserPlus, UserCheck } from "lucide-react";
+import { Sparkles, BadgeCheck, Crown, UserPlus, UserCheck, ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { toast } from "sonner";
 
 interface NewMember {
