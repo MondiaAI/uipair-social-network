@@ -35,6 +35,38 @@ export function NewMembersRow({ title = "New on UiPair", limit = 12, scoped = tr
   const [members, setMembers] = useState<NewMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [activePage, setActivePage] = useState(0);
+  const [pageCount, setPageCount] = useState(1);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  const updatePaging = () => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const pages = Math.max(1, Math.round(el.scrollWidth / el.clientWidth));
+    setPageCount(pages);
+    setActivePage(Math.round(el.scrollLeft / el.clientWidth));
+  };
+
+  const goTo = (page: number) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollTo({ left: page * el.clientWidth, behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (loading) return;
+    const t = setTimeout(updatePaging, 50);
+    const onResize = () => updatePaging();
+    window.addEventListener("resize", onResize);
+    return () => { clearTimeout(t); window.removeEventListener("resize", onResize); };
+  }, [members, loading]);
+
+  useEffect(() => {
+    if (paused || loading || pageCount <= 1) return;
+    const id = setInterval(() => goTo((activePage + 1) % pageCount), 4000);
+    return () => clearInterval(id);
+  }, [paused, loading, pageCount, activePage]);
 
   useEffect(() => {
     const load = async () => {
