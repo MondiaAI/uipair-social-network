@@ -269,6 +269,9 @@ function EditProfileDialog({
   const [year, setYear] = useState<string>(profile?.year_of_study?.toString() ?? "");
   const [skills, setSkills] = useState<string>((profile?.skills ?? []).join(", "));
   const [interests, setInterests] = useState<string>((profile?.interests ?? []).join(", "));
+  const [universityId, setUniversityId] = useState<string | null>(profile?.university_id ?? null);
+  const [universityName, setUniversityName] = useState<string | null>(profile?.university ?? null);
+  const [country, setCountry] = useState<string | null>(profile?.country ?? null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
