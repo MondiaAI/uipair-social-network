@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Card } from "@/components/ui/card";
@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Sparkles, Users, DollarSign, Rocket, Briefcase, GraduationCap, ShoppingBag, FlaskConical, Megaphone, CheckCircle2, HelpCircle } from "lucide-react";
+import { Copy, Sparkles, Users, DollarSign, Rocket, Briefcase, GraduationCap, ShoppingBag, FlaskConical, Megaphone, CheckCircle2, HelpCircle, Upload, IdCard, Camera, ImageIcon } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
@@ -28,6 +28,9 @@ function AmbassadorPage() {
   const [university, setUniversity] = useState("");
   const [social, setSocial] = useState("");
   const [motivation, setMotivation] = useState("");
+  const [studentIdFile, setStudentIdFile] = useState<File | null>(null);
+  const [passportFile, setPassportFile] = useState<File | null>(null);
+  const [fullPicFile, setFullPicFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -40,12 +43,39 @@ function AmbassadorPage() {
     })();
   }, [user, profile]);
 
+  const uploadDoc = async (file: File, kind: string): Promise<string | null> => {
+    if (!user) return null;
+    const ext = (file.name.split(".").pop() ?? "jpg").toLowerCase();
+    const path = `${user.id}/${kind}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("ambassador-applications").upload(path, file, { upsert: true });
+    if (error) { toast.error(`Upload failed: ${error.message}`); return null; }
+    return path;
+  };
+
   const submit = async () => {
     if (!user) return;
+    if (!social.trim()) return toast.error("Social media handle is required");
+    if (!studentIdFile) return toast.error("Student identity card is required");
+    if (!passportFile) return toast.error("Passport photo is required");
+    if (!fullPicFile) return toast.error("Full picture is required");
     setSubmitting(true);
+    const [studentIdUrl, passportUrl, fullPicUrl] = await Promise.all([
+      uploadDoc(studentIdFile, "student-id"),
+      uploadDoc(passportFile, "passport"),
+      uploadDoc(fullPicFile, "full-picture"),
+    ]);
+    if (!studentIdUrl || !passportUrl || !fullPicUrl) { setSubmitting(false); return; }
     const { data, error } = await supabase
       .from("ambassador_applications")
-      .insert({ user_id: user.id, university, social_handles: social || null, motivation })
+      .insert({
+        user_id: user.id,
+        university,
+        social_handles: social,
+        motivation,
+        student_id_card_url: studentIdUrl,
+        passport_photo_url: passportUrl,
+        full_picture_url: fullPicUrl,
+      })
       .select()
       .maybeSingle();
     setSubmitting(false);
@@ -171,9 +201,10 @@ function AmbassadorPage() {
             <p className="text-sm font-medium">✅ Eligibility checklist</p>
             <ul className="space-y-1.5 text-sm text-muted-foreground">
               {[
-                "You are a currently enrolled university student",
+                "You are a currently enrolled university student (valid student ID required)",
                 "You have an active UiPair account with a complete profile",
-                "You have an active presence on at least one social platform (IG, TikTok, X, LinkedIn, WhatsApp groups)",
+                "You have an active, real social media handle (IG, TikTok, X, LinkedIn, or WhatsApp community) — required",
+                "You can provide a clear passport photo and a full-body picture for your ambassador profile",
                 "You can commit to recruiting and supporting students for at least 3 months",
                 "You can represent UiPair professionally on your campus",
               ].map((item) => (
@@ -186,21 +217,47 @@ function AmbassadorPage() {
             <p className="text-sm font-medium">📝 What you'll need to submit</p>
             <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
               <li><span className="text-foreground font-medium">University</span> — required</li>
-              <li><span className="text-foreground font-medium">Social handles</span> — optional, but strongly recommended (boosts approval)</li>
+              <li><span className="text-foreground font-medium">Social media handle</span> — required, must be active and verifiable</li>
               <li><span className="text-foreground font-medium">Motivation</span> — required, 2–4 sentences on why you want to represent UiPair and your reach on campus</li>
+              <li><span className="text-foreground font-medium">Student identity card</span> — required, clear photo of your valid student ID</li>
+              <li><span className="text-foreground font-medium">Passport photo</span> — required, clear headshot on a plain background</li>
+              <li><span className="text-foreground font-medium">Full picture</span> — required, full-body photo of yourself</li>
             </ul>
+            <p className="text-xs text-muted-foreground pt-1">Accepted formats: JPG, PNG, HEIC. Max 10MB per file.</p>
           </div>
 
           <div className="space-y-3">
             <div><Label>University <span className="text-destructive">*</span></Label><Input value={university} onChange={(e) => setUniversity(e.target.value)} placeholder="e.g. University of Lagos" /></div>
-            <div><Label>Social handles (optional)</Label><Input value={social} onChange={(e) => setSocial(e.target.value)} placeholder="@yourhandle on IG, TikTok, X" /></div>
+            <div><Label>Social media handle <span className="text-destructive">*</span></Label><Input value={social} onChange={(e) => setSocial(e.target.value)} placeholder="@yourhandle on IG, TikTok, X, or LinkedIn" /></div>
             <div>
               <Label>Why do you want to be an ambassador? <span className="text-destructive">*</span></Label>
               <Textarea value={motivation} onChange={(e) => setMotivation(e.target.value)} rows={4} placeholder="Tell us about your campus reach, community involvement, and why you'd be a great UiPair ambassador." />
             </div>
+
+            <FileUpload
+              icon={IdCard}
+              label="Student identity card"
+              hint="Upload a clear photo of your valid student ID"
+              file={studentIdFile}
+              onChange={setStudentIdFile}
+            />
+            <FileUpload
+              icon={Camera}
+              label="Passport photo"
+              hint="Clear headshot, plain background"
+              file={passportFile}
+              onChange={setPassportFile}
+            />
+            <FileUpload
+              icon={ImageIcon}
+              label="Full picture"
+              hint="Full-body photo of yourself"
+              file={fullPicFile}
+              onChange={setFullPicFile}
+            />
           </div>
 
-          <Button onClick={submit} disabled={submitting || !university.trim() || !motivation.trim()}>
+          <Button onClick={submit} disabled={submitting || !university.trim() || !motivation.trim() || !social.trim() || !studentIdFile || !passportFile || !fullPicFile}>
             {submitting ? "Submitting…" : "Submit application"}
           </Button>
         </Card>
@@ -277,5 +334,39 @@ function BenefitCard({ icon: Icon, title, body }: { icon: any; title: string; bo
       <p className="font-semibold text-sm">{title}</p>
       <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{body}</p>
     </Card>
+  );
+}
+
+function FileUpload({ icon: Icon, label, hint, file, onChange }: { icon: any; label: string; hint: string; file: File | null; onChange: (f: File | null) => void }) {
+  const [preview, setPreview] = useState<string | null>(null);
+  useEffect(() => {
+    if (!file) { setPreview(null); return; }
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  const handle = (e: ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] ?? null;
+    if (f && f.size > 10 * 1024 * 1024) { toast.error("File too large (max 10MB)"); return; }
+    onChange(f);
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label className="flex items-center gap-2"><Icon className="h-4 w-4 text-primary" />{label} <span className="text-destructive">*</span></Label>
+      <label className="flex items-center gap-3 rounded-md border border-dashed p-3 cursor-pointer hover:bg-muted/40 transition">
+        {preview ? (
+          <img src={preview} alt={label} className="h-14 w-14 rounded object-cover" />
+        ) : (
+          <div className="h-14 w-14 rounded bg-muted flex items-center justify-center"><Upload className="h-5 w-5 text-muted-foreground" /></div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{file ? file.name : "Tap to upload"}</p>
+          <p className="text-xs text-muted-foreground">{hint}</p>
+        </div>
+        <input type="file" accept="image/*" className="hidden" onChange={handle} />
+      </label>
+    </div>
   );
 }

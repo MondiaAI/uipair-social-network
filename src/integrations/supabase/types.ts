@@ -18,12 +18,15 @@ export type Database = {
         Row: {
           created_at: string
           earnings_cents: number
+          full_picture_url: string | null
           id: string
           motivation: string
+          passport_photo_url: string | null
           referral_code: string
           referrals_count: number
           social_handles: string | null
           status: string
+          student_id_card_url: string | null
           university: string
           updated_at: string
           user_id: string
@@ -31,12 +34,15 @@ export type Database = {
         Insert: {
           created_at?: string
           earnings_cents?: number
+          full_picture_url?: string | null
           id?: string
           motivation: string
+          passport_photo_url?: string | null
           referral_code?: string
           referrals_count?: number
           social_handles?: string | null
           status?: string
+          student_id_card_url?: string | null
           university: string
           updated_at?: string
           user_id: string
@@ -44,12 +50,15 @@ export type Database = {
         Update: {
           created_at?: string
           earnings_cents?: number
+          full_picture_url?: string | null
           id?: string
           motivation?: string
+          passport_photo_url?: string | null
           referral_code?: string
           referrals_count?: number
           social_handles?: string | null
           status?: string
+          student_id_card_url?: string | null
           university?: string
           updated_at?: string
           user_id?: string
