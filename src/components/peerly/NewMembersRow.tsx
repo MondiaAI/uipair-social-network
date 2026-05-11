@@ -108,83 +108,140 @@ export function NewMembersRow({ title = "New on UiPair", limit = 12, scoped = tr
   if (!loading && members.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border bg-card p-4">
-      <div className="mb-3 flex items-center justify-between">
+    <section
+      className="rounded-2xl border bg-card p-4"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div className="mb-3 flex items-center justify-between gap-2">
         <h2 className="flex items-center gap-1.5 text-sm font-semibold">
           <Sparkles className="h-4 w-4 text-primary" /> {title}
         </h2>
-        <Link to="/match" className="text-xs text-primary hover:underline">
-          See all
-        </Link>
+        <div className="flex items-center gap-1">
+          {pageCount > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setPaused((p) => !p)}
+                className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                title={paused ? "Play" : "Pause"}
+                aria-label={paused ? "Play slideshow" : "Pause slideshow"}
+              >
+                {paused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => goTo((activePage - 1 + pageCount) % pageCount)}
+                className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                aria-label="Previous"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => goTo((activePage + 1) % pageCount)}
+                className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                aria-label="Next"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </>
+          )}
+          <Link to="/match" className="ml-1 text-xs text-primary hover:underline">
+            See all
+          </Link>
+        </div>
       </div>
       {loading ? (
         <p className="text-xs text-muted-foreground">Loading…</p>
       ) : (
-        <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
-          {members.map((m) => {
-            const name = m.full_name || m.username || "Student";
-            const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
-            const isFollowing = following.has(m.id);
-            return (
-              <div
-                key={m.id}
-                className="group flex w-32 shrink-0 flex-col items-center rounded-lg border bg-background p-3 text-center transition hover:shadow-md"
-              >
-                <Link
-                  to="/profile/$userId"
-                  params={{ userId: m.id }}
-                  className="flex flex-col items-center"
+        <>
+          <div
+            ref={scrollerRef}
+            onScroll={updatePaging}
+            className="-mx-4 flex gap-3 overflow-x-auto scroll-smooth px-4 pb-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {members.map((m) => {
+              const name = m.full_name || m.username || "Student";
+              const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+              const isFollowing = following.has(m.id);
+              return (
+                <div
+                  key={m.id}
+                  className="group flex w-32 shrink-0 snap-start flex-col items-center rounded-lg border bg-background p-3 text-center transition hover:shadow-md"
                 >
-                  <div className="relative">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={m.avatar_url ?? undefined} />
-                      <AvatarFallback>{initials}</AvatarFallback>
-                    </Avatar>
-                    {m.is_verified && (
-                      <BadgeCheck
-                        className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-card text-sky-500"
-                        aria-label="Verified"
-                      />
-                    )}
-                  </div>
-                  <div className="mt-2 flex w-full items-center justify-center gap-1">
-                    <p className="line-clamp-1 text-xs font-semibold group-hover:text-primary">
-                      {name}
+                  <Link
+                    to="/profile/$userId"
+                    params={{ userId: m.id }}
+                    className="flex flex-col items-center"
+                  >
+                    <div className="relative">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={m.avatar_url ?? undefined} />
+                        <AvatarFallback>{initials}</AvatarFallback>
+                      </Avatar>
+                      {m.is_verified && (
+                        <BadgeCheck
+                          className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-card text-sky-500"
+                          aria-label="Verified"
+                        />
+                      )}
+                    </div>
+                    <div className="mt-2 flex w-full items-center justify-center gap-1">
+                      <p className="line-clamp-1 text-xs font-semibold group-hover:text-primary">
+                        {name}
+                      </p>
+                      {m.is_pro && (
+                        <Crown className="h-3 w-3 shrink-0 text-amber-500" aria-label="Pro" />
+                      )}
+                    </div>
+                    <p className="line-clamp-1 w-full text-[10px] text-muted-foreground">
+                      {m.field_of_study || m.university || "New member"}
                     </p>
-                    {m.is_pro && (
-                      <Crown className="h-3 w-3 shrink-0 text-amber-500" aria-label="Pro" />
-                    )}
-                  </div>
-                  <p className="line-clamp-1 w-full text-[10px] text-muted-foreground">
-                    {m.field_of_study || m.university || "New member"}
-                  </p>
-                </Link>
-                {m.is_pro && (
-                  <Badge variant="outline" className="mt-1 h-4 gap-0.5 border-amber-500/40 px-1 text-[9px] text-amber-600">
-                    Pro
-                  </Badge>
-                )}
-                <Button
-                  size="sm"
-                  variant={isFollowing ? "outline" : "default"}
-                  className="mt-2 h-7 w-full px-2 text-[11px]"
-                  disabled={busy === m.id || !user}
-                  onClick={() => toggleFollow(m.id, name)}
-                >
-                  {isFollowing ? (
-                    <>
-                      <UserCheck className="h-3 w-3" /> Following
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="h-3 w-3" /> Follow
-                    </>
+                  </Link>
+                  {m.is_pro && (
+                    <Badge variant="outline" className="mt-1 h-4 gap-0.5 border-amber-500/40 px-1 text-[9px] text-amber-600">
+                      Pro
+                    </Badge>
                   )}
-                </Button>
-              </div>
-            );
-          })}
-        </div>
+                  <Button
+                    size="sm"
+                    variant={isFollowing ? "outline" : "default"}
+                    className="mt-2 h-7 w-full px-2 text-[11px]"
+                    disabled={busy === m.id || !user}
+                    onClick={() => toggleFollow(m.id, name)}
+                  >
+                    {isFollowing ? (
+                      <>
+                        <UserCheck className="h-3 w-3" /> Following
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-3 w-3" /> Follow
+                      </>
+                    )}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+          {pageCount > 1 && (
+            <div className="mt-3 flex items-center justify-center gap-1.5">
+              {Array.from({ length: pageCount }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => goTo(i)}
+                  aria-label={`Go to slide ${i + 1}`}
+                  className={
+                    "h-1.5 rounded-full transition-all " +
+                    (i === activePage ? "w-5 bg-primary" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/50")
+                  }
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </section>
   );
