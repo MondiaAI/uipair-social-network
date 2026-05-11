@@ -201,9 +201,10 @@ function AmbassadorPage() {
             <p className="text-sm font-medium">✅ Eligibility checklist</p>
             <ul className="space-y-1.5 text-sm text-muted-foreground">
               {[
-                "You are a currently enrolled university student",
+                "You are a currently enrolled university student (valid student ID required)",
                 "You have an active UiPair account with a complete profile",
-                "You have an active presence on at least one social platform (IG, TikTok, X, LinkedIn, WhatsApp groups)",
+                "You have an active, real social media handle (IG, TikTok, X, LinkedIn, or WhatsApp community) — required",
+                "You can provide a clear passport photo and a full-body picture for your ambassador profile",
                 "You can commit to recruiting and supporting students for at least 3 months",
                 "You can represent UiPair professionally on your campus",
               ].map((item) => (
@@ -216,21 +217,47 @@ function AmbassadorPage() {
             <p className="text-sm font-medium">📝 What you'll need to submit</p>
             <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
               <li><span className="text-foreground font-medium">University</span> — required</li>
-              <li><span className="text-foreground font-medium">Social handles</span> — optional, but strongly recommended (boosts approval)</li>
+              <li><span className="text-foreground font-medium">Social media handle</span> — required, must be active and verifiable</li>
               <li><span className="text-foreground font-medium">Motivation</span> — required, 2–4 sentences on why you want to represent UiPair and your reach on campus</li>
+              <li><span className="text-foreground font-medium">Student identity card</span> — required, clear photo of your valid student ID</li>
+              <li><span className="text-foreground font-medium">Passport photo</span> — required, clear headshot on a plain background</li>
+              <li><span className="text-foreground font-medium">Full picture</span> — required, full-body photo of yourself</li>
             </ul>
+            <p className="text-xs text-muted-foreground pt-1">Accepted formats: JPG, PNG, HEIC. Max 10MB per file.</p>
           </div>
 
           <div className="space-y-3">
             <div><Label>University <span className="text-destructive">*</span></Label><Input value={university} onChange={(e) => setUniversity(e.target.value)} placeholder="e.g. University of Lagos" /></div>
-            <div><Label>Social handles (optional)</Label><Input value={social} onChange={(e) => setSocial(e.target.value)} placeholder="@yourhandle on IG, TikTok, X" /></div>
+            <div><Label>Social media handle <span className="text-destructive">*</span></Label><Input value={social} onChange={(e) => setSocial(e.target.value)} placeholder="@yourhandle on IG, TikTok, X, or LinkedIn" /></div>
             <div>
               <Label>Why do you want to be an ambassador? <span className="text-destructive">*</span></Label>
               <Textarea value={motivation} onChange={(e) => setMotivation(e.target.value)} rows={4} placeholder="Tell us about your campus reach, community involvement, and why you'd be a great UiPair ambassador." />
             </div>
+
+            <FileUpload
+              icon={IdCard}
+              label="Student identity card"
+              hint="Upload a clear photo of your valid student ID"
+              file={studentIdFile}
+              onChange={setStudentIdFile}
+            />
+            <FileUpload
+              icon={Camera}
+              label="Passport photo"
+              hint="Clear headshot, plain background"
+              file={passportFile}
+              onChange={setPassportFile}
+            />
+            <FileUpload
+              icon={ImageIcon}
+              label="Full picture"
+              hint="Full-body photo of yourself"
+              file={fullPicFile}
+              onChange={setFullPicFile}
+            />
           </div>
 
-          <Button onClick={submit} disabled={submitting || !university.trim() || !motivation.trim()}>
+          <Button onClick={submit} disabled={submitting || !university.trim() || !motivation.trim() || !social.trim() || !studentIdFile || !passportFile || !fullPicFile}>
             {submitting ? "Submitting…" : "Submit application"}
           </Button>
         </Card>
