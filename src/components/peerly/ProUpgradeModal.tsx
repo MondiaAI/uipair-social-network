@@ -2,10 +2,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Check, Sparkles, ShieldAlert } from "lucide-react";
+import { Check, Sparkles, ShieldAlert, Globe } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { isNativeApp, WEB_UPGRADE_URL } from "@/lib/platform";
 
 const FEATURES = [
   "Unlimited Lab project sessions",
@@ -59,11 +60,41 @@ export function ProUpgradeModal({ open, onOpenChange }: { open: boolean; onOpenC
             <Sparkles className="h-6 w-6" />
           </div>
           <DialogTitle className="text-center text-2xl">
-            {step === "eligibility" ? "Confirm eligibility" : "Unlock UiPair Pro"}
+            {isNativeApp()
+              ? "Upgrade on the web"
+              : step === "eligibility"
+                ? "Confirm eligibility"
+                : "Unlock UiPair Pro"}
           </DialogTitle>
         </DialogHeader>
 
-        {step === "eligibility" ? (
+        {isNativeApp() ? (
+          <div className="space-y-4">
+            <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
+              <Globe className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <p>
+                UiPair Pro subscriptions aren't available inside the mobile
+                app yet. To upgrade, please visit{" "}
+                <span className="font-medium text-foreground">uipair.com</span>{" "}
+                in your browser and sign in with the same account. Your Pro
+                features will unlock here automatically.
+              </p>
+            </div>
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={() => {
+                window.open(WEB_UPGRADE_URL, "_blank", "noopener,noreferrer");
+                handleOpenChange(false);
+              }}
+            >
+              Open uipair.com
+            </Button>
+            <Button variant="ghost" className="w-full" onClick={() => handleOpenChange(false)}>
+              Not now
+            </Button>
+          </div>
+        ) : step === "eligibility" ? (
           <div className="space-y-4">
             <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
               <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-primary" />

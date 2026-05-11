@@ -17,6 +17,7 @@ import { NotificationPanel } from "./NotificationPanel";
 import { ProUpgradeModal } from "./ProUpgradeModal";
 import { PeerlyLogo } from "./PeerlyLogo";
 import { useNotifications } from "@/lib/notifications-context";
+import { isNativeApp } from "@/lib/platform";
 
 export function Header() {
   const { user, profile, signOut } = useAuth();
@@ -25,7 +26,8 @@ export function Header() {
   const { unread } = useNotifications();
   const [notifOpen, setNotifOpen] = useState(false);
   const [proOpen, setProOpen] = useState(false);
-  
+  const native = isNativeApp();
+
 
   const initials = (profile?.full_name || profile?.username || "?")
     .split(" ")
@@ -106,7 +108,9 @@ export function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => user && navigate({ to: "/profile/$userId", params: { userId: user.id } })}>View Profile</DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setProOpen(true)}>UiPair Pro</DropdownMenuItem>
+              {!native && (
+                <DropdownMenuItem onClick={() => setProOpen(true)}>UiPair Pro</DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={async () => {
