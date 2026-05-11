@@ -159,7 +159,29 @@ export function NewMembersRow({ title = "New on UiPair", limit = 12, scoped = tr
           <div
             ref={scrollerRef}
             onScroll={updatePaging}
-            className="-mx-4 flex gap-3 overflow-x-auto scroll-smooth px-4 pb-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            onTouchStart={(e) => {
+              setPaused(true);
+              touchStartX.current = e.touches[0].clientX;
+              touchStartY.current = e.touches[0].clientY;
+              touchStartScroll.current = scrollerRef.current?.scrollLeft ?? 0;
+            }}
+            onTouchEnd={(e) => {
+              const startX = touchStartX.current;
+              const startY = touchStartY.current;
+              if (startX == null || startY == null) return;
+              const dx = e.changedTouches[0].clientX - startX;
+              const dy = e.changedTouches[0].clientY - startY;
+              touchStartX.current = null;
+              touchStartY.current = null;
+              // Only treat as a horizontal swipe if mostly horizontal and significant
+              if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+                if (dx < 0) goTo((activePage + 1) % pageCount);
+                else goTo((activePage - 1 + pageCount) % pageCount);
+              }
+              // Resume autoplay shortly after the swipe
+              setTimeout(() => setPaused(false), 600);
+            }}
+            className="-mx-4 flex gap-3 overflow-x-auto scroll-smooth px-4 pb-1 snap-x snap-mandatory touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {members.map((m) => {
               const name = m.full_name || m.username || "Student";
