@@ -44,6 +44,17 @@ function FeedPage() {
     loadPosts();
   }, [loadPosts]);
 
+  // Realtime: refresh feed when any user posts/edits/deletes a post or
+  // updates their profile (so usernames, avatars and university show fresh).
+  useEffect(() => {
+    const channel = supabase
+      .channel("feed-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => loadPosts())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, () => loadPosts())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [loadPosts]);
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 space-y-4">
       <div>

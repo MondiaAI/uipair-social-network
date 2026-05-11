@@ -70,6 +70,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { subscription.unsubscribe(); clearTimeout(timeout); };
   }, []);
 
+  // Realtime: refresh own profile whenever it changes in the database
+  // (e.g. saved from Settings on another tab, or updated by an admin).
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`own-profile-${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
+        (payload) => setProfile(payload.new as Profile),
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
+
   const signOut = async () => {
     await supabase.auth.signOut();
   };
