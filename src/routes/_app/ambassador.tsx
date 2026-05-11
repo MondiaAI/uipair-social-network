@@ -178,3 +178,13 @@ function DashCard({ icon: Icon, label, value }: { icon: any; label: string; valu
     </Card>
   );
 }
+
+function BenefitCard({ icon: Icon, title, body }: { icon: any; title: string; body: string }) {
+  return (
+    <Card className="p-4">
+      <Icon className="h-5 w-5 text-primary mb-2" />
+      <p className="font-semibold text-sm">{title}</p>
+      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{body}</p>
+    </Card>
+  );
+}
