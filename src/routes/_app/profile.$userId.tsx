@@ -283,6 +283,9 @@ function EditProfileDialog({
     setYear(profile?.year_of_study?.toString() ?? "");
     setSkills((profile?.skills ?? []).join(", "));
     setInterests((profile?.interests ?? []).join(", "));
+    setUniversityId(profile?.university_id ?? null);
+    setUniversityName(profile?.university ?? null);
+    setCountry(profile?.country ?? null);
   }, [open, profile]);
 
   const save = async () => {
