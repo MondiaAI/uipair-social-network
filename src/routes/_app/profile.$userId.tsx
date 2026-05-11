@@ -300,6 +300,9 @@ function EditProfileDialog({
       year_of_study: Number.isFinite(yearNum as number) ? yearNum : null,
       skills: skills.split(",").map((s) => s.trim()).filter(Boolean),
       interests: interests.split(",").map((s) => s.trim()).filter(Boolean),
+      university_id: universityId,
+      university: universityName,
+      country: country,
     };
     const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
     setSaving(false);
