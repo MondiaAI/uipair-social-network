@@ -161,16 +161,101 @@ function AmbassadorPage() {
           </div>
         </>
       ) : (
-        <Card className="p-5 space-y-3">
-          <h2 className="font-semibold">Apply to become an ambassador</h2>
-          <div><Label>University</Label><Input value={university} onChange={(e) => setUniversity(e.target.value)} /></div>
-          <div><Label>Social handles (optional)</Label><Input value={social} onChange={(e) => setSocial(e.target.value)} placeholder="@yourhandle on IG, TikTok, X" /></div>
-          <div><Label>Why do you want to be an ambassador?</Label><Textarea value={motivation} onChange={(e) => setMotivation(e.target.value)} rows={4} /></div>
+        <Card className="p-5 space-y-4">
+          <div>
+            <h2 className="font-semibold">Apply to become an ambassador</h2>
+            <p className="text-xs text-muted-foreground mt-1">Review the eligibility checklist below before submitting.</p>
+          </div>
+
+          <div className="rounded-md border bg-muted/30 p-4 space-y-2">
+            <p className="text-sm font-medium">✅ Eligibility checklist</p>
+            <ul className="space-y-1.5 text-sm text-muted-foreground">
+              {[
+                "You are a currently enrolled university student",
+                "You have an active UiPair account with a complete profile",
+                "You have an active presence on at least one social platform (IG, TikTok, X, LinkedIn, WhatsApp groups)",
+                "You can commit to recruiting and supporting students for at least 3 months",
+                "You can represent UiPair professionally on your campus",
+              ].map((item) => (
+                <li key={item} className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" /><span>{item}</span></li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-md border p-4 space-y-1">
+            <p className="text-sm font-medium">📝 What you'll need to submit</p>
+            <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+              <li><span className="text-foreground font-medium">University</span> — required</li>
+              <li><span className="text-foreground font-medium">Social handles</span> — optional, but strongly recommended (boosts approval)</li>
+              <li><span className="text-foreground font-medium">Motivation</span> — required, 2–4 sentences on why you want to represent UiPair and your reach on campus</li>
+            </ul>
+          </div>
+
+          <div className="space-y-3">
+            <div><Label>University <span className="text-destructive">*</span></Label><Input value={university} onChange={(e) => setUniversity(e.target.value)} placeholder="e.g. University of Lagos" /></div>
+            <div><Label>Social handles (optional)</Label><Input value={social} onChange={(e) => setSocial(e.target.value)} placeholder="@yourhandle on IG, TikTok, X" /></div>
+            <div>
+              <Label>Why do you want to be an ambassador? <span className="text-destructive">*</span></Label>
+              <Textarea value={motivation} onChange={(e) => setMotivation(e.target.value)} rows={4} placeholder="Tell us about your campus reach, community involvement, and why you'd be a great UiPair ambassador." />
+            </div>
+          </div>
+
           <Button onClick={submit} disabled={submitting || !university.trim() || !motivation.trim()}>
             {submitting ? "Submitting…" : "Submit application"}
           </Button>
         </Card>
       )}
+
+      <Card className="p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <HelpCircle className="h-5 w-5 text-primary" />
+          <h2 className="font-semibold">Frequently asked questions</h2>
+        </div>
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="eligibility">
+            <AccordionTrigger className="text-sm text-left">Who is eligible to become a Campus Ambassador?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">
+              Any currently enrolled university student with an active UiPair account, a complete profile, and a real presence on campus or social media. We accept undergrads, postgrads, and PhD students from any country, any field of study, and any year of study.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="review">
+            <AccordionTrigger className="text-sm text-left">How long does the application review take?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">
+              Our team reviews every application within <span className="font-medium text-foreground">48 hours</span>. You'll see your status update on this page (Pending → Approved or Declined). Approved ambassadors get an email with their referral link, badge, and starter kit.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="referrals">
+            <AccordionTrigger className="text-sm text-left">How does referral tracking work?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">
+              Once approved, you receive a unique referral link (e.g. <span className="font-mono text-xs">uipair.com/signup?ref=YOUR-CODE</span>). When a student signs up using your link, the referral is permanently attributed to you. You can see all your referrals and their status (Signed up → Paid) live in your Ambassador dashboard on this page.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="earnings">
+            <AccordionTrigger className="text-sm text-left">When and how do I get paid?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">
+              You earn <span className="font-medium text-foreground">$1 for every paid signup</span> through your link. Earnings accumulate in your UiPair wallet in real time and are paid out <span className="font-medium text-foreground">monthly</span> once your balance reaches the <span className="font-medium text-foreground">$20 minimum payout</span>. Payouts are processed via mobile money, bank transfer, or PayPal depending on your country.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="unlimited">
+            <AccordionTrigger className="text-sm text-left">How do I unlock unlimited free UiPair access?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">
+              Recruit <span className="font-medium text-foreground">50 active paid signups per week</span> and your account auto-upgrades to full Pro access — every premium feature, unlimited Lab projects, 5GB storage, and the verified Pro badge. As long as you maintain that target, your unlimited access stays free.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="duration">
+            <AccordionTrigger className="text-sm text-left">How long does the ambassadorship last?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">
+              Ambassadorships run in 6-month cycles and are renewable based on your activity. At the end of each cycle, you receive your verified digital certificate to share on your CV and LinkedIn.
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="rejected">
+            <AccordionTrigger className="text-sm text-left">What happens if my application is declined?</AccordionTrigger>
+            <AccordionContent className="text-sm text-muted-foreground">
+              You can re-apply after 30 days. The most common reasons for rejection are an incomplete UiPair profile or a motivation statement that lacks detail about your campus reach. Strengthen those areas and try again.
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </Card>
     </div>
   );
 }
