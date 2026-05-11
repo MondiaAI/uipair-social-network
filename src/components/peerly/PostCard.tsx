@@ -361,7 +361,13 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
             <Textarea
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Write a comment…"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (commentText.trim()) submitComment();
+                }
+              }}
+              placeholder="Write a comment… (Enter to send, Shift+Enter for new line)"
               className="min-h-[44px] resize-none"
             />
             <Button size="sm" onClick={submitComment} disabled={!commentText.trim()}>
