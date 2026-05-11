@@ -165,27 +165,40 @@ export function NewMembersRow({ title = "New on UiPair", limit = 12, scoped = tr
           <div
             ref={scrollerRef}
             onScroll={updatePaging}
-            onTouchStart={(e) => {
+            onPointerDown={(e) => {
+              // Only react to primary button for mouse
+              if (e.pointerType === "mouse" && e.button !== 0) return;
               setPaused(true);
-              touchStartX.current = e.touches[0].clientX;
-              touchStartY.current = e.touches[0].clientY;
-              touchStartScroll.current = scrollerRef.current?.scrollLeft ?? 0;
+              pointerId.current = e.pointerId;
+              pointerStartX.current = e.clientX;
+              pointerStartY.current = e.clientY;
+              pointerSwiped.current = false;
             }}
-            onTouchEnd={(e) => {
-              const startX = touchStartX.current;
-              const startY = touchStartY.current;
-              if (startX == null || startY == null) return;
-              const dx = e.changedTouches[0].clientX - startX;
-              const dy = e.changedTouches[0].clientY - startY;
-              touchStartX.current = null;
-              touchStartY.current = null;
-              // Only treat as a horizontal swipe if mostly horizontal and significant
-              if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+            onPointerMove={(e) => {
+              if (pointerId.current !== e.pointerId) return;
+              const startX = pointerStartX.current;
+              const startY = pointerStartY.current;
+              if (startX == null || startY == null || pointerSwiped.current) return;
+              const dx = e.clientX - startX;
+              const dy = e.clientY - startY;
+              if (Math.abs(dx) > swipeThreshold && Math.abs(dx) > Math.abs(dy)) {
+                pointerSwiped.current = true;
                 if (dx < 0) goTo((activePage + 1) % pageCount);
                 else goTo((activePage - 1 + pageCount) % pageCount);
               }
-              // Resume autoplay shortly after the swipe
+            }}
+            onPointerUp={(e) => {
+              if (pointerId.current !== e.pointerId) return;
+              pointerId.current = null;
+              pointerStartX.current = null;
+              pointerStartY.current = null;
               setTimeout(() => setPaused(false), 600);
+            }}
+            onPointerCancel={() => {
+              pointerId.current = null;
+              pointerStartX.current = null;
+              pointerStartY.current = null;
+              setPaused(false);
             }}
             className="-mx-4 flex gap-3 overflow-x-auto scroll-smooth px-4 pb-1 snap-x snap-mandatory touch-pan-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
