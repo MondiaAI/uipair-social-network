@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Lightbulb, Flame, Brain, Bookmark, Check, MessageCircle, Share2, Radio } from "lucide-react";
+import { Lightbulb, Flame, Brain, Bookmark, Check, MessageCircle, Share2, Radio, Pencil, Trash2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
