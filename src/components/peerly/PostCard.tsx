@@ -346,18 +346,16 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
       {showComments && (
         <div className="space-y-3 pt-2 border-t">
           {comments.map((c) => (
-            <div key={c.id} className="flex gap-2">
-              <Avatar className="h-7 w-7">
-                <AvatarImage src={c.profiles?.avatar_url ?? undefined} />
-                <AvatarFallback className="text-[10px]">
-                  {(c.profiles?.username || "?").slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 rounded-lg bg-muted px-3 py-2">
-                <div className="text-xs font-semibold">@{c.profiles?.username}</div>
-                <div className="text-sm">{c.content}</div>
-              </div>
-            </div>
+            <CommentRow
+              key={c.id}
+              comment={c}
+              isOwner={c.user_id === user?.id}
+              onUpdated={(content) => setComments((prev) => prev.map((x) => x.id === c.id ? { ...x, content } : x))}
+              onDeleted={() => {
+                setComments((prev) => prev.filter((x) => x.id !== c.id));
+                setCommentCount((n) => Math.max(0, n - 1));
+              }}
+            />
           ))}
           <div className="flex gap-2">
             <Textarea
