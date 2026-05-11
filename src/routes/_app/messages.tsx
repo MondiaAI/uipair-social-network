@@ -549,6 +549,28 @@ function MessagesPage() {
     [conversations, activeId]
   );
 
+  const deleteMessage = async (id: string) => {
+    if (!confirm("Delete this message?")) return;
+    const { error } = await supabase.from("messages").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+    toast.success("Message deleted");
+  };
+
+  const saveEdit = async (m: MessageRow) => {
+    const next = editDraft.trim();
+    if (!next) return;
+    let payload = next;
+    if (keypair && counterpartPub) {
+      try { payload = encryptMessage(next, counterpartPub, keypair); } catch { /* fallback to plaintext */ }
+    }
+    const { error } = await supabase.from("messages").update({ content: payload }).eq("id", m.id);
+    if (error) { toast.error(error.message); return; }
+    setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, content: payload } : x));
+    setEditingId(null);
+    setEditDraft("");
+  };
+
   const send = async () => {
     if (!user || !activeId) return;
     if (!draft.trim() && !attachment) return;
