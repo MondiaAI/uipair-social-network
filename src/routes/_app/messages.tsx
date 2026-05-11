@@ -879,6 +879,11 @@ function MessagesPage() {
                                 <Textarea
                                   value={editDraft}
                                   onChange={(e) => setEditDraft(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (editDraft.trim()) saveEdit(m); }
+                                    if (e.key === "Escape") { e.preventDefault(); setEditingId(null); setEditDraft(""); }
+                                  }}
+                                  autoFocus
                                   className="min-h-[60px] text-sm bg-background text-foreground"
                                 />
                                 <div className="flex gap-2 justify-end">
