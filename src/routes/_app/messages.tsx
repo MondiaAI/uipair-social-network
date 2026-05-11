@@ -139,6 +139,8 @@ function MessagesPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
   const [muted, setMuted] = useState<Record<string, boolean>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
   const [keypair, setKeypair] = useState<KeyPair | null>(null);
   const [counterpartPub, setCounterpartPub] = useState<Uint8Array | null>(null);
   // Map of otherUserId -> whether they have published a public key
