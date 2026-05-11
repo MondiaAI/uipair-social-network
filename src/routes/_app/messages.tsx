@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -139,6 +139,8 @@ function MessagesPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
   const [muted, setMuted] = useState<Record<string, boolean>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState("");
   const [keypair, setKeypair] = useState<KeyPair | null>(null);
   const [counterpartPub, setCounterpartPub] = useState<Uint8Array | null>(null);
   // Map of otherUserId -> whether they have published a public key
@@ -384,6 +386,22 @@ function MessagesPage() {
           );
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${activeId}` },
+        (payload) => {
+          const m = payload.new as MessageRow;
+          setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, content: m.content, read_at: m.read_at } : x));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "messages", filter: `conversation_id=eq.${activeId}` },
+        (payload) => {
+          const oldId = (payload.old as { id: string }).id;
+          setMessages((prev) => prev.filter((x) => x.id !== oldId));
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -546,6 +564,28 @@ function MessagesPage() {
     () => conversations.find((c) => c.id === activeId) ?? null,
     [conversations, activeId]
   );
+
+  const deleteMessage = async (id: string) => {
+    if (!confirm("Delete this message?")) return;
+    const { error } = await supabase.from("messages").delete().eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+    toast.success("Message deleted");
+  };
+
+  const saveEdit = async (m: MessageRow) => {
+    const next = editDraft.trim();
+    if (!next) return;
+    let payload = next;
+    if (keypair && counterpartPub) {
+      try { payload = encryptMessage(next, counterpartPub, keypair); } catch { /* fallback to plaintext */ }
+    }
+    const { error } = await supabase.from("messages").update({ content: payload }).eq("id", m.id);
+    if (error) { toast.error(error.message); return; }
+    setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, content: payload } : x));
+    setEditingId(null);
+    setEditDraft("");
+  };
 
   const send = async () => {
     if (!user || !activeId) return;
@@ -806,15 +846,51 @@ function MessagesPage() {
                         : { ok: true as const, plaintext: m.content };
                       const displayText = decrypted.ok ? decrypted.plaintext : m.content;
                       const showFallback = !decrypted.ok;
+                      const isEditing = editingId === m.id;
                       return (
-                        <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
+                        <div key={m.id} className={cn("group flex items-end gap-1", mine ? "justify-end" : "justify-start")}>
+                          {mine && !isEditing && (
+                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => { setEditingId(m.id); setEditDraft(decrypted.ok ? decrypted.plaintext : ""); }}
+                                disabled={!decrypted.ok}
+                                title="Edit"
+                                className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </button>
+                              <button
+                                onClick={() => deleteMessage(m.id)}
+                                title="Delete"
+                                className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </button>
+                            </div>
+                          )}
                           <div
                             className={cn(
                               "max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow-sm",
                               mine ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                             )}
                           >
-                            {showFallback ? (
+                            {isEditing ? (
+                              <div className="space-y-2 min-w-[220px]">
+                                <Textarea
+                                  value={editDraft}
+                                  onChange={(e) => setEditDraft(e.target.value)}
+                                  className="min-h-[60px] text-sm bg-background text-foreground"
+                                />
+                                <div className="flex gap-2 justify-end">
+                                  <Button size="sm" variant="ghost" onClick={() => { setEditingId(null); setEditDraft(""); }}>
+                                    Cancel
+                                  </Button>
+                                  <Button size="sm" onClick={() => saveEdit(m)} disabled={!editDraft.trim()}>
+                                    Save
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : showFallback ? (
                               <p className={cn("italic", mine ? "text-primary-foreground/80" : "text-muted-foreground")}>
                                 {fallbackLabel(decrypted.reason)}
                               </p>
@@ -835,9 +911,11 @@ function MessagesPage() {
                                 )
                               )
                             )}
-                            <p className={cn("mt-1 text-[10px]", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                              {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
-                            </p>
+                            {!isEditing && (
+                              <p className={cn("mt-1 text-[10px]", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                                {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
+                              </p>
+                            )}
                           </div>
                         </div>
                       );
