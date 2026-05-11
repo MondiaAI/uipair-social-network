@@ -386,6 +386,22 @@ function MessagesPage() {
           );
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${activeId}` },
+        (payload) => {
+          const m = payload.new as MessageRow;
+          setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, content: m.content, read_at: m.read_at } : x));
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "messages", filter: `conversation_id=eq.${activeId}` },
+        (payload) => {
+          const oldId = (payload.old as { id: string }).id;
+          setMessages((prev) => prev.filter((x) => x.id !== oldId));
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
