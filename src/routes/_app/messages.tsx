@@ -756,31 +756,30 @@ function MessagesPage() {
                   key={c.id}
                   onClick={() => navigate({ search: { c: c.id } })}
                   className={cn(
-                    "flex w-full items-center gap-3 border-b p-3 text-left transition-colors hover:bg-accent",
+                    "flex w-full items-center gap-2.5 border-b px-3 py-2 sm:gap-3 sm:p-3 text-left transition-colors hover:bg-accent",
                     isActive && "bg-accent"
                   )}
                 >
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
                     <AvatarImage src={c.other?.avatar_url ?? undefined} />
-                    <AvatarFallback>{initials}</AvatarFallback>
+                    <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className={cn("truncate text-sm flex items-center gap-1 min-w-0", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
-                        {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground" />}
+                      <p className={cn("truncate text-[13px] sm:text-sm flex items-center gap-1 min-w-0 leading-tight", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
+                        {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground shrink-0" />}
                         <span className="truncate">{name}</span>
-                        
                       </p>
                       {unread > 0 && (
                         <span className={cn(
-                          "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                          "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none",
                           muted[c.id] ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
                         )}>
                           {unread}
                         </span>
                       )}
                     </div>
-                    <p className={cn("truncate text-xs", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
+                    <p className={cn("truncate text-[11px] sm:text-xs leading-tight mt-0.5", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
                       {previewText(c.preview)}
                     </p>
                   </div>
