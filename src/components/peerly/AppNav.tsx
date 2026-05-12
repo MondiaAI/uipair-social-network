@@ -131,7 +131,8 @@ export function AppNav() {
             return (
               <Link
                 key={t.key}
-                to={t.to!}
+                to={t.to as any}
+                params={t.params as any}
                 className={className}
                 aria-label={t.label}
                 aria-current={t.active ? "page" : undefined}
