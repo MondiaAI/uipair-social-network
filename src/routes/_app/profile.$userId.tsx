@@ -126,11 +126,11 @@ function ProfilePage() {
       </div>
 
       <div className="px-4 sm:px-6 -mt-12">
-        <div className="flex items-end justify-between gap-3">
-          <div className="relative">
-            <Avatar className="h-24 w-24 border-4 border-background">
+        <div className="flex items-end gap-3">
+          <div className="relative shrink-0">
+            <Avatar className="h-20 w-20 sm:h-24 sm:w-24 border-4 border-background">
               <AvatarImage src={profile.avatar_url ?? undefined} />
-              <AvatarFallback className="text-xl">{initials}</AvatarFallback>
+              <AvatarFallback className="text-lg sm:text-xl">{initials}</AvatarFallback>
             </Avatar>
             {isMe && (
               <label className="absolute bottom-0 right-0 cursor-pointer rounded-full bg-primary p-1.5 text-primary-foreground shadow">
@@ -139,7 +139,8 @@ function ProfilePage() {
               </label>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-2 mb-1">
+          {/* Desktop-only action row sits next to avatar */}
+          <div className="hidden sm:flex flex-wrap items-center gap-2 mb-1 ml-auto">
             {!isMe && user && (
               <>
                 <Button size="sm" variant={following ? "outline" : "default"} onClick={toggleFollow}>
@@ -160,6 +161,31 @@ function ProfilePage() {
               </>
             )}
           </div>
+        </div>
+
+        {/* Mobile-only action row stacks below avatar so all buttons (incl. Settings) are visible */}
+        <div className="sm:hidden mt-3 flex flex-wrap items-center gap-2">
+          {!isMe && user && (
+            <>
+              <Button size="sm" variant={following ? "outline" : "default"} onClick={toggleFollow} className="flex-1 min-w-[100px]">
+                {following ? "Following" : "Follow"}
+              </Button>
+              <FriendActions otherId={userId} otherName={name} />
+            </>
+          )}
+          {isMe && (
+            <>
+              <Button size="sm" onClick={() => setEditOpen(true)} className="flex-1 min-w-[120px]">
+                <Pencil className="h-4 w-4" /> Edit profile
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => navigate({ to: "/settings" })} className="flex-1 min-w-[110px]">
+                <SettingsIcon className="h-4 w-4" /> Settings
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })} className="w-full">
+                Earn as Ambassador
+              </Button>
+            </>
+          )}
         </div>
 
         <div className="mt-3">
