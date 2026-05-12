@@ -80,7 +80,11 @@ function FeedPage() {
       <FeedFilters value={filter} onChange={setFilter} />
 
       {loading ? (
-        <div className="text-center text-muted-foreground py-12">Loading feed…</div>
+        <div className="space-y-3 sm:space-y-4">
+          <PostCardSkeleton />
+          <PostCardSkeleton withImage />
+          <PostCardSkeleton />
+        </div>
       ) : posts.length === 0 ? (
         <div className="rounded-2xl border bg-card p-12 text-center">
           <p className="text-muted-foreground">
