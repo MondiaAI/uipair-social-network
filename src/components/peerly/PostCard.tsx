@@ -223,7 +223,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
     .split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
   const meta = POST_TYPE_META[post.post_type] ?? POST_TYPE_META.brainstorm;
   const lines = post.content.split("\n").length;
-  const isLong = lines > MAX_LINES || post.content.length > 320;
+  const isLong = lines > 3 || post.content.length > 220;
 
   return (
     <article
