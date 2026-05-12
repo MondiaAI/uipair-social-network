@@ -29,7 +29,7 @@ export function GigCard({ gig, onOpen }: { gig: GigCardData; onOpen: (id: string
   const flag = countryFlag(gig.seller?.country);
   const isDownload = gig.category === "notes";
   return (
-    <Card className="flex flex-col gap-3 p-4 hover:shadow-md transition">
+    <Card className="flex flex-col gap-2.5 p-3 sm:p-4 sm:gap-3 hover:shadow-md transition">
       <div className="flex items-center gap-2">
         <Avatar className="h-9 w-9">
           <AvatarImage src={gig.seller?.avatar_url ?? undefined} />
