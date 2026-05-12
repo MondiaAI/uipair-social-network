@@ -380,18 +380,7 @@ function EditProfileDialog({
             <Input id="ep-interests" value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="AI, Startups, Music" />
           </div>
           <p className="text-xs text-muted-foreground">
-            You can also manage these from{" "}
-            <button
-              type="button"
-              onClick={() => {
-                onOpenChange(false);
-                navigate({ to: "/settings" });
-              }}
-              className="underline underline-offset-2 hover:text-foreground font-medium text-primary"
-            >
-              Settings
-            </button>
-            .
+            Changes sync live across your profile, feed, and every other user's view.
           </p>
         </div>
         <DialogFooter>
