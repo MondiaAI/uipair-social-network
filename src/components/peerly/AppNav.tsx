@@ -38,11 +38,26 @@ export function AppNav() {
   const isProfileActive = pathname.startsWith("/profile");
 
   // Mobile primary tabs (5 max for thumb-friendly bottom nav)
-  const mobilePrimary: { key: string; label: string; icon: LucideIcon; to?: string; active: boolean; onClick?: () => void }[] = [
+  const mobilePrimary: {
+    key: string;
+    label: string;
+    icon: LucideIcon;
+    to?: string;
+    params?: Record<string, string>;
+    active: boolean;
+    onClick?: () => void;
+  }[] = [
     { key: "feed", label: "Feed", icon: Home, to: "/feed", active: pathname.startsWith("/feed") },
     { key: "circles", label: "Circles", icon: Users, to: "/circles", active: pathname.startsWith("/circles") },
     { key: "chat", label: "Chat", icon: MessageSquare, to: "/messages", active: pathname.startsWith("/messages") },
-    { key: "profile", label: "Profile", icon: User, to: profileTo, active: isProfileActive },
+    {
+      key: "profile",
+      label: "Profile",
+      icon: User,
+      to: user ? "/profile/$userId" : "/feed",
+      params: user ? { userId: user.id } : undefined,
+      active: isProfileActive,
+    },
     { key: "more", label: "More", icon: Menu, active: moreOpen, onClick: () => setMoreOpen(true) },
   ];
 
