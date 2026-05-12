@@ -229,45 +229,46 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
     <article
       id={`post-${post.id}`}
       className={cn(
-        "rounded-2xl border border-t-[3px] bg-card p-4 shadow-sm space-y-3",
+        "rounded-2xl border border-t-[3px] bg-card p-3 sm:p-4 shadow-sm space-y-2.5 sm:space-y-3",
         meta.bar,
       )}
     >
-      <header className="flex items-start gap-3">
-        <Avatar className="h-10 w-10">
+      <header className="flex items-start gap-2.5 sm:gap-3">
+        <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
           <AvatarImage src={author?.avatar_url ?? undefined} />
           <AvatarFallback className="bg-accent text-accent-foreground text-xs font-semibold">
             {initials}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold truncate">{author?.full_name || "Student"}</span>
-            <span className="text-xs text-muted-foreground">@{author?.username}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span className="font-semibold text-sm sm:text-[15px] truncate">{author?.full_name || "Student"}</span>
+            <span className="text-[11px] sm:text-xs text-muted-foreground truncate">@{author?.username}</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {author?.university && <><span className="truncate">{author.university}</span><span>·</span></>}
-            <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground min-w-0">
+            {author?.university && <><span className="truncate">{author.university}</span><span className="shrink-0">·</span></>}
+            <span className="shrink-0">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           {post.is_live_session && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground">
+            <span className="inline-flex items-center gap-1 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-destructive-foreground">
               <Radio className="h-3 w-3" /> LIVE
             </span>
           )}
           <span className={cn(
-            "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold whitespace-nowrap",
             meta.chipBg, meta.chipText,
           )}>
-            {meta.emoji} {meta.label}
+            <span aria-hidden>{meta.emoji}</span>
+            <span className="hidden xs:inline sm:inline">{meta.label}</span>
           </span>
         </div>
       </header>
 
       <div>
         <p
-          className={cn("whitespace-pre-wrap text-[15px] leading-relaxed", !expanded && isLong && "line-clamp-4")}
+          className={cn("whitespace-pre-wrap text-sm sm:text-[15px] leading-relaxed break-words", !expanded && isLong && "line-clamp-4")}
         >
           {renderContentWithLinks(post.content, navigate)}
         </p>
@@ -303,7 +304,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
         />
       )}
 
-      <footer className="flex items-center gap-1 pt-2 border-t flex-wrap">
+      <footer className="flex items-center gap-0.5 sm:gap-1 pt-2 border-t flex-wrap">
         {REACTIONS.map((r) => {
           const active = myReactions.has(r.type);
           const count = counts[r.type] ?? 0;
@@ -314,12 +315,12 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
               title={r.tip}
               aria-label={r.label}
               className={cn(
-                "flex items-center gap-1 rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors hover:bg-muted",
+                "flex items-center gap-1 rounded-full px-2 py-1 sm:px-2.5 sm:py-1.5 text-sm font-medium transition-colors hover:bg-muted",
                 active && `bg-[var(--reaction-${r.color}-soft)] text-[var(--reaction-${r.color})] ring-1 ring-[var(--reaction-${r.color})]/30`,
               )}
             >
-              <span aria-hidden className="text-base leading-none">{r.emoji}</span>
-              {count > 0 && <span className="text-xs">{count}</span>}
+              <span aria-hidden className="text-sm sm:text-base leading-none">{r.emoji}</span>
+              {count > 0 && <span className="text-[11px] sm:text-xs">{count}</span>}
             </button>
           );
         })}
@@ -329,14 +330,14 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
             setShowComments(next);
             if (next) loadComments();
           }}
-          className="ml-auto flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium hover:bg-muted text-muted-foreground"
+          className="ml-auto flex items-center gap-1 rounded-full px-2 py-1 sm:px-2.5 sm:py-1.5 text-xs font-medium hover:bg-muted text-muted-foreground"
         >
           <MessageCircle className="h-4 w-4" />
           {commentCount > 0 && <span>{commentCount}</span>}
         </button>
         <button
           onClick={sharePost}
-          className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium hover:bg-muted text-muted-foreground"
+          className="flex items-center gap-1 rounded-full px-2 py-1 sm:px-2.5 sm:py-1.5 text-xs font-medium hover:bg-muted text-muted-foreground"
           title="Share"
         >
           <Share2 className="h-4 w-4" />

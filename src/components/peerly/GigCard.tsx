@@ -29,7 +29,7 @@ export function GigCard({ gig, onOpen }: { gig: GigCardData; onOpen: (id: string
   const flag = countryFlag(gig.seller?.country);
   const isDownload = gig.category === "notes";
   return (
-    <Card className="flex flex-col gap-3 p-4 hover:shadow-md transition">
+    <Card className="flex flex-col gap-2.5 p-3 sm:p-4 sm:gap-3 hover:shadow-md transition">
       <div className="flex items-center gap-2">
         <Avatar className="h-9 w-9">
           <AvatarImage src={gig.seller?.avatar_url ?? undefined} />
@@ -54,15 +54,15 @@ export function GigCard({ gig, onOpen }: { gig: GigCardData; onOpen: (id: string
           {gig.delivery_days}d
         </span>
       </div>
-      <div className="mt-auto flex items-end justify-between pt-2">
-        <span className="text-lg font-bold text-emerald-600">
+      <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+        <span className="text-base sm:text-lg font-bold text-emerald-600 leading-tight">
           {formatPrice(gig.price_cents)}
-          <span className="ml-1 text-xs font-normal text-muted-foreground">
+          <span className="ml-1 text-[10px] sm:text-xs font-normal text-muted-foreground">
             / {isDownload ? "download" : "session"}
           </span>
         </span>
-        <Button size="sm" onClick={() => onOpen(gig.id)}>
-          {isDownload ? "Buy" : "Book Now"}
+        <Button size="sm" className="shrink-0" onClick={() => onOpen(gig.id)}>
+          {isDownload ? "Buy" : "Book"}
         </Button>
       </div>
     </Card>

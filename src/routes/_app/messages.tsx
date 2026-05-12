@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2 } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2, ArrowLeft } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -674,9 +674,12 @@ function MessagesPage() {
   };
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-5xl gap-4 px-4 py-6">
-      {/* Sidebar */}
-      <aside className="flex w-72 flex-col rounded-xl border bg-card shadow-sm">
+    <div className="mx-auto flex h-[calc(100vh-9rem)] md:h-[calc(100vh-8rem)] max-w-5xl flex-col md:flex-row gap-0 md:gap-4 px-0 md:px-4 py-0 md:py-6">
+      {/* Sidebar — full-width list on mobile when no chat is selected */}
+      <aside className={cn(
+        "flex-col rounded-none md:rounded-xl border-x-0 md:border bg-card shadow-sm w-full md:w-72 flex-1 md:flex-none",
+        active ? "hidden md:flex" : "flex",
+      )}>
         <div className="border-b p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-lg font-bold">Messages</h1>
@@ -788,16 +791,29 @@ function MessagesPage() {
         </div>
       </aside>
 
-      {/* Chat panel */}
-      <section className="flex flex-1 flex-col rounded-xl border bg-card shadow-sm">
+      {/* Chat panel — full-width on mobile when a chat is open */}
+      <section className={cn(
+        "flex-1 flex-col rounded-none md:rounded-xl border-x-0 md:border bg-card shadow-sm",
+        active ? "flex" : "hidden md:flex",
+      )}>
         {!active ? (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
             Select a conversation to start chatting
           </div>
         ) : (
           <>
-            <header className="flex items-center gap-3 border-b p-4">
-              <Avatar className="h-9 w-9">
+            <header className="flex items-center gap-2 sm:gap-3 border-b p-3 sm:p-4">
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="md:hidden h-9 w-9 shrink-0 -ml-1"
+                onClick={() => navigate({ search: {} as any })}
+                aria-label="Back to conversations"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Avatar className="h-9 w-9 shrink-0">
                 <AvatarImage src={active.other?.avatar_url ?? undefined} />
                 <AvatarFallback>
                   {(active.other?.full_name || active.other?.username || "S").slice(0, 2).toUpperCase()}
@@ -807,7 +823,7 @@ function MessagesPage() {
                 <p className="truncate text-sm font-semibold">
                   {active.other?.full_name || active.other?.username || "Student"}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] sm:text-xs text-muted-foreground">
                   {muted[active.id] ? "Notifications muted" : "Private chat"}
                 </p>
               </div>
