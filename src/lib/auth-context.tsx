@@ -83,7 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (payload) => setProfile(payload.new as Profile),
       )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const off = onProfileUpdate((e) => { if (e.userId === user.id) loadProfile(user.id); });
+    return () => { supabase.removeChannel(channel); off(); };
   }, [user?.id]);
 
   const signOut = async () => {
