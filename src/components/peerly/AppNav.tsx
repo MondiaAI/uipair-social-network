@@ -34,7 +34,7 @@ export function AppNav() {
   const { user } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const profileTo = user ? `/profile/${user.id}` : "/feed";
+  // (profileTo handled inline below via to + params for type safety)
   const isProfileActive = pathname.startsWith("/profile");
 
   // Mobile primary tabs (5 max for thumb-friendly bottom nav)
