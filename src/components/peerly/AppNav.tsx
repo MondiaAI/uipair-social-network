@@ -15,7 +15,36 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { useNotifications } from "@/lib/notifications-context";
+import { useUnreadChats } from "@/hooks/use-unread-chats";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+
+function Badge({ count }: { count: number }) {
+  if (!count || count <= 0) return null;
+  return (
+    <span
+      aria-label={`${count} unread`}
+      className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center leading-none"
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
+/**
+ * Smoothly scroll the relevant container to the top.
+ * Looks for a per-tab inner scroll container first
+ * (e.g. <div data-scroll-container="feed">), then falls back to window.
+ */
+function scrollTabToTop(tabKey: string) {
+  if (typeof document === "undefined") return;
+  const inner = document.querySelector<HTMLElement>(`[data-scroll-container="${tabKey}"]`);
+  if (inner && inner.scrollHeight > inner.clientHeight) {
+    inner.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 type Tab = { to: string; label: string; icon: LucideIcon; params?: Record<string, string> };
 
@@ -33,6 +62,8 @@ export function AppNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
+  const chatUnread = useUnreadChats();
+  const { unread: notifUnread } = useNotifications();
 
   // (profileTo handled inline below via to + params for type safety)
   const isProfileActive = pathname.startsWith("/profile");
@@ -46,10 +77,11 @@ export function AppNav() {
     params?: Record<string, string>;
     active: boolean;
     onClick?: () => void;
+    badge?: number;
   }[] = [
     { key: "feed", label: "Feed", icon: Home, to: "/feed", active: pathname.startsWith("/feed") },
     { key: "circles", label: "Circles", icon: Users, to: "/circles", active: pathname.startsWith("/circles") },
-    { key: "chat", label: "Chat", icon: MessageSquare, to: "/messages", active: pathname.startsWith("/messages") },
+    { key: "chat", label: "Chat", icon: MessageSquare, to: "/messages", active: pathname.startsWith("/messages"), badge: chatUnread },
     {
       key: "profile",
       label: "Profile",
@@ -58,7 +90,7 @@ export function AppNav() {
       params: user ? { userId: user.id } : undefined,
       active: isProfileActive,
     },
-    { key: "more", label: "More", icon: Menu, active: moreOpen, onClick: () => setMoreOpen(true) },
+    { key: "more", label: "More", icon: Menu, active: moreOpen, onClick: () => setMoreOpen(true), badge: notifUnread },
   ];
 
   // Mobile overflow shown inside the More sheet
@@ -110,7 +142,10 @@ export function AppNav() {
             );
             const inner = (
               <>
-                <Icon className="h-5 w-5" />
+                <span className="relative">
+                  <Icon className="h-5 w-5" />
+                  <Badge count={t.badge ?? 0} />
+                </span>
                 <span>{t.label}</span>
               </>
             );
@@ -138,11 +173,11 @@ export function AppNav() {
                 aria-current={t.active ? "page" : undefined}
                 onClick={(e) => {
                   // Tap-again-to-scroll-to-top: if user is already on this
-                  // route, intercept and smoothly scroll to top instead of
-                  // re-navigating.
-                  if (t.active && typeof window !== "undefined") {
+                  // route, intercept and scroll the inner container (if any)
+                  // or fall back to window scroll.
+                  if (t.active) {
                     e.preventDefault();
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    scrollTabToTop(t.key);
                   }
                 }}
               >
