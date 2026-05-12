@@ -1037,17 +1037,22 @@ function MessagesPage() {
                   <Textarea
                     ref={textareaRef}
                     value={draft}
-                    onChange={(e) => setDraft(e.target.value.slice(0, MAX_LEN))}
+                    onChange={(e) => {
+                      setDraft(e.target.value.slice(0, MAX_LEN));
+                      const el = e.currentTarget;
+                      el.style.height = "auto";
+                      el.style.height = Math.min(el.scrollHeight, 160) + "px";
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
                         send();
                       }
                     }}
-                    placeholder="Type a message… (Shift+Enter for newline)"
+                    placeholder="Type a message…"
                     disabled={sending}
                     rows={1}
-                    className="max-h-32 min-h-[40px] resize-none"
+                    className="min-h-[40px] resize-none overflow-hidden [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
                   />
                   <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
                     <span>{uploading ? "Uploading…" : "Enter to send"}</span>
