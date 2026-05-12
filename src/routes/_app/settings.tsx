@@ -49,20 +49,37 @@ function SettingsPage() {
       country: country,
     };
     // Optimistic toast — UI fields already reflect `next` from local state.
-    toast.success("Settings saved");
-    try {
-      const { error } = await supabase.from("profiles").update(next).eq("id", user.id);
-      if (error) throw error;
-      broadcastProfileUpdate(user.id);
-      // Background sync
-      refreshProfile();
-      router.invalidate();
-    } catch (e: any) {
-      // Revert local fields
+    const successToastId = toast.success("Settings saved");
+
+    const rollback = (reason: string) => {
       setUniversityId(prev.university_id);
       setUniversityName(prev.university);
       setCountry(prev.country);
-      toast.error(e?.message ?? "Could not save");
+      toast.dismiss(successToastId);
+      toast.error(`Couldn't save settings — changes reverted${reason ? `: ${reason}` : ""}`);
+    };
+
+    // 1) Network write
+    let writeError: any = null;
+    try {
+      const { error } = await supabase.from("profiles").update(next).eq("id", user.id);
+      writeError = error;
+    } catch (e) {
+      writeError = e;
+    }
+    if (writeError) {
+      rollback(writeError?.message ?? "network error");
+      setSaving(false);
+      return;
+    }
+
+    // 2) Broadcast + background refetch — guarded so any failure rolls back.
+    try {
+      broadcastProfileUpdate(user.id);
+      await Promise.resolve(refreshProfile());
+      await Promise.resolve(router.invalidate());
+    } catch (e: any) {
+      rollback(e?.message ?? "sync failed");
     } finally {
       setSaving(false);
     }
