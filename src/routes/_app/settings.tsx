@@ -37,21 +37,31 @@ function SettingsPage() {
 
   const save = async () => {
     setSaving(true);
+    // Snapshot for revert
+    const prev = {
+      university_id: profile?.university_id ?? null,
+      university: profile?.university ?? null,
+      country: profile?.country ?? null,
+    };
+    const next = {
+      university_id: universityId,
+      university: universityName,
+      country: country,
+    };
+    // Optimistic toast — UI fields already reflect `next` from local state.
+    toast.success("Settings saved");
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          university_id: universityId,
-          university: universityName,
-          country: country,
-        })
-        .eq("id", user.id);
+      const { error } = await supabase.from("profiles").update(next).eq("id", user.id);
       if (error) throw error;
-      await refreshProfile();
-      await router.invalidate();
       broadcastProfileUpdate(user.id);
-      toast.success("Settings saved");
+      // Background sync
+      refreshProfile();
+      router.invalidate();
     } catch (e: any) {
+      // Revert local fields
+      setUniversityId(prev.university_id);
+      setUniversityName(prev.university);
+      setCountry(prev.country);
       toast.error(e?.message ?? "Could not save");
     } finally {
       setSaving(false);
