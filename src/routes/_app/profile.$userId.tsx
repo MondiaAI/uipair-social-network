@@ -359,14 +359,6 @@ function EditProfileDialog({
               <Input id="ep-year" type="number" min={1} max={10} value={year} onChange={(e) => setYear(e.target.value)} />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="ep-skills">Skills (comma-separated)</Label>
-            <Input id="ep-skills" value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="React, Figma, Python" />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="ep-interests">Interests (comma-separated)</Label>
-            <Input id="ep-interests" value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="AI, Startups, Music" />
-          </div>
           <div className="space-y-1.5 rounded-lg border bg-muted/30 p-3">
             <Label className="text-sm">University & country</Label>
             <UniversitySelector
@@ -378,6 +370,14 @@ function EditProfileDialog({
                 setCountry(c);
               }}
             />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ep-skills">Skills (comma-separated)</Label>
+            <Input id="ep-skills" value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="React, Figma, Python" />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="ep-interests">Interests (comma-separated)</Label>
+            <Input id="ep-interests" value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="AI, Startups, Music" />
           </div>
           <p className="text-xs text-muted-foreground">
             You can also manage these from{" "}
