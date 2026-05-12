@@ -8,6 +8,7 @@ import { PostCard, type FeedPost } from "@/components/peerly/PostCard";
 import { LiveSessionsRow } from "@/components/peerly/LiveSessionsRow";
 import { FeedFilters, type FeedFilter } from "@/components/peerly/FeedFilters";
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
+import { onProfileUpdate } from "@/lib/profile-broadcast";
 
 export const Route = createFileRoute("/_app/feed")({
   component: FeedPage,
@@ -52,7 +53,8 @@ function FeedPage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => loadPosts())
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, () => loadPosts())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const off = onProfileUpdate(() => loadPosts());
+    return () => { supabase.removeChannel(channel); off(); };
   }, [loadPosts]);
 
   return (

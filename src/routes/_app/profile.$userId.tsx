@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { broadcastProfileUpdate, onProfileUpdate } from "@/lib/profile-broadcast";
 import {
   deriveStatus,
   sendFriendRequest,
@@ -81,7 +82,8 @@ function ProfilePage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "follows", filter: `following_id=eq.${userId}` }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "gigs", filter: `seller_id=eq.${userId}` }, () => load())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const off = onProfileUpdate((e) => { if (e.userId === userId) load(); });
+    return () => { supabase.removeChannel(channel); off(); };
      
   }, [userId]);
 
@@ -326,6 +328,7 @@ function EditProfileDialog({
     const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
     setSaving(false);
     if (error) return toast.error(error.message);
+    if (user) broadcastProfileUpdate(user.id);
     toast.success("Profile updated");
     onOpenChange(false);
     await onSaved();
