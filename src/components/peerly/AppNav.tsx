@@ -62,6 +62,8 @@ export function AppNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user } = useAuth();
   const [moreOpen, setMoreOpen] = useState(false);
+  const chatUnread = useUnreadChats();
+  const { unread: notifUnread } = useNotifications();
 
   // (profileTo handled inline below via to + params for type safety)
   const isProfileActive = pathname.startsWith("/profile");
@@ -75,10 +77,11 @@ export function AppNav() {
     params?: Record<string, string>;
     active: boolean;
     onClick?: () => void;
+    badge?: number;
   }[] = [
     { key: "feed", label: "Feed", icon: Home, to: "/feed", active: pathname.startsWith("/feed") },
     { key: "circles", label: "Circles", icon: Users, to: "/circles", active: pathname.startsWith("/circles") },
-    { key: "chat", label: "Chat", icon: MessageSquare, to: "/messages", active: pathname.startsWith("/messages") },
+    { key: "chat", label: "Chat", icon: MessageSquare, to: "/messages", active: pathname.startsWith("/messages"), badge: chatUnread },
     {
       key: "profile",
       label: "Profile",
@@ -87,7 +90,7 @@ export function AppNav() {
       params: user ? { userId: user.id } : undefined,
       active: isProfileActive,
     },
-    { key: "more", label: "More", icon: Menu, active: moreOpen, onClick: () => setMoreOpen(true) },
+    { key: "more", label: "More", icon: Menu, active: moreOpen, onClick: () => setMoreOpen(true), badge: notifUnread },
   ];
 
   // Mobile overflow shown inside the More sheet
