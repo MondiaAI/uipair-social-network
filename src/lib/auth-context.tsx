@@ -3,6 +3,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureDeviceKeypair } from "@/lib/e2ee";
 import { onProfileUpdate } from "@/lib/profile-broadcast";
+import { toast } from "sonner";
 
 interface Profile {
   id: string;
