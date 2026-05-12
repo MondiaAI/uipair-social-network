@@ -8,6 +8,7 @@ import { PostCard, type FeedPost } from "@/components/peerly/PostCard";
 import { LiveSessionsRow } from "@/components/peerly/LiveSessionsRow";
 import { FeedFilters, type FeedFilter } from "@/components/peerly/FeedFilters";
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
+import { onProfileUpdate } from "@/lib/profile-broadcast";
 
 export const Route = createFileRoute("/_app/feed")({
   component: FeedPage,
