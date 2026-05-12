@@ -756,31 +756,30 @@ function MessagesPage() {
                   key={c.id}
                   onClick={() => navigate({ search: { c: c.id } })}
                   className={cn(
-                    "flex w-full items-center gap-3 border-b p-3 text-left transition-colors hover:bg-accent",
+                    "flex w-full items-center gap-2.5 border-b px-3 py-2 sm:gap-3 sm:p-3 text-left transition-colors hover:bg-accent",
                     isActive && "bg-accent"
                   )}
                 >
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
                     <AvatarImage src={c.other?.avatar_url ?? undefined} />
-                    <AvatarFallback>{initials}</AvatarFallback>
+                    <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className={cn("truncate text-sm flex items-center gap-1 min-w-0", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
-                        {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground" />}
+                      <p className={cn("truncate text-[13px] sm:text-sm flex items-center gap-1 min-w-0 leading-tight", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
+                        {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground shrink-0" />}
                         <span className="truncate">{name}</span>
-                        
                       </p>
                       {unread > 0 && (
                         <span className={cn(
-                          "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                          "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none",
                           muted[c.id] ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
                         )}>
                           {unread}
                         </span>
                       )}
                     </div>
-                    <p className={cn("truncate text-xs", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
+                    <p className={cn("truncate text-[11px] sm:text-xs leading-tight mt-0.5", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
                       {previewText(c.preview)}
                     </p>
                   </div>
@@ -843,7 +842,7 @@ function MessagesPage() {
               </Button>
             </header>
 
-            <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto p-4">
+            <div ref={scrollerRef} className="flex-1 space-y-1.5 sm:space-y-3 overflow-y-auto p-3 sm:p-4">
               {(() => {
                 if (messages.length === 0) {
                   return (
@@ -886,7 +885,7 @@ function MessagesPage() {
                           )}
                           <div
                             className={cn(
-                              "max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow-sm",
+                              "max-w-[80%] sm:max-w-[75%] rounded-2xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[13px] sm:text-sm shadow-sm",
                               mine ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                             )}
                           >
@@ -916,26 +915,28 @@ function MessagesPage() {
                                 {fallbackLabel(decrypted.reason)}
                               </p>
                             ) : (
-                              displayText.split("\n").map((line, i) =>
-                                isImageUrl(line) ? (
-                                  <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
-                                    <img src={line} alt="attachment" className="my-1 max-h-60 rounded-lg object-cover" />
-                                  </a>
-                                ) : /^https?:\/\//i.test(line) ? (
-                                  <a key={i} href={line} target="_blank" rel="noreferrer" className="block break-all underline underline-offset-2">
-                                    {line}
-                                  </a>
-                                ) : (
-                                  <p key={i} className="whitespace-pre-wrap break-words">
-                                    {line}
-                                  </p>
-                                )
-                              )
-                            )}
-                            {!isEditing && (
-                              <p className={cn("mt-1 text-[10px]", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                                {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
-                              </p>
+                              <div className="flex flex-wrap items-end gap-x-2 gap-y-0.5">
+                                <div className="min-w-0 flex-1">
+                                  {displayText.split("\n").map((line, i) =>
+                                    isImageUrl(line) ? (
+                                      <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
+                                        <img src={line} alt="attachment" className="my-1 max-h-52 rounded-lg object-cover" />
+                                      </a>
+                                    ) : /^https?:\/\//i.test(line) ? (
+                                      <a key={i} href={line} target="_blank" rel="noreferrer" className="block break-all underline underline-offset-2">
+                                        {line}
+                                      </a>
+                                    ) : (
+                                      <p key={i} className="whitespace-pre-wrap break-words leading-snug">
+                                        {line}
+                                      </p>
+                                    )
+                                  )}
+                                </div>
+                                <span className={cn("ml-auto shrink-0 text-[9px] sm:text-[10px] leading-none pb-0.5", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                                  {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                              </div>
                             )}
                           </div>
                         </div>
@@ -1036,17 +1037,22 @@ function MessagesPage() {
                   <Textarea
                     ref={textareaRef}
                     value={draft}
-                    onChange={(e) => setDraft(e.target.value.slice(0, MAX_LEN))}
+                    onChange={(e) => {
+                      setDraft(e.target.value.slice(0, MAX_LEN));
+                      const el = e.currentTarget;
+                      el.style.height = "auto";
+                      el.style.height = Math.min(el.scrollHeight, 160) + "px";
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
                         send();
                       }
                     }}
-                    placeholder="Type a message… (Shift+Enter for newline)"
+                    placeholder="Type a message…"
                     disabled={sending}
                     rows={1}
-                    className="max-h-32 min-h-[40px] resize-none"
+                    className="min-h-[40px] resize-none overflow-hidden [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
                   />
                   <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
                     <span>{uploading ? "Uploading…" : "Enter to send"}</span>
