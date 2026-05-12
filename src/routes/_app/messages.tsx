@@ -885,7 +885,7 @@ function MessagesPage() {
                           )}
                           <div
                             className={cn(
-                              "max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow-sm",
+                              "max-w-[80%] sm:max-w-[75%] rounded-2xl px-2.5 py-1.5 sm:px-3 sm:py-2 text-[13px] sm:text-sm shadow-sm",
                               mine ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
                             )}
                           >
@@ -915,26 +915,28 @@ function MessagesPage() {
                                 {fallbackLabel(decrypted.reason)}
                               </p>
                             ) : (
-                              displayText.split("\n").map((line, i) =>
-                                isImageUrl(line) ? (
-                                  <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
-                                    <img src={line} alt="attachment" className="my-1 max-h-60 rounded-lg object-cover" />
-                                  </a>
-                                ) : /^https?:\/\//i.test(line) ? (
-                                  <a key={i} href={line} target="_blank" rel="noreferrer" className="block break-all underline underline-offset-2">
-                                    {line}
-                                  </a>
-                                ) : (
-                                  <p key={i} className="whitespace-pre-wrap break-words">
-                                    {line}
-                                  </p>
-                                )
-                              )
-                            )}
-                            {!isEditing && (
-                              <p className={cn("mt-1 text-[10px]", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                                {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
-                              </p>
+                              <div className="flex flex-wrap items-end gap-x-2 gap-y-0.5">
+                                <div className="min-w-0 flex-1">
+                                  {displayText.split("\n").map((line, i) =>
+                                    isImageUrl(line) ? (
+                                      <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
+                                        <img src={line} alt="attachment" className="my-1 max-h-52 rounded-lg object-cover" />
+                                      </a>
+                                    ) : /^https?:\/\//i.test(line) ? (
+                                      <a key={i} href={line} target="_blank" rel="noreferrer" className="block break-all underline underline-offset-2">
+                                        {line}
+                                      </a>
+                                    ) : (
+                                      <p key={i} className="whitespace-pre-wrap break-words leading-snug">
+                                        {line}
+                                      </p>
+                                    )
+                                  )}
+                                </div>
+                                <span className={cn("ml-auto shrink-0 text-[9px] sm:text-[10px] leading-none pb-0.5", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                                  {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                              </div>
                             )}
                           </div>
                         </div>
