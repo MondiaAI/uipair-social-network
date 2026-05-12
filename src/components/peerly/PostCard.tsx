@@ -291,13 +291,20 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="block w-full overflow-hidden rounded-lg border bg-muted"
+          className="block w-full overflow-hidden rounded-lg border bg-muted relative"
         >
+          {!imgLoaded && (
+            <div className="w-full aspect-[4/3] sm:aspect-[16/9] animate-pulse bg-muted" />
+          )}
           <img
             src={post.media_url}
             alt="Post attachment"
             loading="lazy"
-            className="w-full h-auto max-h-[60vh] sm:max-h-96 object-contain aspect-[4/3] sm:aspect-auto"
+            onLoad={() => setImgLoaded(true)}
+            className={cn(
+              "w-full h-auto max-h-[60vh] sm:max-h-96 object-contain aspect-[4/3] sm:aspect-auto transition-opacity",
+              imgLoaded ? "opacity-100" : "opacity-0 absolute inset-0",
+            )}
           />
         </a>
       )}
