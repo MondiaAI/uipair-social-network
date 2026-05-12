@@ -304,7 +304,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
         />
       )}
 
-      <footer className="flex items-center gap-0.5 sm:gap-1 pt-2 border-t flex-wrap">
+      <footer className="flex items-center gap-0.5 pt-1.5 sm:pt-2 border-t flex-wrap">
         {REACTIONS.map((r) => {
           const active = myReactions.has(r.type);
           const count = counts[r.type] ?? 0;
@@ -315,12 +315,12 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
               title={r.tip}
               aria-label={r.label}
               className={cn(
-                "flex items-center gap-1 rounded-full px-2 py-1 sm:px-2.5 sm:py-1.5 text-sm font-medium transition-colors hover:bg-muted",
+                "flex items-center gap-0.5 sm:gap-1 rounded-full px-1.5 py-0.5 sm:px-2.5 sm:py-1.5 text-sm font-medium transition-colors hover:bg-muted",
                 active && `bg-[var(--reaction-${r.color}-soft)] text-[var(--reaction-${r.color})] ring-1 ring-[var(--reaction-${r.color})]/30`,
               )}
             >
-              <span aria-hidden className="text-sm sm:text-base leading-none">{r.emoji}</span>
-              {count > 0 && <span className="text-[11px] sm:text-xs">{count}</span>}
+              <span aria-hidden className="text-xs sm:text-base leading-none">{r.emoji}</span>
+              {count > 0 && <span className="text-[10px] sm:text-xs">{count}</span>}
             </button>
           );
         })}
