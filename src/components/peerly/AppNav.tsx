@@ -15,7 +15,36 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { useNotifications } from "@/lib/notifications-context";
+import { useUnreadChats } from "@/hooks/use-unread-chats";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+
+function Badge({ count }: { count: number }) {
+  if (!count || count <= 0) return null;
+  return (
+    <span
+      aria-label={`${count} unread`}
+      className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-semibold flex items-center justify-center leading-none"
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
+/**
+ * Smoothly scroll the relevant container to the top.
+ * Looks for a per-tab inner scroll container first
+ * (e.g. <div data-scroll-container="feed">), then falls back to window.
+ */
+function scrollTabToTop(tabKey: string) {
+  if (typeof document === "undefined") return;
+  const inner = document.querySelector<HTMLElement>(`[data-scroll-container="${tabKey}"]`);
+  if (inner && inner.scrollHeight > inner.clientHeight) {
+    inner.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 type Tab = { to: string; label: string; icon: LucideIcon; params?: Record<string, string> };
 
