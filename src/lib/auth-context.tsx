@@ -3,6 +3,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureDeviceKeypair } from "@/lib/e2ee";
 import { onProfileUpdate } from "@/lib/profile-broadcast";
+import { toast } from "sonner";
 
 interface Profile {
   id: string;
@@ -83,7 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (payload) => setProfile(payload.new as Profile),
       )
       .subscribe();
-    const off = onProfileUpdate((e) => { if (e.userId === user.id) loadProfile(user.id); });
+    const off = onProfileUpdate((e) => {
+      if (e.userId === user.id) {
+        loadProfile(user.id);
+        toast.message("Profile updated in another tab");
+      }
+    });
     return () => { supabase.removeChannel(channel); off(); };
   }, [user?.id]);
 
