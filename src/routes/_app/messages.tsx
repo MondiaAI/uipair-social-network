@@ -842,7 +842,7 @@ function MessagesPage() {
               </Button>
             </header>
 
-            <div ref={scrollerRef} className="flex-1 space-y-3 overflow-y-auto p-4">
+            <div ref={scrollerRef} className="flex-1 space-y-1.5 sm:space-y-3 overflow-y-auto p-3 sm:p-4">
               {(() => {
                 if (messages.length === 0) {
                   return (
