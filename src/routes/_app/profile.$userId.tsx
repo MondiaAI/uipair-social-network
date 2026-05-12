@@ -264,7 +264,7 @@ function ProfilePage() {
           open={editOpen}
           onOpenChange={setEditOpen}
           profile={profile}
-          onSaved={async () => { await refreshProfile(); load(); }}
+          onSaved={async () => { await refreshProfile(); await load(); await router.invalidate(); }}
         />
       )}
     </div>
