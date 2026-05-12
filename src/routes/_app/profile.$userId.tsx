@@ -332,25 +332,48 @@ function EditProfileDialog({
       university: universityName,
       country: country,
     };
-    // Snapshot previous values so we can revert on failure.
+    // Snapshot every field we're about to touch so we can revert on ANY failure.
     const prev: Record<string, any> = {};
     for (const k of Object.keys(update)) prev[k] = profile?.[k] ?? null;
+
+    const rollback = (reason: string) => {
+      onOptimistic?.(prev);
+      toast.error(`Couldn't save profile — changes reverted${reason ? `: ${reason}` : ""}`);
+    };
 
     // Optimistic UI: apply update + close dialog immediately.
     onOptimistic?.(update);
     onOpenChange(false);
-    toast.success("Profile updated");
+    const successToastId = toast.success("Profile updated");
 
-    // Network sync in background.
-    const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
-    setSaving(false);
-    if (error) {
-      onOptimistic?.(prev);
-      toast.error(error.message);
+    // 1) Network write
+    let writeError: any = null;
+    try {
+      const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
+      writeError = error;
+    } catch (e) {
+      writeError = e;
+    }
+    if (writeError) {
+      toast.dismiss(successToastId);
+      setSaving(false);
+      rollback(writeError?.message ?? "network error");
       return;
     }
-    broadcastProfileUpdate(user.id);
-    onSaved();
+
+    // 2) Broadcast + background refetch — also guarded so any failure rolls back.
+    try {
+      broadcastProfileUpdate(user.id);
+      await Promise.resolve(onSaved());
+    } catch (e: any) {
+      toast.dismiss(successToastId);
+      // Best-effort: write succeeded server-side but local sync failed.
+      // Re-fetch authoritative state by reverting optimistic patch; the
+      // realtime subscription / next load() will reconcile to the truth.
+      rollback(e?.message ?? "sync failed");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
