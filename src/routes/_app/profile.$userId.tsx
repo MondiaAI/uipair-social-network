@@ -39,6 +39,7 @@ function ProfilePage() {
   const { user, profile: myProfile, refreshProfile } = useAuth();
   const isMe = user?.id === userId;
   const navigate = useNavigate();
+  const router = useRouter();
 
   const [profile, setProfile] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
