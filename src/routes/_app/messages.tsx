@@ -791,16 +791,29 @@ function MessagesPage() {
         </div>
       </aside>
 
-      {/* Chat panel */}
-      <section className="flex flex-1 flex-col rounded-xl border bg-card shadow-sm">
+      {/* Chat panel — full-width on mobile when a chat is open */}
+      <section className={cn(
+        "flex-1 flex-col rounded-none md:rounded-xl border-x-0 md:border bg-card shadow-sm",
+        active ? "flex" : "hidden md:flex",
+      )}>
         {!active ? (
           <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
             Select a conversation to start chatting
           </div>
         ) : (
           <>
-            <header className="flex items-center gap-3 border-b p-4">
-              <Avatar className="h-9 w-9">
+            <header className="flex items-center gap-2 sm:gap-3 border-b p-3 sm:p-4">
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="md:hidden h-9 w-9 shrink-0 -ml-1"
+                onClick={() => navigate({ search: {} as any })}
+                aria-label="Back to conversations"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Avatar className="h-9 w-9 shrink-0">
                 <AvatarImage src={active.other?.avatar_url ?? undefined} />
                 <AvatarFallback>
                   {(active.other?.full_name || active.other?.username || "S").slice(0, 2).toUpperCase()}
@@ -810,7 +823,7 @@ function MessagesPage() {
                 <p className="truncate text-sm font-semibold">
                   {active.other?.full_name || active.other?.username || "Student"}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] sm:text-xs text-muted-foreground">
                   {muted[active.id] ? "Notifications muted" : "Private chat"}
                 </p>
               </div>
