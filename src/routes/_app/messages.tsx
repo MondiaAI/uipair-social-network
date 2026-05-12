@@ -674,9 +674,12 @@ function MessagesPage() {
   };
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-8rem)] max-w-5xl gap-4 px-4 py-6">
-      {/* Sidebar */}
-      <aside className="flex w-72 flex-col rounded-xl border bg-card shadow-sm">
+    <div className="mx-auto flex h-[calc(100vh-9rem)] md:h-[calc(100vh-8rem)] max-w-5xl flex-col md:flex-row gap-0 md:gap-4 px-0 md:px-4 py-0 md:py-6">
+      {/* Sidebar — full-width list on mobile when no chat is selected */}
+      <aside className={cn(
+        "flex-col rounded-none md:rounded-xl border-x-0 md:border bg-card shadow-sm w-full md:w-72 flex-1 md:flex-none",
+        active ? "hidden md:flex" : "flex",
+      )}>
         <div className="border-b p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-lg font-bold">Messages</h1>
