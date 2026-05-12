@@ -229,45 +229,46 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
     <article
       id={`post-${post.id}`}
       className={cn(
-        "rounded-2xl border border-t-[3px] bg-card p-4 shadow-sm space-y-3",
+        "rounded-2xl border border-t-[3px] bg-card p-3 sm:p-4 shadow-sm space-y-2.5 sm:space-y-3",
         meta.bar,
       )}
     >
-      <header className="flex items-start gap-3">
-        <Avatar className="h-10 w-10">
+      <header className="flex items-start gap-2.5 sm:gap-3">
+        <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
           <AvatarImage src={author?.avatar_url ?? undefined} />
           <AvatarFallback className="bg-accent text-accent-foreground text-xs font-semibold">
             {initials}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold truncate">{author?.full_name || "Student"}</span>
-            <span className="text-xs text-muted-foreground">@{author?.username}</span>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span className="font-semibold text-sm sm:text-[15px] truncate">{author?.full_name || "Student"}</span>
+            <span className="text-[11px] sm:text-xs text-muted-foreground truncate">@{author?.username}</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {author?.university && <><span className="truncate">{author.university}</span><span>·</span></>}
-            <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground min-w-0">
+            {author?.university && <><span className="truncate">{author.university}</span><span className="shrink-0">·</span></>}
+            <span className="shrink-0">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           {post.is_live_session && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-destructive px-2 py-0.5 text-[10px] font-bold text-destructive-foreground">
+            <span className="inline-flex items-center gap-1 rounded-full bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-destructive-foreground">
               <Radio className="h-3 w-3" /> LIVE
             </span>
           )}
           <span className={cn(
-            "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold",
+            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold whitespace-nowrap",
             meta.chipBg, meta.chipText,
           )}>
-            {meta.emoji} {meta.label}
+            <span aria-hidden>{meta.emoji}</span>
+            <span className="hidden xs:inline sm:inline">{meta.label}</span>
           </span>
         </div>
       </header>
 
       <div>
         <p
-          className={cn("whitespace-pre-wrap text-[15px] leading-relaxed", !expanded && isLong && "line-clamp-4")}
+          className={cn("whitespace-pre-wrap text-sm sm:text-[15px] leading-relaxed break-words", !expanded && isLong && "line-clamp-4")}
         >
           {renderContentWithLinks(post.content, navigate)}
         </p>
