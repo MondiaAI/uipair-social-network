@@ -92,6 +92,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
   const [commentText, setCommentText] = useState("");
   const [commentCount, setCommentCount] = useState(0);
   const [expanded, setExpanded] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const [linkedProject, setLinkedProject] = useState<{
     id: string; name: string; is_public: boolean; join_fee_cents: number;
     fee_interval: "one_time" | "monthly"; member_count: number; team_size_limit: number; creator_id: string;
@@ -291,13 +292,20 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="block w-full overflow-hidden rounded-lg border bg-muted"
+          className="block w-full overflow-hidden rounded-lg border bg-muted relative"
         >
+          {!imgLoaded && (
+            <div className="w-full aspect-[4/3] sm:aspect-[16/9] animate-pulse bg-muted" />
+          )}
           <img
             src={post.media_url}
             alt="Post attachment"
             loading="lazy"
-            className="w-full h-auto max-h-[60vh] sm:max-h-96 object-contain aspect-[4/3] sm:aspect-auto"
+            onLoad={() => setImgLoaded(true)}
+            className={cn(
+              "w-full h-auto max-h-[60vh] sm:max-h-96 object-contain aspect-[4/3] sm:aspect-auto transition-opacity",
+              imgLoaded ? "opacity-100" : "opacity-0 absolute inset-0",
+            )}
           />
         </a>
       )}

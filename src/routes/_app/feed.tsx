@@ -9,6 +9,7 @@ import { LiveSessionsRow } from "@/components/peerly/LiveSessionsRow";
 import { FeedFilters, type FeedFilter } from "@/components/peerly/FeedFilters";
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { onProfileUpdate } from "@/lib/profile-broadcast";
+import { PostCardSkeleton } from "@/components/peerly/PostCardSkeleton";
 
 export const Route = createFileRoute("/_app/feed")({
   component: FeedPage,
@@ -58,7 +59,7 @@ function FeedPage() {
   }, [loadPosts]);
 
   return (
-    <div data-scroll-container="feed" className="mx-auto max-w-2xl px-2 sm:px-4 py-3 sm:py-6 space-y-3 sm:space-y-4">
+    <div data-scroll-container="feed" className="mx-auto max-w-2xl px-4 py-3 sm:py-6 space-y-3 sm:space-y-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Knowledge Feed</h1>
         <p className="text-sm text-muted-foreground">
@@ -79,7 +80,11 @@ function FeedPage() {
       <FeedFilters value={filter} onChange={setFilter} />
 
       {loading ? (
-        <div className="text-center text-muted-foreground py-12">Loading feed…</div>
+        <div className="space-y-3 sm:space-y-4">
+          <PostCardSkeleton />
+          <PostCardSkeleton withImage />
+          <PostCardSkeleton />
+        </div>
       ) : posts.length === 0 ? (
         <div className="rounded-2xl border bg-card p-12 text-center">
           <p className="text-muted-foreground">
