@@ -328,6 +328,7 @@ function EditProfileDialog({
     const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
     setSaving(false);
     if (error) return toast.error(error.message);
+    if (user) broadcastProfileUpdate(user.id);
     toast.success("Profile updated");
     onOpenChange(false);
     await onSaved();
