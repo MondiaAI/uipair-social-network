@@ -142,7 +142,10 @@ export function AppNav() {
             );
             const inner = (
               <>
-                <Icon className="h-5 w-5" />
+                <span className="relative">
+                  <Icon className="h-5 w-5" />
+                  <Badge count={t.badge ?? 0} />
+                </span>
                 <span>{t.label}</span>
               </>
             );
@@ -170,11 +173,11 @@ export function AppNav() {
                 aria-current={t.active ? "page" : undefined}
                 onClick={(e) => {
                   // Tap-again-to-scroll-to-top: if user is already on this
-                  // route, intercept and smoothly scroll to top instead of
-                  // re-navigating.
-                  if (t.active && typeof window !== "undefined") {
+                  // route, intercept and scroll the inner container (if any)
+                  // or fall back to window scroll.
+                  if (t.active) {
                     e.preventDefault();
-                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    scrollTabToTop(t.key);
                   }
                 }}
               >
