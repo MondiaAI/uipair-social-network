@@ -46,7 +46,7 @@ export function CircleCard({
   const price = Number(circle.price_monthly ?? 0).toFixed(0);
 
   return (
-    <div className="rounded-xl border bg-card p-4 shadow-sm transition hover:shadow-md flex flex-col gap-3">
+    <div className="rounded-xl border bg-card p-3 sm:p-4 shadow-sm transition hover:shadow-md flex flex-col gap-2.5 sm:gap-3">
       <div className="flex items-start justify-between gap-2">
         <Link
           to="/circles/$circleId"
