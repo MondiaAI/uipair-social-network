@@ -266,7 +266,13 @@ function ProfilePage() {
           open={editOpen}
           onOpenChange={setEditOpen}
           profile={profile}
-          onSaved={async () => { await refreshProfile(); await load(); await router.invalidate(); }}
+          onOptimistic={(patch) => setProfile((prev: any) => ({ ...prev, ...patch }))}
+          onSaved={() => {
+            // Background sync — UI already updated optimistically.
+            refreshProfile();
+            load();
+            router.invalidate();
+          }}
         />
       )}
     </div>
@@ -274,12 +280,13 @@ function ProfilePage() {
 }
 
 function EditProfileDialog({
-  open, onOpenChange, profile, onSaved,
+  open, onOpenChange, profile, onSaved, onOptimistic,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   profile: any;
   onSaved: () => void | Promise<void>;
+  onOptimistic?: (patch: Record<string, any>) => void;
 }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -325,13 +332,25 @@ function EditProfileDialog({
       university: universityName,
       country: country,
     };
+    // Snapshot previous values so we can revert on failure.
+    const prev: Record<string, any> = {};
+    for (const k of Object.keys(update)) prev[k] = profile?.[k] ?? null;
+
+    // Optimistic UI: apply update + close dialog immediately.
+    onOptimistic?.(update);
+    onOpenChange(false);
+    toast.success("Profile updated");
+
+    // Network sync in background.
     const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
     setSaving(false);
-    if (error) return toast.error(error.message);
-    if (user) broadcastProfileUpdate(user.id);
-    toast.success("Profile updated");
-    onOpenChange(false);
-    await onSaved();
+    if (error) {
+      onOptimistic?.(prev);
+      toast.error(error.message);
+      return;
+    }
+    broadcastProfileUpdate(user.id);
+    onSaved();
   };
 
   return (
