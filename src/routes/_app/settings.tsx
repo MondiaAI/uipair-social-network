@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { UniversitySelector } from "@/components/peerly/UniversitySelector";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { broadcastProfileUpdate } from "@/lib/profile-broadcast";
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsPage,
