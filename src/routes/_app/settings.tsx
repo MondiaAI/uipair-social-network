@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_app/settings")({
 
 function SettingsPage() {
   const { user, profile, refreshProfile } = useAuth();
+  const router = useRouter();
   const [universityId, setUniversityId] = useState<string | null>(null);
   const [universityName, setUniversityName] = useState<string | null>(null);
   const [country, setCountry] = useState<string | null>(null);
