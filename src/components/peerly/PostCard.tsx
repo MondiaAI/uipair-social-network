@@ -223,7 +223,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
     .split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
   const meta = POST_TYPE_META[post.post_type] ?? POST_TYPE_META.brainstorm;
   const lines = post.content.split("\n").length;
-  const isLong = lines > MAX_LINES || post.content.length > 320;
+  const isLong = lines > 3 || post.content.length > 220;
 
   return (
     <article
@@ -268,7 +268,10 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
 
       <div className="min-w-0">
         <p
-          className={cn("whitespace-pre-wrap text-[13px] sm:text-[15px] leading-snug sm:leading-relaxed break-words", !expanded && isLong && "line-clamp-4")}
+          className={cn(
+            "whitespace-pre-wrap text-[13px] sm:text-[15px] leading-snug sm:leading-relaxed break-words [overflow-wrap:anywhere]",
+            !expanded && isLong && "line-clamp-3 sm:line-clamp-4",
+          )}
         >
           {renderContentWithLinks(post.content, navigate)}
         </p>
@@ -283,12 +286,18 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
       </div>
 
       {post.media_url && (
-        <a href={post.media_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+        <a
+          href={post.media_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="block w-full overflow-hidden rounded-lg border bg-muted"
+        >
           <img
             src={post.media_url}
             alt="Post attachment"
             loading="lazy"
-            className="max-h-64 sm:max-h-96 w-full rounded-lg border object-cover"
+            className="w-full h-auto max-h-[60vh] sm:max-h-96 object-contain aspect-[4/3] sm:aspect-auto"
           />
         </a>
       )}
