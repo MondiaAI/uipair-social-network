@@ -20,18 +20,18 @@ export function ResourceCard({ resource, onBuy }: { resource: ResourceCardData; 
   const name = resource.uploader?.full_name ?? resource.uploader?.username ?? "Uploader";
   const free = resource.price_cents === 0;
   return (
-    <Card className="flex flex-col gap-3 p-4">
+    <Card className="flex flex-col gap-2.5 p-3 sm:p-4 sm:gap-3">
       <Badge variant="outline" className={cn("w-fit", subjectChipClass(resource.subject))}>{resource.subject}</Badge>
       <h3 className="line-clamp-2 text-sm font-semibold leading-snug">{resource.title}</h3>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Avatar className="h-5 w-5"><AvatarImage src={resource.uploader?.avatar_url ?? undefined} /><AvatarFallback>{name.charAt(0)}</AvatarFallback></Avatar>
+      <div className="flex items-center gap-2 text-[11px] sm:text-xs text-muted-foreground min-w-0">
+        <Avatar className="h-5 w-5 shrink-0"><AvatarImage src={resource.uploader?.avatar_url ?? undefined} /><AvatarFallback>{name.charAt(0)}</AvatarFallback></Avatar>
         <span className="truncate">{name}</span>
-        <span>•</span>
-        <span className="inline-flex items-center gap-1"><Download className="h-3 w-3" />{resource.download_count}</span>
+        <span className="shrink-0">•</span>
+        <span className="inline-flex items-center gap-1 shrink-0"><Download className="h-3 w-3" />{resource.download_count}</span>
       </div>
-      <div className="mt-auto flex items-center justify-between pt-2">
-        <span className="text-base font-bold text-emerald-600">{free ? "Free" : formatPrice(resource.price_cents)}</span>
-        <Button size="sm" onClick={() => onBuy(resource.id)}>{free ? "Download" : "Buy & Download"}</Button>
+      <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+        <span className="text-sm sm:text-base font-bold text-emerald-600">{free ? "Free" : formatPrice(resource.price_cents)}</span>
+        <Button size="sm" className="shrink-0" onClick={() => onBuy(resource.id)}>{free ? "Download" : "Buy"}</Button>
       </div>
     </Card>
   );
