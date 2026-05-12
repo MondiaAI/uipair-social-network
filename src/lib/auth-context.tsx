@@ -84,7 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         (payload) => setProfile(payload.new as Profile),
       )
       .subscribe();
-    const off = onProfileUpdate((e) => { if (e.userId === user.id) loadProfile(user.id); });
+    const off = onProfileUpdate((e) => {
+      if (e.userId === user.id) {
+        loadProfile(user.id);
+        toast.message("Profile updated in another tab");
+      }
+    });
     return () => { supabase.removeChannel(channel); off(); };
   }, [user?.id]);
 
