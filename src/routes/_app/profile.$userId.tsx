@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -39,6 +39,7 @@ function ProfilePage() {
   const { user, profile: myProfile, refreshProfile } = useAuth();
   const isMe = user?.id === userId;
   const navigate = useNavigate();
+  const router = useRouter();
 
   const [profile, setProfile] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
@@ -263,7 +264,7 @@ function ProfilePage() {
           open={editOpen}
           onOpenChange={setEditOpen}
           profile={profile}
-          onSaved={async () => { await refreshProfile(); load(); }}
+          onSaved={async () => { await refreshProfile(); await load(); await router.invalidate(); }}
         />
       )}
     </div>

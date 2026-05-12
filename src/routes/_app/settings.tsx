@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_app/settings")({
 
 function SettingsPage() {
   const { user, profile, refreshProfile } = useAuth();
+  const router = useRouter();
   const [universityId, setUniversityId] = useState<string | null>(null);
   const [universityName, setUniversityName] = useState<string | null>(null);
   const [country, setCountry] = useState<string | null>(null);
@@ -46,6 +47,7 @@ function SettingsPage() {
         .eq("id", user.id);
       if (error) throw error;
       await refreshProfile();
+      await router.invalidate();
       toast.success("Settings saved");
     } catch (e: any) {
       toast.error(e?.message ?? "Could not save");
