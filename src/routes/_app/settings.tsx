@@ -49,6 +49,7 @@ function SettingsPage() {
       if (error) throw error;
       await refreshProfile();
       await router.invalidate();
+      broadcastProfileUpdate(user.id);
       toast.success("Settings saved");
     } catch (e: any) {
       toast.error(e?.message ?? "Could not save");
