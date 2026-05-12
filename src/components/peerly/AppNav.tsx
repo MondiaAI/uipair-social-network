@@ -1,8 +1,26 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Users, Zap, FlaskConical, DollarSign, MessageSquare, type LucideIcon } from "lucide-react";
+import {
+  Home,
+  Users,
+  Zap,
+  FlaskConical,
+  DollarSign,
+  MessageSquare,
+  User,
+  Menu,
+  Settings as SettingsIcon,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
-const tabs: { to: string; label: string; icon: LucideIcon }[] = [
+type Tab = { to: string; label: string; icon: LucideIcon; params?: Record<string, string> };
+
+// Full nav (used by desktop sidebar)
+const allTabs: Tab[] = [
   { to: "/feed", label: "Feed", icon: Home },
   { to: "/circles", label: "Circles", icon: Users },
   { to: "/match", label: "Match", icon: Zap },
@@ -13,12 +31,35 @@ const tabs: { to: string; label: string; icon: LucideIcon }[] = [
 
 export function AppNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { user } = useAuth();
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const profileTo = user ? `/profile/${user.id}` : "/feed";
+  const isProfileActive = pathname.startsWith("/profile");
+
+  // Mobile primary tabs (5 max for thumb-friendly bottom nav)
+  const mobilePrimary: { key: string; label: string; icon: LucideIcon; to?: string; active: boolean; onClick?: () => void }[] = [
+    { key: "feed", label: "Feed", icon: Home, to: "/feed", active: pathname.startsWith("/feed") },
+    { key: "circles", label: "Circles", icon: Users, to: "/circles", active: pathname.startsWith("/circles") },
+    { key: "chat", label: "Chat", icon: MessageSquare, to: "/messages", active: pathname.startsWith("/messages") },
+    { key: "profile", label: "Profile", icon: User, to: profileTo, active: isProfileActive },
+    { key: "more", label: "More", icon: Menu, active: moreOpen, onClick: () => setMoreOpen(true) },
+  ];
+
+  // Mobile overflow shown inside the More sheet
+  const moreItems: Tab[] = [
+    { to: "/match", label: "Match", icon: Zap },
+    { to: "/lab", label: "The Lab", icon: FlaskConical },
+    { to: "/gigs", label: "StudyGigs", icon: DollarSign },
+    { to: "/settings", label: "Settings", icon: SettingsIcon },
+    { to: "/ambassador", label: "Earn as Ambassador", icon: Sparkles },
+  ];
 
   return (
     <>
       {/* Desktop sidebar */}
       <aside className="hidden md:flex sticky top-16 h-[calc(100vh-4rem)] w-56 flex-col gap-1 border-r bg-card p-4">
-        {tabs.map((t) => {
+        {allTabs.map((t) => {
           const active = pathname.startsWith(t.to);
           const Icon = t.icon;
           return (
@@ -39,28 +80,84 @@ export function AppNav() {
         })}
       </aside>
 
-      {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-card">
-        <div className="grid grid-cols-6">
-          {tabs.map((t) => {
-            const active = pathname.startsWith(t.to);
+      {/* Mobile bottom nav (5 tabs + More sheet) */}
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        aria-label="Primary"
+      >
+        <div className="grid grid-cols-5">
+          {mobilePrimary.map((t) => {
             const Icon = t.icon;
+            const className = cn(
+              "flex flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-medium transition-colors min-h-[56px]",
+              t.active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+            );
+            const inner = (
+              <>
+                <Icon className="h-5 w-5" />
+                <span>{t.label}</span>
+              </>
+            );
+            if (t.onClick) {
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={t.onClick}
+                  className={className}
+                  aria-label={t.label}
+                  aria-current={t.active ? "page" : undefined}
+                >
+                  {inner}
+                </button>
+              );
+            }
             return (
               <Link
-                key={t.to}
-                to={t.to}
-                className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors",
-                  active ? "text-primary" : "text-muted-foreground",
-                )}
+                key={t.key}
+                to={t.to!}
+                className={className}
+                aria-label={t.label}
+                aria-current={t.active ? "page" : undefined}
               >
-                <Icon className="h-5 w-5" />
-                {t.label}
+                {inner}
               </Link>
             );
           })}
         </div>
       </nav>
+
+      {/* Mobile "More" sheet — overflow nav + quick actions */}
+      <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl md:hidden">
+          <SheetHeader>
+            <SheetTitle>More</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4 grid grid-cols-2 gap-2 pb-4">
+            {moreItems.map((t) => {
+              const Icon = t.icon;
+              const active = pathname.startsWith(t.to);
+              return (
+                <Link
+                  key={t.to}
+                  to={t.to}
+                  onClick={() => setMoreOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl border p-3 text-sm font-medium transition-colors",
+                    active
+                      ? "border-primary/40 bg-accent text-primary"
+                      : "bg-card text-foreground hover:bg-muted",
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  {t.label}
+                </Link>
+              );
+            })}
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
