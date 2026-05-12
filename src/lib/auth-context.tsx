@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureDeviceKeypair } from "@/lib/e2ee";
+import { onProfileUpdate } from "@/lib/profile-broadcast";
 
 interface Profile {
   id: string;
