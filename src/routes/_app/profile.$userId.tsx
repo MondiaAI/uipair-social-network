@@ -266,7 +266,13 @@ function ProfilePage() {
           open={editOpen}
           onOpenChange={setEditOpen}
           profile={profile}
-          onSaved={async () => { await refreshProfile(); await load(); await router.invalidate(); }}
+          onOptimistic={(patch) => setProfile((prev: any) => ({ ...prev, ...patch }))}
+          onSaved={() => {
+            // Background sync — UI already updated optimistically.
+            refreshProfile();
+            load();
+            router.invalidate();
+          }}
         />
       )}
     </div>
