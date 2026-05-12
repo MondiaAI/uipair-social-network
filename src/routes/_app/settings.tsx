@@ -47,6 +47,7 @@ function SettingsPage() {
         .eq("id", user.id);
       if (error) throw error;
       await refreshProfile();
+      await router.invalidate();
       toast.success("Settings saved");
     } catch (e: any) {
       toast.error(e?.message ?? "Could not save");
