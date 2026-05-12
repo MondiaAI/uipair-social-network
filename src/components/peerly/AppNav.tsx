@@ -136,6 +136,15 @@ export function AppNav() {
                 className={className}
                 aria-label={t.label}
                 aria-current={t.active ? "page" : undefined}
+                onClick={(e) => {
+                  // Tap-again-to-scroll-to-top: if user is already on this
+                  // route, intercept and smoothly scroll to top instead of
+                  // re-navigating.
+                  if (t.active && typeof window !== "undefined") {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                }}
               >
                 {inner}
               </Link>
