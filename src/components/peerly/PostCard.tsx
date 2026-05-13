@@ -93,6 +93,25 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
   const [commentCount, setCommentCount] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [clampLines, setClampLines] = useState(3);
+  const contentRef = React.useRef<HTMLParagraphElement | null>(null);
+
+  // Adaptive line-clamp based on viewport height + image presence.
+  useEffect(() => {
+    const compute = () => {
+      const vh = window.innerHeight;
+      const isMobile = window.innerWidth < 640;
+      if (!isMobile) { setClampLines(4); return; }
+      const hasImage = !!post.media_url;
+      // Smaller phones / image-bearing posts get tighter clamps.
+      if (vh < 640) setClampLines(hasImage ? 2 : 3);
+      else if (vh < 800) setClampLines(hasImage ? 2 : 4);
+      else setClampLines(hasImage ? 3 : 5);
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, [post.media_url]);
   const [linkedProject, setLinkedProject] = useState<{
     id: string; name: string; is_public: boolean; join_fee_cents: number;
     fee_interval: "one_time" | "monthly"; member_count: number; team_size_limit: number; creator_id: string;
