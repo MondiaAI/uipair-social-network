@@ -161,7 +161,7 @@ function ProfilePage() {
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>
               </>
             )}
-            {user && <SettingsButton />}
+            <SettingsButton />
           </div>
         </div>
 
@@ -188,7 +188,7 @@ function ProfilePage() {
                 </Button>
               </>
             )}
-            {user && <SettingsButton className="flex-1 min-w-[110px]" />}
+            <SettingsButton className="flex-1 min-w-[110px]" />
           </div>
         )}
 
