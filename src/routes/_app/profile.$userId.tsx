@@ -165,30 +165,34 @@ function ProfilePage() {
           </div>
         </div>
 
-        {/* Mobile-only action row stacks below avatar so all buttons (incl. Settings) are visible */}
-        <div className="sm:hidden mt-3 flex flex-wrap items-center gap-2">
-          {!isMe && user && (
-            <>
-              <Button size="sm" variant={following ? "outline" : "default"} onClick={toggleFollow} className="flex-1 min-w-[100px]">
-                {following ? "Following" : "Follow"}
-              </Button>
-              <FriendActions otherId={userId} otherName={name} />
-            </>
-          )}
-          {isMe && (
-            <>
-              <Button size="sm" onClick={() => setEditOpen(true)} className="flex-1 min-w-[120px]">
-                <Pencil className="h-4 w-4" /> Edit profile
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => navigate({ to: "/settings" })} className="flex-1 min-w-[110px]">
-                <SettingsIcon className="h-4 w-4" /> Settings
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })} className="w-full">
-                Earn as Ambassador
-              </Button>
-            </>
-          )}
-        </div>
+        {/* Mobile-only action row stacks below avatar so all buttons (incl. Settings) are visible.
+            Only render the container when there's actually something to show — avoids an empty
+            row when an anonymous user views someone else's profile. */}
+        {((!isMe && user) || isMe) && (
+          <div className="sm:hidden mt-3 flex flex-wrap items-center gap-2">
+            {!isMe && user && (
+              <>
+                <Button size="sm" variant={following ? "outline" : "default"} onClick={toggleFollow} className="flex-1 min-w-[100px]">
+                  {following ? "Following" : "Follow"}
+                </Button>
+                <FriendActions otherId={userId} otherName={name} />
+              </>
+            )}
+            {isMe && (
+              <>
+                <Button size="sm" onClick={() => setEditOpen(true)} className="flex-1 min-w-[120px]">
+                  <Pencil className="h-4 w-4" /> Edit profile
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => navigate({ to: "/settings" })} className="flex-1 min-w-[110px]">
+                  <SettingsIcon className="h-4 w-4" /> Settings
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })} className="w-full">
+                  Earn as Ambassador
+                </Button>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="mt-3">
           <div className="flex items-center gap-2 flex-wrap">
