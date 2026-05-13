@@ -271,7 +271,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
         <p
           className={cn(
             "whitespace-pre-wrap text-[13px] sm:text-[15px] leading-snug sm:leading-relaxed break-words [overflow-wrap:anywhere]",
-            !expanded && isLong && "line-clamp-3 sm:line-clamp-4",
+            !expanded && isLong && "line-clamp-2 sm:line-clamp-4",
           )}
         >
           {renderContentWithLinks(post.content, navigate)}
