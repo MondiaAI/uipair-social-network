@@ -158,8 +158,8 @@ function ProfilePage() {
                 <Button size="sm" onClick={() => setEditOpen(true)}>
                   <Pencil className="h-4 w-4" /> Edit profile
                 </Button>
-                <SettingsButton />
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>
+                <SettingsButton />
               </>
             )}
           </div>
@@ -183,10 +183,10 @@ function ProfilePage() {
                 <Button size="sm" onClick={() => setEditOpen(true)} className="flex-1 min-w-[120px]">
                   <Pencil className="h-4 w-4" /> Edit profile
                 </Button>
-                <SettingsButton className="flex-1 min-w-[110px]" />
-                <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })} className="w-full">
+                <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })} className="flex-1 min-w-[150px]">
                   Earn as Ambassador
                 </Button>
+                <SettingsButton className="flex-1 min-w-[110px]" />
               </>
             )}
           </div>
