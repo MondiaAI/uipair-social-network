@@ -37,8 +37,10 @@ export const Route = createFileRoute("/_app/profile/$userId")({
 
 function ProfilePage() {
   const { userId } = Route.useParams();
-  const { user, profile: myProfile, refreshProfile } = useAuth();
-  const isMe = user?.id === userId;
+  const { user, profile: myProfile, refreshProfile, loading: authLoading } = useAuth();
+  // Only resolve ownership once auth has finished loading, otherwise the
+  // Settings/Edit buttons flicker on/off as `user` hydrates.
+  const isMe = !authLoading && !!user && user.id === userId;
   const navigate = useNavigate();
   const router = useRouter();
 
