@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon, Pencil, Settings as SettingsIcon } from "lucide-react";
+import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon, Pencil } from "lucide-react";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { broadcastProfileUpdate, onProfileUpdate } from "@/lib/profile-broadcast";
@@ -30,6 +30,7 @@ import { GigCard } from "@/components/peerly/GigCard";
 import { ResourceCard } from "@/components/peerly/ResourceCard";
 import { timeAgo } from "@/lib/gig-meta";
 import { UniversitySelector } from "@/components/peerly/UniversitySelector";
+import { SettingsButton } from "@/components/peerly/SettingsLink";
 
 export const Route = createFileRoute("/_app/profile/$userId")({
   component: ProfilePage,
@@ -40,7 +41,8 @@ function ProfilePage() {
   const { user, profile: myProfile, refreshProfile, loading: authLoading } = useAuth();
   // Only resolve ownership once auth has finished loading, otherwise the
   // Settings/Edit buttons flicker on/off as `user` hydrates.
-  const isMe = !authLoading && !!user && user.id === userId;
+  const isMe = user?.id === userId;
+  const ownProfilePending = authLoading && !user;
   const navigate = useNavigate();
   const router = useRouter();
 
