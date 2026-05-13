@@ -418,7 +418,12 @@ function EditProfileDialog({
               type="button"
               size="sm"
               variant="outline"
-              onClick={() => { onOpenChange(false); navigate({ to: "/settings" }); }}
+              onClick={() => {
+                // Close dialog first, then navigate on the next frame so Radix
+                // can release pointer-events / focus traps before the route swap.
+                onOpenChange(false);
+                requestAnimationFrame(() => navigate({ to: "/settings" }));
+              }}
             >
               <SettingsIcon className="h-4 w-4" /> Settings
             </Button>
