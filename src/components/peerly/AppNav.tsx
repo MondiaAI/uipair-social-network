@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import { useNotifications } from "@/lib/notifications-context";
 import { useUnreadChats } from "@/hooks/use-unread-chats";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 function Badge({ count }: { count: number }) {
   if (!count || count <= 0) return null;
@@ -199,20 +199,20 @@ export function AppNav() {
               const Icon = t.icon;
               const active = pathname.startsWith(t.to);
               return (
-                <Link
-                  key={t.to}
-                  to={t.to}
-                  onClick={() => setMoreOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl border p-3 text-sm font-medium transition-colors",
-                    active
-                      ? "border-primary/40 bg-accent text-primary"
-                      : "bg-card text-foreground hover:bg-muted",
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  {t.label}
-                </Link>
+                <SheetClose asChild key={t.to}>
+                  <Link
+                    to={t.to}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl border p-3 text-sm font-medium transition-colors",
+                      active
+                        ? "border-primary/40 bg-accent text-primary"
+                        : "bg-card text-foreground hover:bg-muted",
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {t.label}
+                  </Link>
+                </SheetClose>
               );
             })}
           </div>
