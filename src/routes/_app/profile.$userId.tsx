@@ -38,11 +38,11 @@ export const Route = createFileRoute("/_app/profile/$userId")({
 
 function ProfilePage() {
   const { userId } = Route.useParams();
-  const { user, profile: myProfile, refreshProfile, loading: authLoading } = useAuth();
+  const { user, session, profile: myProfile, refreshProfile } = useAuth();
   // Only resolve ownership once auth has finished loading, otherwise the
   // Settings/Edit buttons flicker on/off as `user` hydrates.
-  const isMe = user?.id === userId;
-  const ownProfilePending = authLoading && !user;
+  const viewerId = user?.id ?? session?.user?.id ?? myProfile?.id;
+  const isMe = viewerId === userId;
   const navigate = useNavigate();
   const router = useRouter();
 
