@@ -1,10 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { Settings as SettingsIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 
-type SettingsRouteLinkProps = {
-  className?: string;
+type SettingsRouteLinkProps = Omit<ComponentPropsWithoutRef<typeof Link>, "to"> & {
   children?: ReactNode;
   onBeforeNavigate?: () => void;
   showIcon?: boolean;
@@ -15,14 +14,17 @@ export function SettingsRouteLink({
   children = "Settings",
   onBeforeNavigate,
   showIcon = true,
+  onClick,
+  ...props
 }: SettingsRouteLinkProps) {
   return (
     <Link
       to="/settings"
-      className={className}
-      onClick={() => {
+      onClick={(event) => {
         onBeforeNavigate?.();
+        onClick?.(event);
       }}
+      {...props}
     >
       {showIcon && <SettingsIcon className="h-4 w-4" />}
       {children}
