@@ -12,7 +12,7 @@ import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { broadcastProfileUpdate, onProfileUpdate } from "@/lib/profile-broadcast";
@@ -418,19 +418,13 @@ function EditProfileDialog({
         <DialogHeader>
           <div className="flex items-center justify-between gap-2 pr-6">
             <DialogTitle>Edit profile</DialogTitle>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                // Close dialog first, then navigate on the next frame so Radix
-                // can release pointer-events / focus traps before the route swap.
-                onOpenChange(false);
-                requestAnimationFrame(() => navigate({ to: "/settings" }));
-              }}
-            >
-              <SettingsIcon className="h-4 w-4" /> Settings
-            </Button>
+            <DialogClose asChild>
+              <Button type="button" size="sm" variant="outline" asChild>
+                <Link to="/settings">
+                  <SettingsIcon className="h-4 w-4" /> Settings
+                </Link>
+              </Button>
+            </DialogClose>
           </div>
         </DialogHeader>
         <div className="space-y-3">
