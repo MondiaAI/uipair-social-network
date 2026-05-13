@@ -57,7 +57,7 @@ function renderContentWithLinks(text: string, navigate: ReturnType<typeof useNav
           key={`lnk-${i++}`}
           type="button"
           onClick={(e) => { e.stopPropagation(); navigate({ to: "/lab/$projectId", params: { projectId } }); }}
-          className="text-primary font-medium hover:underline"
+          className="text-primary font-medium hover:underline break-all [overflow-wrap:anywhere]"
         >
           {url}
         </button>
@@ -70,7 +70,7 @@ function renderContentWithLinks(text: string, navigate: ReturnType<typeof useNav
           target="_blank"
           rel="noopener noreferrer"
           onClick={(e) => e.stopPropagation()}
-          className="text-primary font-medium hover:underline break-all"
+          className="text-primary font-medium hover:underline break-all [overflow-wrap:anywhere]"
         >
           {url}
         </a>
@@ -322,7 +322,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
         <p
           ref={contentRef}
           className={cn(
-            "whitespace-pre-wrap leading-snug sm:leading-relaxed break-words [overflow-wrap:anywhere]",
+            "whitespace-pre-wrap leading-snug sm:leading-relaxed break-words break-all [overflow-wrap:anywhere] [word-break:break-word]",
             "text-[clamp(0.8125rem,3.4vw,0.9375rem)]",
             !expanded && isLong && "overflow-hidden",
           )}
