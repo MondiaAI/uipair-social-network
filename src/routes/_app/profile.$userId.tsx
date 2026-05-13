@@ -46,6 +46,24 @@ function ProfilePage() {
   const navigate = useNavigate();
   const router = useRouter();
 
+  // Debug: surface why SettingsButton may not render for some accounts.
+  // Logs on every render so we can see auth hydration timing.
+  useEffect(() => {
+    console.debug("[ProfilePage] SettingsButton visibility trace", {
+      routeUserId: userId,
+      viewerId,
+      isMe,
+      hasUser: !!user,
+      hasSession: !!session,
+      hasMyProfile: !!myProfile,
+      userIdFromUser: user?.id ?? null,
+      userIdFromSession: session?.user?.id ?? null,
+      userIdFromProfile: myProfile?.id ?? null,
+      willShowSettings: true, // SettingsButton is now always rendered
+      willShowEditProfile: isMe,
+    });
+  }, [userId, viewerId, isMe, user, session, myProfile]);
+
   const [profile, setProfile] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [gigs, setGigs] = useState<any[]>([]);
