@@ -12,7 +12,7 @@ import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { broadcastProfileUpdate, onProfileUpdate } from "@/lib/profile-broadcast";
@@ -156,8 +156,10 @@ function ProfilePage() {
                 <Button size="sm" onClick={() => setEditOpen(true)}>
                   <Pencil className="h-4 w-4" /> Edit profile
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => navigate({ to: "/settings" })}>
-                  <SettingsIcon className="h-4 w-4" /> Settings
+                <Button size="sm" variant="outline" asChild>
+                  <Link to="/settings">
+                    <SettingsIcon className="h-4 w-4" /> Settings
+                  </Link>
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>
               </>
@@ -183,8 +185,10 @@ function ProfilePage() {
                 <Button size="sm" onClick={() => setEditOpen(true)} className="flex-1 min-w-[120px]">
                   <Pencil className="h-4 w-4" /> Edit profile
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => navigate({ to: "/settings" })} className="flex-1 min-w-[110px]">
-                  <SettingsIcon className="h-4 w-4" /> Settings
+                <Button size="sm" variant="outline" asChild className="flex-1 min-w-[110px]">
+                  <Link to="/settings">
+                    <SettingsIcon className="h-4 w-4" /> Settings
+                  </Link>
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })} className="w-full">
                   Earn as Ambassador
@@ -321,7 +325,6 @@ function EditProfileDialog({
   onOptimistic?: (patch: Record<string, any>) => void;
 }) {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [fullName, setFullName] = useState(profile?.full_name ?? "");
   const [username, setUsername] = useState(profile?.username ?? "");
   const [bio, setBio] = useState(profile?.bio ?? "");
@@ -414,19 +417,13 @@ function EditProfileDialog({
         <DialogHeader>
           <div className="flex items-center justify-between gap-2 pr-6">
             <DialogTitle>Edit profile</DialogTitle>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                // Close dialog first, then navigate on the next frame so Radix
-                // can release pointer-events / focus traps before the route swap.
-                onOpenChange(false);
-                requestAnimationFrame(() => navigate({ to: "/settings" }));
-              }}
-            >
-              <SettingsIcon className="h-4 w-4" /> Settings
-            </Button>
+            <DialogClose asChild>
+              <Button type="button" size="sm" variant="outline" asChild>
+                <Link to="/settings">
+                  <SettingsIcon className="h-4 w-4" /> Settings
+                </Link>
+              </Button>
+            </DialogClose>
           </div>
         </DialogHeader>
         <div className="space-y-3">
