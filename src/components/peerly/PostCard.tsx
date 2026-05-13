@@ -95,23 +95,54 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
   const [imgLoaded, setImgLoaded] = useState(false);
   const [clampLines, setClampLines] = useState(3);
   const contentRef = React.useRef<HTMLParagraphElement | null>(null);
+  const articleRef = React.useRef<HTMLElement | null>(null);
 
-  // Adaptive line-clamp based on viewport height + image presence.
+  // Adaptive line-clamp: recomputes on viewport resize, expand/collapse,
+  // and actual card-size changes via ResizeObserver.
   useEffect(() => {
     const compute = () => {
+      const vw = window.innerWidth;
       const vh = window.innerHeight;
-      const isMobile = window.innerWidth < 640;
+      const isMobile = vw < 640;
       if (!isMobile) { setClampLines(4); return; }
+      if (expanded) return; // no clamp needed while expanded
       const hasImage = !!post.media_url;
-      // Smaller phones / image-bearing posts get tighter clamps.
-      if (vh < 640) setClampLines(hasImage ? 2 : 3);
-      else if (vh < 800) setClampLines(hasImage ? 2 : 4);
-      else setClampLines(hasImage ? 3 : 5);
+
+      // Budget: how much vertical room the content paragraph may take.
+      // Base it on actual card height vs. viewport so taller phones show more.
+      const cardH = articleRef.current?.getBoundingClientRect().height ?? 0;
+      const lineH = contentRef.current
+        ? parseFloat(getComputedStyle(contentRef.current).lineHeight) || 20
+        : 20;
+
+      // Viewport-based ceiling.
+      let maxByViewport: number;
+      if (vh < 640) maxByViewport = hasImage ? 2 : 3;
+      else if (vh < 800) maxByViewport = hasImage ? 3 : 4;
+      else maxByViewport = hasImage ? 4 : 6;
+
+      // Card-based ceiling: keep the whole card under ~85vh on mobile.
+      const maxCardH = vh * 0.85;
+      const overflow = Math.max(0, cardH - maxCardH);
+      const linesToTrim = Math.ceil(overflow / lineH);
+      const adjusted = Math.max(2, maxByViewport - linesToTrim);
+
+      setClampLines(adjusted);
     };
+
     compute();
     window.addEventListener("resize", compute);
-    return () => window.removeEventListener("resize", compute);
-  }, [post.media_url]);
+
+    let ro: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== "undefined" && articleRef.current) {
+      ro = new ResizeObserver(() => compute());
+      ro.observe(articleRef.current);
+    }
+    return () => {
+      window.removeEventListener("resize", compute);
+      ro?.disconnect();
+    };
+  }, [post.media_url, expanded, post.content]);
   const [linkedProject, setLinkedProject] = useState<{
     id: string; name: string; is_public: boolean; join_fee_cents: number;
     fee_interval: "one_time" | "monthly"; member_count: number; team_size_limit: number; creator_id: string;
@@ -247,6 +278,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
 
   return (
     <article
+      ref={articleRef}
       id={`post-${post.id}`}
       className={cn(
         "rounded-xl sm:rounded-2xl border border-t-[3px] bg-card p-2.5 sm:p-4 shadow-sm space-y-2 sm:space-y-3 overflow-hidden",
