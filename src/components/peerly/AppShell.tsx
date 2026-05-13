@@ -10,7 +10,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Header />
       <div className="mx-auto flex max-w-7xl">
         <AppNav />
-        <main className="flex-1 pb-20 md:pb-8">{children}</main>
+        <main className="flex-1 min-w-0 pb-20 md:pb-8">{children}</main>
       </div>
     </div>
   );
