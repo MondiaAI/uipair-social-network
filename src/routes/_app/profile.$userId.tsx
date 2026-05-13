@@ -411,13 +411,7 @@ function EditProfileDialog({
         <DialogHeader>
           <div className="flex items-center justify-between gap-2 pr-6">
             <DialogTitle>Edit profile</DialogTitle>
-            <DialogClose asChild>
-              <Button type="button" size="sm" variant="outline" asChild>
-                <Link to="/settings">
-                  <SettingsIcon className="h-4 w-4" /> Settings
-                </Link>
-              </Button>
-            </DialogClose>
+            <SettingsButton onBeforeNavigate={() => onOpenChange(false)} />
           </div>
         </DialogHeader>
         <div className="space-y-3">
