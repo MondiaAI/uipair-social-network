@@ -269,10 +269,17 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
 
       <div className="min-w-0">
         <p
+          ref={contentRef}
           className={cn(
-            "whitespace-pre-wrap text-[13px] sm:text-[15px] leading-snug sm:leading-relaxed break-words [overflow-wrap:anywhere]",
-            !expanded && isLong && "line-clamp-2 sm:line-clamp-4",
+            "whitespace-pre-wrap leading-snug sm:leading-relaxed break-words [overflow-wrap:anywhere]",
+            "text-[clamp(0.8125rem,3.4vw,0.9375rem)]",
+            !expanded && isLong && "overflow-hidden",
           )}
+          style={!expanded && isLong ? {
+            display: "-webkit-box",
+            WebkitBoxOrient: "vertical",
+            WebkitLineClamp: clampLines,
+          } : undefined}
         >
           {renderContentWithLinks(post.content, navigate)}
         </p>
