@@ -281,7 +281,7 @@ export function PostCard({ post, onChange: _onChange }: { post: FeedPost; onChan
       ref={articleRef}
       id={`post-${post.id}`}
       className={cn(
-        "rounded-xl sm:rounded-2xl border border-t-[3px] bg-card p-2.5 sm:p-4 shadow-sm space-y-2 sm:space-y-3 overflow-hidden",
+        "w-full max-w-full min-w-0 rounded-xl sm:rounded-2xl border border-t-[3px] bg-card p-2.5 sm:p-4 shadow-sm space-y-2 sm:space-y-3 overflow-hidden",
         meta.bar,
       )}
     >
