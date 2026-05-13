@@ -59,7 +59,7 @@ function FeedPage() {
   }, [loadPosts]);
 
   return (
-    <div data-scroll-container="feed" className="mx-auto max-w-2xl px-4 py-3 sm:py-6 space-y-3 sm:space-y-4">
+    <div data-scroll-container="feed" className="mx-auto w-full max-w-2xl px-3 sm:px-4 py-3 sm:py-6 space-y-3 sm:space-y-4 overflow-x-hidden">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Knowledge Feed</h1>
         <p className="text-sm text-muted-foreground">
