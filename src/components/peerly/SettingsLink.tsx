@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { Settings as SettingsIcon } from "lucide-react";
+import type { ReactNode } from "react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 
 type SettingsRouteLinkProps = {
   className?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
   onBeforeNavigate?: () => void;
   showIcon?: boolean;
 };
