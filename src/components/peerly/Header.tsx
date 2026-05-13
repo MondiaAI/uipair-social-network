@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { NotificationPanel } from "./NotificationPanel";
 import { ProUpgradeModal } from "./ProUpgradeModal";
 import { PeerlyLogo } from "./PeerlyLogo";
+import { SettingsRouteLink } from "./SettingsLink";
 import { useNotifications } from "@/lib/notifications-context";
 import { isNativeApp } from "@/lib/platform";
 
@@ -112,7 +113,7 @@ export function Header() {
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem asChild>
-                <Link to="/settings">Settings</Link>
+                <SettingsRouteLink showIcon={false} />
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/ambassador">Earn as Ambassador</Link>
