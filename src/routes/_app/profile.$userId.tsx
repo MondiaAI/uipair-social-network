@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon, Pencil, Settings as SettingsIcon } from "lucide-react";
+import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon, Pencil } from "lucide-react";
 import { uploadToBucket } from "@/lib/storage";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { broadcastProfileUpdate, onProfileUpdate } from "@/lib/profile-broadcast";
@@ -30,6 +30,7 @@ import { GigCard } from "@/components/peerly/GigCard";
 import { ResourceCard } from "@/components/peerly/ResourceCard";
 import { timeAgo } from "@/lib/gig-meta";
 import { UniversitySelector } from "@/components/peerly/UniversitySelector";
+import { SettingsButton } from "@/components/peerly/SettingsLink";
 
 export const Route = createFileRoute("/_app/profile/$userId")({
   component: ProfilePage,
@@ -37,10 +38,11 @@ export const Route = createFileRoute("/_app/profile/$userId")({
 
 function ProfilePage() {
   const { userId } = Route.useParams();
-  const { user, profile: myProfile, refreshProfile, loading: authLoading } = useAuth();
+  const { user, session, profile: myProfile, refreshProfile } = useAuth();
   // Only resolve ownership once auth has finished loading, otherwise the
   // Settings/Edit buttons flicker on/off as `user` hydrates.
-  const isMe = !authLoading && !!user && user.id === userId;
+  const viewerId = user?.id ?? session?.user?.id ?? myProfile?.id;
+  const isMe = viewerId === userId;
   const navigate = useNavigate();
   const router = useRouter();
 
@@ -156,11 +158,7 @@ function ProfilePage() {
                 <Button size="sm" onClick={() => setEditOpen(true)}>
                   <Pencil className="h-4 w-4" /> Edit profile
                 </Button>
-                <Button size="sm" variant="outline" asChild>
-                  <Link to="/settings">
-                    <SettingsIcon className="h-4 w-4" /> Settings
-                  </Link>
-                </Button>
+                <SettingsButton />
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>
               </>
             )}
@@ -185,11 +183,7 @@ function ProfilePage() {
                 <Button size="sm" onClick={() => setEditOpen(true)} className="flex-1 min-w-[120px]">
                   <Pencil className="h-4 w-4" /> Edit profile
                 </Button>
-                <Button size="sm" variant="outline" asChild className="flex-1 min-w-[110px]">
-                  <Link to="/settings">
-                    <SettingsIcon className="h-4 w-4" /> Settings
-                  </Link>
-                </Button>
+                <SettingsButton className="flex-1 min-w-[110px]" />
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })} className="w-full">
                   Earn as Ambassador
                 </Button>
@@ -417,13 +411,7 @@ function EditProfileDialog({
         <DialogHeader>
           <div className="flex items-center justify-between gap-2 pr-6">
             <DialogTitle>Edit profile</DialogTitle>
-            <DialogClose asChild>
-              <Button type="button" size="sm" variant="outline" asChild>
-                <Link to="/settings">
-                  <SettingsIcon className="h-4 w-4" /> Settings
-                </Link>
-              </Button>
-            </DialogClose>
+            <SettingsButton onBeforeNavigate={() => onOpenChange(false)} />
           </div>
         </DialogHeader>
         <div className="space-y-3">
