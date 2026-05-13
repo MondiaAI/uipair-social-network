@@ -18,6 +18,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useNotifications } from "@/lib/notifications-context";
 import { useUnreadChats } from "@/hooks/use-unread-chats";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { SettingsRouteLink } from "./SettingsLink";
 
 function Badge({ count }: { count: number }) {
   if (!count || count <= 0) return null;
@@ -198,6 +199,20 @@ export function AppNav() {
             {moreItems.map((t) => {
               const Icon = t.icon;
               const active = pathname.startsWith(t.to);
+              if (t.to === "/settings") {
+                return (
+                  <SettingsRouteLink
+                    key={t.to}
+                    onBeforeNavigate={() => setMoreOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl border p-3 text-sm font-medium transition-colors",
+                      active
+                        ? "border-primary/40 bg-accent text-primary"
+                        : "bg-card text-foreground hover:bg-muted",
+                    )}
+                  />
+                );
+              }
               return (
                 <SheetClose asChild key={t.to}>
                   <Link
