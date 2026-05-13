@@ -412,7 +412,17 @@ function EditProfileDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
+          <div className="flex items-center justify-between gap-2 pr-6">
+            <DialogTitle>Edit profile</DialogTitle>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => { onOpenChange(false); navigate({ to: "/settings" }); }}
+            >
+              <SettingsIcon className="h-4 w-4" /> Settings
+            </Button>
+          </div>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
