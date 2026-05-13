@@ -159,16 +159,16 @@ function ProfilePage() {
                   <Pencil className="h-4 w-4" /> Edit profile
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>
-                <SettingsButton />
               </>
             )}
+            {user && <SettingsButton />}
           </div>
         </div>
 
         {/* Mobile-only action row stacks below avatar so all buttons (incl. Settings) are visible.
             Only render the container when there's actually something to show — avoids an empty
             row when an anonymous user views someone else's profile. */}
-        {((!isMe && user) || isMe) && (
+        {(user || (!isMe && user)) && (
           <div className="sm:hidden mt-3 flex flex-wrap items-center gap-2">
             {!isMe && user && (
               <>
@@ -186,9 +186,9 @@ function ProfilePage() {
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })} className="flex-1 min-w-[150px]">
                   Earn as Ambassador
                 </Button>
-                <SettingsButton className="flex-1 min-w-[110px]" />
               </>
             )}
+            {user && <SettingsButton className="flex-1 min-w-[110px]" />}
           </div>
         )}
 
