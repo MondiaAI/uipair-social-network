@@ -20,6 +20,7 @@ export function SettingsRouteLink({
   return (
     <Link
       to="/settings"
+      className={className}
       onClick={(event) => {
         onBeforeNavigate?.();
         onClick?.(event);
