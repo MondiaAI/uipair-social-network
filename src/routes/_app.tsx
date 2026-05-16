@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_app")({
         throw redirect({ to: "/login" });
       }
     } catch (e: any) {
-      if (e && typeof e === "object" && "to" in e) throw e;
+      if (e instanceof Response || (e && typeof e === "object" && "headers" in e && "status" in e)) throw e;
       console.error("[_app beforeLoad] session check failed", e);
     }
   },
