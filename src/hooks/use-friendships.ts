@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import type { FriendEdge } from "@/lib/friends";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 /**
  * Loads all friend_request rows involving the current user, keyed by the OTHER user's id.
@@ -31,7 +32,7 @@ export function useFriendships() {
     if (!user) return;
     load();
     const channel = supabase
-      .channel(`friend_requests:${user.id}`)
+      .channel(uniqueRealtimeChannelName(`friend_requests:${user.id}`))
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "friend_requests" },
