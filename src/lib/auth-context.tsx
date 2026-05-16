@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureDeviceKeypair } from "@/lib/e2ee";
 import { onProfileUpdate } from "@/lib/profile-broadcast";
 import { toast } from "sonner";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 interface Profile {
   id: string;
@@ -77,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
-      .channel(`own-profile-${user.id}`)
+      .channel(uniqueRealtimeChannelName(`own-profile-${user.id}`))
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },

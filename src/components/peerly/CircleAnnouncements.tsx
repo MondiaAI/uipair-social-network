@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 interface Announcement {
   id: string;
@@ -58,7 +59,7 @@ export function CircleAnnouncements({
   // Realtime: announcement edits, pins, inserts, and deletes propagate to all members.
   useEffect(() => {
     const channel = supabase
-      .channel(`circle-announcements-${circleId}`)
+      .channel(uniqueRealtimeChannelName(`circle-announcements-${circleId}`))
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "circle_announcements", filter: `circle_id=eq.${circleId}` },

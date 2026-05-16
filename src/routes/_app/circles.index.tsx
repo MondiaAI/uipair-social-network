@@ -17,6 +17,7 @@ import { DegreeFilterBar, matchesDegree, useSharedDegree, type DegreeKey } from 
 import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { toast } from "sonner";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 export const Route = createFileRoute("/_app/circles/")({
   component: CirclesPage,
@@ -98,7 +99,7 @@ function CirclesPage() {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`circles-membership-${user.id}`)
+      .channel(uniqueRealtimeChannelName(`circles-membership-${user.id}`))
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "circle_members", filter: `user_id=eq.${user.id}` },

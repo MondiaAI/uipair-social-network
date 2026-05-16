@@ -28,6 +28,7 @@ import {
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { logClientError } from "@/lib/client-logger";
 import { submitCrashReport } from "@/lib/crash-report";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 const search = z.object({ c: z.string().uuid().optional(), m: z.string().optional() });
 
@@ -129,7 +130,7 @@ interface MessageRow {
 function MessagesPage() {
   const { user } = useAuth();
   const { c: activeId, m: prefill } = Route.useSearch();
-  const navigate = useNavigate({ from: "/messages" });
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<ConversationRow[]>([]);
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [draft, setDraft] = useState("");
@@ -232,7 +233,7 @@ function MessagesPage() {
   useEffect(() => {
     if (prefill) {
       setDraft(prefill);
-      navigate({ search: (prev: Record<string, unknown>) => ({ ...prev, m: undefined }), replace: true });
+      navigate({ to: "/messages", search: (prev: { c?: string; m?: string }) => ({ ...prev, m: undefined }), replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill, activeId]);
@@ -288,7 +289,7 @@ function MessagesPage() {
     load();
 
     const channel = supabase
-      .channel(`conv_list:${user.id}`)
+      .channel(uniqueRealtimeChannelName(`conv_list:${user.id}`))
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => load())
       .on(
         "postgres_changes",
@@ -335,7 +336,7 @@ function MessagesPage() {
     };
     load();
     const channel = supabase
-      .channel(`mutes:${user.id}`)
+      .channel(uniqueRealtimeChannelName(`mutes:${user.id}`))
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "conversation_mutes", filter: `user_id=eq.${user.id}` },
@@ -374,7 +375,7 @@ function MessagesPage() {
     load();
 
     const channel = supabase
-      .channel(`messages:${activeId}`)
+      .channel(uniqueRealtimeChannelName(`messages:${activeId}`))
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${activeId}` },
@@ -754,7 +755,7 @@ function MessagesPage() {
               return (
                 <button
                   key={c.id}
-                  onClick={() => navigate({ search: { c: c.id } })}
+                  onClick={() => navigate({ to: "/messages", search: { c: c.id } })}
                   className={cn(
                     "flex w-full items-center gap-2.5 border-b px-3 py-2 sm:gap-3 sm:p-3 text-left transition-colors hover:bg-accent",
                     isActive && "bg-accent"
@@ -807,7 +808,7 @@ function MessagesPage() {
                 size="icon"
                 variant="ghost"
                 className="md:hidden h-9 w-9 shrink-0 -ml-1"
-                onClick={() => navigate({ search: {} as any })}
+                onClick={() => navigate({ to: "/messages", search: {} })}
                 aria-label="Back to conversations"
               >
                 <ArrowLeft className="h-5 w-5" />

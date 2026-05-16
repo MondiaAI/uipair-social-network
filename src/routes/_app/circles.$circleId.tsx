@@ -22,6 +22,7 @@ import { subjectChipClass } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 export const Route = createFileRoute("/_app/circles/$circleId")({
   component: CircleDetailPage,
@@ -176,7 +177,7 @@ function CircleDetailPage() {
     if (!user || !circleId || isMember) return;
 
     const channel = supabase
-      .channel(`circle-membership-${circleId}-${user.id}`)
+      .channel(uniqueRealtimeChannelName(`circle-membership-${circleId}-${user.id}`))
       .on(
         "postgres_changes",
         {

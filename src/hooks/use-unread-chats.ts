@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 /**
  * Counts unread chat messages addressed to the current user across all of
@@ -40,7 +41,7 @@ export function useUnreadChats(): number {
     recount();
 
     const channel = supabase
-      .channel(`unread-chats-${user.id}`)
+      .channel(uniqueRealtimeChannelName(`unread-chats-${user.id}`))
       .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => recount())
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => recount())
       .subscribe();

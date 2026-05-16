@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { respondToRequest } from "@/lib/friends";
 import { toast } from "sonner";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 interface IncomingRow {
   id: string;
@@ -52,7 +53,7 @@ export function IncomingFriendRequests() {
     };
     load();
     const channel = supabase
-      .channel(`incoming_requests:${user.id}`)
+      .channel(uniqueRealtimeChannelName(`incoming_requests:${user.id}`))
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "friend_requests", filter: `recipient_id=eq.${user.id}` },

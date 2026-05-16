@@ -10,6 +10,7 @@ import { FeedFilters, type FeedFilter } from "@/components/peerly/FeedFilters";
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { onProfileUpdate } from "@/lib/profile-broadcast";
 import { PostCardSkeleton } from "@/components/peerly/PostCardSkeleton";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 export const Route = createFileRoute("/_app/feed")({
   component: FeedPage,
@@ -50,7 +51,7 @@ function FeedPage() {
   // updates their profile (so usernames, avatars and university show fresh).
   useEffect(() => {
     const channel = supabase
-      .channel("feed-live")
+      .channel(uniqueRealtimeChannelName("feed-live"))
       .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => loadPosts())
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, () => loadPosts())
       .subscribe();

@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, ReactNode 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 export type Notification = {
   id: string;
@@ -45,7 +46,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     if (!user) { setItems([]); return; }
     reload();
     const channel = supabase
-      .channel(`notifications-shared-${user.id}`)
+      .channel(uniqueRealtimeChannelName(`notifications-shared-${user.id}`))
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },

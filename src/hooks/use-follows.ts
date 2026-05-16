@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 /**
  * Tracks which users the current user is following. Realtime-aware so the
@@ -29,7 +30,7 @@ export function useFollows() {
     }
     load();
     const channel = supabase
-      .channel(`follows:${user.id}`)
+      .channel(uniqueRealtimeChannelName(`follows:${user.id}`))
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "follows", filter: `follower_id=eq.${user.id}` },
