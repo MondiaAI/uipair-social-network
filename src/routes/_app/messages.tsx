@@ -233,7 +233,7 @@ function MessagesPage() {
   useEffect(() => {
     if (prefill) {
       setDraft(prefill);
-      navigate({ search: (prev: Record<string, unknown>) => ({ ...prev, m: undefined }), replace: true });
+      navigate({ to: "/messages", search: (prev) => ({ ...prev, m: undefined }), replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill, activeId]);
@@ -755,7 +755,7 @@ function MessagesPage() {
               return (
                 <button
                   key={c.id}
-                  onClick={() => navigate({ search: { c: c.id } })}
+                  onClick={() => navigate({ to: "/messages", search: { c: c.id } })}
                   className={cn(
                     "flex w-full items-center gap-2.5 border-b px-3 py-2 sm:gap-3 sm:p-3 text-left transition-colors hover:bg-accent",
                     isActive && "bg-accent"
@@ -808,7 +808,7 @@ function MessagesPage() {
                 size="icon"
                 variant="ghost"
                 className="md:hidden h-9 w-9 shrink-0 -ml-1"
-                onClick={() => navigate({ search: {} as any })}
+                onClick={() => navigate({ to: "/messages", search: {} })}
                 aria-label="Back to conversations"
               >
                 <ArrowLeft className="h-5 w-5" />
