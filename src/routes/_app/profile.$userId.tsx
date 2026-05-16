@@ -31,6 +31,7 @@ import { ResourceCard } from "@/components/peerly/ResourceCard";
 import { timeAgo } from "@/lib/gig-meta";
 import { UniversitySelector } from "@/components/peerly/UniversitySelector";
 import { SettingsButton } from "@/components/peerly/SettingsLink";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 export const Route = createFileRoute("/_app/profile/$userId")({
   component: ProfilePage,
@@ -98,7 +99,7 @@ function ProfilePage() {
   // posts new content, or others follow/unfollow them.
   useEffect(() => {
     const channel = supabase
-      .channel(`profile-live-${userId}`)
+      .channel(uniqueRealtimeChannelName(`profile-live-${userId}`))
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${userId}` }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "posts", filter: `user_id=eq.${userId}` }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "follows", filter: `following_id=eq.${userId}` }, () => load())
@@ -615,7 +616,7 @@ function StartConversationButton({
     if (!open) return;
     const [a, b] = [meId, otherId].sort();
     const channel = supabase
-      .channel(`conv-watch-${a}-${b}`)
+      .channel(uniqueRealtimeChannelName(`conv-watch-${a}-${b}`))
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "conversations", filter: `user_a=eq.${a}` },
