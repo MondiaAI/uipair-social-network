@@ -11,6 +11,7 @@ import { FileText, LayoutGrid, Brain, MessageSquare, Share2, UserPlus, Save } fr
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
 type WorkspaceType = "document" | "board" | "mindmap" | "thread";
 type WorkspaceStatus = "active" | "draft" | "complete";
@@ -89,7 +90,7 @@ export function ProjectWorkspace({
   // Realtime presence + content sync
   useEffect(() => {
     if (!user) return;
-    const channel = supabase.channel(`workspace:${projectId}`, {
+    const channel = supabase.channel(uniqueRealtimeChannelName(`workspace:${projectId}`), {
       config: { presence: { key: user.id } },
     });
     channel
