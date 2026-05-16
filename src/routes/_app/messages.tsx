@@ -233,7 +233,7 @@ function MessagesPage() {
   useEffect(() => {
     if (prefill) {
       setDraft(prefill);
-      navigate({ to: "/messages", search: (prev) => ({ ...prev, m: undefined }), replace: true });
+      navigate({ to: "/messages", search: (prev: { c?: string; m?: string }) => ({ ...prev, m: undefined }), replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill, activeId]);
