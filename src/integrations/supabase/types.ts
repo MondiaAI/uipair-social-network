@@ -44,7 +44,7 @@ export type Database = {
           social_handles?: string | null
           status?: string
           student_id_card_url?: string | null
-          tenant_id: string
+          tenant_id?: string
           university: string
           updated_at?: string
           user_id: string
@@ -105,7 +105,7 @@ export type Database = {
           reward_cents: number
           status?: Database["public"]["Enums"]["bounty_status"]
           subject: string
-          tenant_id: string
+          tenant_id?: string
           title: string
           updated_at?: string
         }
@@ -153,7 +153,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_pinned?: boolean
-          tenant_id: string
+          tenant_id?: string
           title: string
           updated_at?: string
           user_id: string
@@ -200,7 +200,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_uses?: number | null
-          tenant_id: string
+          tenant_id?: string
           token?: string
           use_count?: number
         }
@@ -240,7 +240,7 @@ export type Database = {
           id?: string
           joined_at?: string
           role?: Database["public"]["Enums"]["circle_member_role"]
-          tenant_id: string
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -284,7 +284,7 @@ export type Database = {
           created_at?: string
           id?: string
           post_id: string
-          tenant_id: string
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -329,7 +329,7 @@ export type Database = {
           created_at?: string
           id?: string
           post_type?: Database["public"]["Enums"]["circle_post_kind"]
-          tenant_id: string
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -374,7 +374,7 @@ export type Database = {
           created_at?: string
           id?: string
           resource_type?: string
-          tenant_id: string
+          tenant_id?: string
           title: string
           url: string
           user_id: string
@@ -425,7 +425,7 @@ export type Database = {
           id?: string
           join_url?: string | null
           scheduled_at: string
-          tenant_id: string
+          tenant_id?: string
           title: string
           user_id: string
         }
@@ -484,7 +484,7 @@ export type Database = {
           status?: string
           stripe_customer_id: string
           stripe_subscription_id: string
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
           user_id: string
         }
@@ -550,7 +550,7 @@ export type Database = {
           resources_folder_url?: string | null
           scope?: Database["public"]["Enums"]["circle_scope"]
           subject: string
-          tenant_id: string
+          tenant_id?: string
           university?: string | null
           updated_at?: string
         }
@@ -598,7 +598,7 @@ export type Database = {
           created_at?: string
           id?: string
           post_id: string
-          tenant_id: string
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -643,7 +643,7 @@ export type Database = {
         Insert: {
           conversation_id: string
           created_at?: string
-          tenant_id: string
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -675,7 +675,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_message_at?: string
-          tenant_id: string
+          tenant_id?: string
           user_a: string
           user_b: string
         }
@@ -752,7 +752,7 @@ export type Database = {
           follower_id: string
           following_id: string
           id?: string
-          tenant_id: string
+          tenant_id?: string
         }
         Update: {
           created_at?: string
@@ -787,7 +787,7 @@ export type Database = {
           recipient_id: string
           sender_id: string
           status?: Database["public"]["Enums"]["friend_request_status"]
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -831,7 +831,7 @@ export type Database = {
           notes?: string | null
           seller_id: string
           status?: Database["public"]["Enums"]["gig_order_status"]
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -877,7 +877,7 @@ export type Database = {
           rating: number
           reviewer_id: string
           seller_id: string
-          tenant_id: string
+          tenant_id?: string
         }
         Update: {
           comment?: string | null
@@ -937,7 +937,7 @@ export type Database = {
           requires_file_upload?: boolean
           review_count?: number
           seller_id: string
-          tenant_id: string
+          tenant_id?: string
           title: string
           updated_at?: string
         }
@@ -995,7 +995,7 @@ export type Database = {
           register_url: string
           sponsor_logo_url?: string | null
           sponsor_name: string
-          tenant_id: string
+          tenant_id?: string
           title: string
         }
         Update: {
@@ -1031,7 +1031,7 @@ export type Database = {
         Insert: {
           created_at?: string
           dismissed_id: string
-          tenant_id: string
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -1067,7 +1067,7 @@ export type Database = {
           id?: string
           read_at?: string | null
           sender_id: string
-          tenant_id: string
+          tenant_id?: string
         }
         Update: {
           content?: string
@@ -1112,7 +1112,7 @@ export type Database = {
           id?: string
           is_read?: boolean
           related_id?: string | null
-          tenant_id: string
+          tenant_id?: string
           type: string
           user_id: string
         }
@@ -1167,7 +1167,7 @@ export type Database = {
           media_url?: string | null
           post_type?: Database["public"]["Enums"]["post_type"]
           tag_color?: string | null
-          tenant_id: string
+          tenant_id?: string
           university?: string | null
           user_id: string
           view_count?: number
@@ -1322,7 +1322,7 @@ export type Database = {
           created_at?: string
           id?: string
           project_id: string
-          tenant_id: string
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -1370,7 +1370,7 @@ export type Database = {
           message?: string | null
           project_id: string
           status?: Database["public"]["Enums"]["project_application_status"]
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -1417,7 +1417,7 @@ export type Database = {
           id?: string
           parent_id?: string | null
           project_id: string
-          tenant_id: string
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -1469,7 +1469,7 @@ export type Database = {
           file_type?: string
           id?: string
           project_id: string
-          tenant_id: string
+          tenant_id?: string
           title: string
           url: string
           user_id: string
@@ -1518,7 +1518,7 @@ export type Database = {
           message?: string | null
           project_id: string
           status?: Database["public"]["Enums"]["project_join_request_status"]
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
           user_id: string
         }
@@ -1556,7 +1556,7 @@ export type Database = {
           joined_at?: string
           project_id: string
           role?: Database["public"]["Enums"]["project_role"]
-          tenant_id: string
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -1606,7 +1606,7 @@ export type Database = {
           position?: number
           project_id: string
           status?: Database["public"]["Enums"]["project_task_status"]
-          tenant_id: string
+          tenant_id?: string
           title: string
           updated_at?: string
           user_id: string
@@ -1659,7 +1659,7 @@ export type Database = {
           id?: string
           project_id: string
           status?: Database["public"]["Enums"]["workspace_status"]
-          tenant_id: string
+          tenant_id?: string
           type?: Database["public"]["Enums"]["workspace_type"]
           updated_at?: string
           updated_by?: string | null
@@ -1737,7 +1737,7 @@ export type Database = {
           progress?: number
           subject: string
           team_size_limit?: number
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
           view_count?: number
         }
@@ -1789,7 +1789,7 @@ export type Database = {
           id?: string
           post_id: string
           reaction_type: Database["public"]["Enums"]["reaction_type"]
-          tenant_id: string
+          tenant_id?: string
           user_id: string
         }
         Update: {
@@ -1841,7 +1841,7 @@ export type Database = {
           id?: string
           resource_id: string
           seller_id: string
-          tenant_id: string
+          tenant_id?: string
         }
         Update: {
           amount_cents?: number
@@ -1888,7 +1888,7 @@ export type Database = {
           preview_url?: string | null
           price_cents?: number
           subject: string
-          tenant_id: string
+          tenant_id?: string
           title: string
           updated_at?: string
           uploader_id: string
@@ -1944,7 +1944,7 @@ export type Database = {
           sender_id: string
           status?: Database["public"]["Enums"]["study_request_status"]
           subject: string
-          tenant_id: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
