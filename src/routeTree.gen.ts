@@ -25,6 +25,7 @@ import { Route as AppAmbassadorRouteImport } from './routes/_app/ambassador'
 import { Route as AppLabIndexRouteImport } from './routes/_app/lab.index'
 import { Route as AppCirclesIndexRouteImport } from './routes/_app/circles.index'
 import { Route as AppProfileUserIdRouteImport } from './routes/_app/profile.$userId'
+import { Route as AppOnboardingTenantRouteImport } from './routes/_app/onboarding.tenant'
 import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
 import { Route as AppInviteTokenRouteImport } from './routes/_app/invite.$token'
 import { Route as AppCirclesNewRouteImport } from './routes/_app/circles.new'
@@ -111,6 +112,11 @@ const AppProfileUserIdRoute = AppProfileUserIdRouteImport.update({
   path: '/profile/$userId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOnboardingTenantRoute = AppOnboardingTenantRouteImport.update({
+  id: '/onboarding/tenant',
+  path: '/onboarding/tenant',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppLabProjectIdRoute = AppLabProjectIdRouteImport.update({
   id: '/lab/$projectId',
   path: '/lab/$projectId',
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/circles/new': typeof AppCirclesNewRoute
   '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
+  '/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/circles/': typeof AppCirclesIndexRoute
   '/lab/': typeof AppLabIndexRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByTo {
   '/circles/new': typeof AppCirclesNewRoute
   '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
+  '/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/circles': typeof AppCirclesIndexRoute
   '/lab': typeof AppLabIndexRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/_app/circles/new': typeof AppCirclesNewRoute
   '/_app/invite/$token': typeof AppInviteTokenRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
+  '/_app/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
   '/_app/circles/': typeof AppCirclesIndexRoute
   '/_app/lab/': typeof AppLabIndexRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/circles/new'
     | '/invite/$token'
     | '/lab/$projectId'
+    | '/onboarding/tenant'
     | '/profile/$userId'
     | '/circles/'
     | '/lab/'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/circles/new'
     | '/invite/$token'
     | '/lab/$projectId'
+    | '/onboarding/tenant'
     | '/profile/$userId'
     | '/circles'
     | '/lab'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/_app/circles/new'
     | '/_app/invite/$token'
     | '/_app/lab/$projectId'
+    | '/_app/onboarding/tenant'
     | '/_app/profile/$userId'
     | '/_app/circles/'
     | '/_app/lab/'
@@ -411,6 +423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileUserIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/onboarding/tenant': {
+      id: '/_app/onboarding/tenant'
+      path: '/onboarding/tenant'
+      fullPath: '/onboarding/tenant'
+      preLoaderRoute: typeof AppOnboardingTenantRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/lab/$projectId': {
       id: '/_app/lab/$projectId'
       path: '/lab/$projectId'
@@ -469,6 +488,7 @@ interface AppRouteChildren {
   AppCirclesNewRoute: typeof AppCirclesNewRoute
   AppInviteTokenRoute: typeof AppInviteTokenRoute
   AppLabProjectIdRoute: typeof AppLabProjectIdRoute
+  AppOnboardingTenantRoute: typeof AppOnboardingTenantRoute
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
   AppCirclesIndexRoute: typeof AppCirclesIndexRoute
   AppLabIndexRoute: typeof AppLabIndexRoute
@@ -487,6 +507,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCirclesNewRoute: AppCirclesNewRoute,
   AppInviteTokenRoute: AppInviteTokenRoute,
   AppLabProjectIdRoute: AppLabProjectIdRoute,
+  AppOnboardingTenantRoute: AppOnboardingTenantRoute,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
   AppCirclesIndexRoute: AppCirclesIndexRoute,
   AppLabIndexRoute: AppLabIndexRoute,

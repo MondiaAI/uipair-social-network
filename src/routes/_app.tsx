@@ -1,4 +1,5 @@
-import { createFileRoute, redirect, Outlet } from "@tanstack/react-router";
+import { createFileRoute, redirect, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AppShell } from "@/components/peerly/AppShell";
 import { useAuth } from "@/lib/auth-context";
 import { NotificationsProvider } from "@/lib/notifications-context";
@@ -6,8 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app")({
   beforeLoad: async () => {
-    // Local session check only — fast, no network round-trip.
-    // A transient failure must NOT auto-log the user out.
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData?.session) {
@@ -22,9 +21,21 @@ export const Route = createFileRoute("/_app")({
 });
 
 function AppLayout() {
-  const { user, loading } = useAuth();
-  // Only block rendering when we don't yet know the user. Once user is set,
-  // render the shell immediately and let individual sections show skeletons.
+  const { user, profile, loading } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Force users without a home tenant to the tenant-picker.
+  useEffect(() => {
+    if (loading) return;
+    if (!user) return;
+    if (profile === null) return; // not yet loaded
+    const onboardingPath = "/onboarding/tenant";
+    if (!profile.tenant_id && location.pathname !== onboardingPath) {
+      navigate({ to: onboardingPath });
+    }
+  }, [user, profile, loading, location.pathname, navigate]);
+
   if (loading && !user) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
   }
