@@ -22,9 +22,14 @@ function FeedPage() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FeedFilter>("all");
+  const hasLoadedRef = useRef(false);
+  const refetchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadPosts = useCallback(async () => {
-    setLoading(true);
+    // Only show the skeleton on the very first load. Background refreshes
+    // (filter changes, realtime updates) keep the existing posts visible
+    // to avoid the blink/flash that comes from swapping in skeletons.
+    if (!hasLoadedRef.current) setLoading(true);
     let q = supabase
       .from("posts")
       .select("id, user_id, content, post_type, university, is_live_session, media_url, created_at, profiles!posts_user_id_fkey(full_name, username, avatar_url, university)")
@@ -40,6 +45,7 @@ function FeedPage() {
 
     const { data, error } = await q;
     if (!error && data) setPosts(data as unknown as FeedPost[]);
+    hasLoadedRef.current = true;
     setLoading(false);
   }, [mode, profile?.university, filter]);
 
@@ -47,16 +53,25 @@ function FeedPage() {
     loadPosts();
   }, [loadPosts]);
 
-  // Realtime: refresh feed when any user posts/edits/deletes a post or
-  // updates their profile (so usernames, avatars and university show fresh).
+  // Realtime: refresh feed when posts change. Coalesce bursts of events
+  // into a single refetch so the UI doesn't thrash, and don't listen to
+  // every profile UPDATE on the platform — that fires constantly and
+  // caused the feed to blink.
   useEffect(() => {
+    const scheduleRefetch = () => {
+      if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current);
+      refetchTimerRef.current = setTimeout(() => loadPosts(), 400);
+    };
     const channel = supabase
       .channel(uniqueRealtimeChannelName("feed-live"))
-      .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, () => loadPosts())
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, () => loadPosts())
+      .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, scheduleRefetch)
       .subscribe();
-    const off = onProfileUpdate(() => loadPosts());
-    return () => { supabase.removeChannel(channel); off(); };
+    const off = onProfileUpdate(scheduleRefetch);
+    return () => {
+      if (refetchTimerRef.current) clearTimeout(refetchTimerRef.current);
+      supabase.removeChannel(channel);
+      off();
+    };
   }, [loadPosts]);
 
   return (
