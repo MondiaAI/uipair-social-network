@@ -6,6 +6,15 @@ import { onProfileUpdate } from "@/lib/profile-broadcast";
 import { toast } from "sonner";
 import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 
+export interface Tenant {
+  id: string;
+  slug: string;
+  name: string;
+  country: string | null;
+  logo_url: string | null;
+  primary_color: string | null;
+}
+
 interface Profile {
   id: string;
   full_name: string | null;
@@ -20,12 +29,14 @@ interface Profile {
   is_pro: boolean;
   is_verified: boolean;
   reputation_score: number;
+  tenant_id: string | null;
 }
 
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
   profile: Profile | null;
+  tenant: Tenant | null;
   loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -37,11 +48,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadProfile = async (uid: string) => {
     const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
-    setProfile(data as Profile | null);
+    const p = data as Profile | null;
+    setProfile(p);
+    if (p?.tenant_id) {
+      const { data: t } = await supabase
+        .from("tenants")
+        .select("id, slug, name, country, logo_url, primary_color")
+        .eq("id", p.tenant_id)
+        .maybeSingle();
+      setTenant((t as Tenant) ?? null);
+    } else {
+      setTenant(null);
+    }
   };
 
   useEffect(() => {
@@ -53,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setTimeout(() => { ensureDeviceKeypair(newSession.user.id).catch(() => {}); }, 0);
       } else {
         setProfile(null);
+        setTenant(null);
       }
       setLoading(false);
     });
@@ -67,14 +91,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }).catch(() => setLoading(false));
 
-    // Safety: never stay in loading forever
     const timeout = setTimeout(() => setLoading(false), 1500);
-
     return () => { subscription.unsubscribe(); clearTimeout(timeout); };
   }, []);
 
-  // Realtime: refresh own profile whenever it changes in the database
-  // (e.g. saved from Settings on another tab, or updated by an admin).
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
@@ -82,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
-        (payload) => setProfile(payload.new as Profile),
+        () => loadProfile(user.id),
       )
       .subscribe();
     const off = onProfileUpdate((e) => {
@@ -94,16 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => { supabase.removeChannel(channel); off(); };
   }, [user?.id]);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const refreshProfile = async () => {
-    if (user) await loadProfile(user.id);
-  };
+  const signOut = async () => { await supabase.auth.signOut(); };
+  const refreshProfile = async () => { if (user) await loadProfile(user.id); };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, session, profile, tenant, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
