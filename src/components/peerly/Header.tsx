@@ -39,8 +39,8 @@ export function Header() {
 
   return (
     <>
-    <header className="sticky top-0 z-40 h-16 w-full border-b bg-card">
-      <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-4">
+    <header className="sticky top-0 z-40 w-full border-b bg-card sm:h-16">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
         {/* Left: Logo */}
         <Link to="/feed" aria-label="UiPair home">
           <PeerlyLogo size="sm" variant="light" />
