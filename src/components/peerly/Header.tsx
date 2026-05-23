@@ -21,7 +21,7 @@ import { useNotifications } from "@/lib/notifications-context";
 import { isNativeApp } from "@/lib/platform";
 
 export function Header() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, tenant, signOut } = useAuth();
   const { mode, setMode } = useFeedMode();
   const navigate = useNavigate();
   const { unread } = useNotifications();
@@ -40,11 +40,23 @@ export function Header() {
   return (
     <>
     <header className="sticky top-0 z-40 w-full border-b bg-card sm:h-16">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        {/* Left: Logo */}
-        <Link to="/feed" aria-label="UiPair home">
-          <PeerlyLogo size="sm" variant="light" />
-        </Link>
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4">
+        {/* Left: Logo + tenant */}
+        <div className="flex items-center gap-2 min-w-0">
+          <Link to="/feed" aria-label="UiPair home" className="shrink-0">
+            <PeerlyLogo size="sm" variant="light" />
+          </Link>
+          {tenant && (
+            <span
+              className="hidden md:inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium text-muted-foreground truncate max-w-[200px]"
+              title={tenant.name}
+              style={tenant.primary_color ? { borderColor: tenant.primary_color, color: tenant.primary_color } : undefined}
+            >
+              {tenant.name}
+            </span>
+          )}
+        </div>
+
 
         {/* Center: Campus/Global toggle */}
         <div className="hidden sm:flex items-center rounded-full border bg-muted p-1">
