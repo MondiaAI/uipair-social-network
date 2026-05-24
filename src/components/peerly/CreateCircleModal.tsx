@@ -84,12 +84,33 @@ setSubmitting(true);
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create a Study Circle</DialogTitle>
+          <DialogTitle>Create a Circle</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Circle Name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Algorithms Deep Dive" maxLength={80} />
+            <Label>Type</Label>
+            <div className="grid grid-cols-2 gap-2 mt-1.5">
+              <button
+                type="button"
+                onClick={() => setKind("study")}
+                className={`rounded-lg border p-3 text-left text-sm transition ${kind === "study" ? "border-primary bg-primary/5" : "hover:border-foreground/40"}`}
+              >
+                <p className="font-medium">📚 Study Circle</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Academic collaboration</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setKind("social")}
+                className={`rounded-lg border p-3 text-left text-sm transition ${kind === "social" ? "border-primary bg-primary/5" : "hover:border-foreground/40"}`}
+              >
+                <p className="font-medium">🎉 Social Club</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Hobbies, sports, fun</p>
+              </button>
+            </div>
+          </div>
+          <div>
+            <Label>{kind === "social" ? "Club" : "Circle"} Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={kind === "social" ? "e.g. Campus Chess Club" : "e.g. Algorithms Deep Dive"} maxLength={80} />
           </div>
           <div>
             <Label>Subject</Label>
