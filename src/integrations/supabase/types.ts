@@ -522,6 +522,7 @@ export type Database = {
           description: string | null
           id: string
           is_premium: boolean
+          kind: string
           leader_id: string
           meeting_schedule: string | null
           member_count: number
@@ -542,6 +543,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_premium?: boolean
+          kind?: string
           leader_id: string
           meeting_schedule?: string | null
           member_count?: number
@@ -562,6 +564,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_premium?: boolean
+          kind?: string
           leader_id?: string
           meeting_schedule?: string | null
           member_count?: number
