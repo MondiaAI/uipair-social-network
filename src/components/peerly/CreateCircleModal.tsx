@@ -21,24 +21,24 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
+  const [kind, setKind] = useState<"study" | "social">("study");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
   const [customSubject, setCustomSubject] = useState("");
   const [degree, setDegree] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [campusOnly, setCampusOnly] = useState(false);
-  // Global circles are premium-paid by default; campus circles are free unless toggled.
   const [isPremium, setIsPremium] = useState(true);
   const [price, setPrice] = useState("4.99");
-  // When global, premium is enforced (cannot be turned off).
-  const premiumLocked = !campusOnly;
-  const effectivePremium = premiumLocked ? true : isPremium;
+  // Global study circles are premium by default. Social clubs are always free.
+  const premiumLocked = !campusOnly && kind === "study";
+  const effectivePremium = kind === "social" ? false : (premiumLocked ? true : isPremium);
   const [schedule, setSchedule] = useState("");
   const [resourcesUrl, setResourcesUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setName(""); setDescription(""); setCampusOnly(false); setIsPremium(true);
-    setPrice("4.99"); setSchedule(""); setResourcesUrl("");
+    setPrice("4.99"); setSchedule(""); setResourcesUrl(""); setKind("study");
   };
 
   const handleSubmit = async () => {
@@ -54,6 +54,7 @@ setSubmitting(true);
       .from("circles")
       .insert({
         name: name.trim(),
+        kind,
         subject,
         custom_subject: subject === "Other" ? customSubject.trim() : null,
         degree,
@@ -83,12 +84,33 @@ setSubmitting(true);
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create a Study Circle</DialogTitle>
+          <DialogTitle>Create a Circle</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <Label>Circle Name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Algorithms Deep Dive" maxLength={80} />
+            <Label>Type</Label>
+            <div className="grid grid-cols-2 gap-2 mt-1.5">
+              <button
+                type="button"
+                onClick={() => setKind("study")}
+                className={`rounded-lg border p-3 text-left text-sm transition ${kind === "study" ? "border-primary bg-primary/5" : "hover:border-foreground/40"}`}
+              >
+                <p className="font-medium">📚 Study Circle</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Academic collaboration</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setKind("social")}
+                className={`rounded-lg border p-3 text-left text-sm transition ${kind === "social" ? "border-primary bg-primary/5" : "hover:border-foreground/40"}`}
+              >
+                <p className="font-medium">🎉 Social Club</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Hobbies, sports, fun</p>
+              </button>
+            </div>
+          </div>
+          <div>
+            <Label>{kind === "social" ? "Club" : "Circle"} Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={kind === "social" ? "e.g. Campus Chess Club" : "e.g. Algorithms Deep Dive"} maxLength={80} />
           </div>
           <div>
             <Label>Subject</Label>

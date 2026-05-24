@@ -6,7 +6,8 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2, ArrowLeft } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2, ArrowLeft, MessageSquarePlus } from "lucide-react";
+import { NewChatDialog } from "@/components/peerly/NewChatDialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -140,6 +141,7 @@ function MessagesPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
   const [muted, setMuted] = useState<Record<string, boolean>>({});
+  const [newChatOpen, setNewChatOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
   const [keypair, setKeypair] = useState<KeyPair | null>(null);
@@ -684,14 +686,25 @@ function MessagesPage() {
         <div className="border-b p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-lg font-bold">Messages</h1>
-            {(() => {
-              const total = conversations.reduce((s, c) => s + (muted[c.id] ? 0 : (c.unread ?? 0)), 0);
-              return total > 0 ? (
-                <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
-                  {total} new
-                </span>
-              ) : null;
-            })()}
+            <div className="flex items-center gap-1.5">
+              {(() => {
+                const total = conversations.reduce((s, c) => s + (muted[c.id] ? 0 : (c.unread ?? 0)), 0);
+                return total > 0 ? (
+                  <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
+                    {total} new
+                  </span>
+                ) : null;
+              })()}
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setNewChatOpen(true)}
+                className="h-8 gap-1.5 px-2.5"
+              >
+                <MessageSquarePlus className="h-4 w-4" />
+                <span className="hidden sm:inline">New</span>
+              </Button>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Input
@@ -740,7 +753,10 @@ function MessagesPage() {
               return (
                 <div className="p-6 text-center text-sm text-muted-foreground">
                   <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-40" />
-                  No conversations yet. Connect with a study partner first.
+                  <p>No conversations yet.</p>
+                  <Button size="sm" className="mt-3 gap-1.5" onClick={() => setNewChatOpen(true)}>
+                    <MessageSquarePlus className="h-4 w-4" /> Start a new chat
+                  </Button>
                 </div>
               );
             }
@@ -1072,6 +1088,8 @@ function MessagesPage() {
           </>
         )}
       </section>
+      <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} />
     </div>
   );
 }
+
