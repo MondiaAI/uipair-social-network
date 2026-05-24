@@ -54,6 +54,7 @@ setSubmitting(true);
       .from("circles")
       .insert({
         name: name.trim(),
+        kind,
         subject,
         custom_subject: subject === "Other" ? customSubject.trim() : null,
         degree,
