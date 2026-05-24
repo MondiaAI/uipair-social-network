@@ -753,7 +753,10 @@ function MessagesPage() {
               return (
                 <div className="p-6 text-center text-sm text-muted-foreground">
                   <MessageSquare className="mx-auto mb-2 h-8 w-8 opacity-40" />
-                  No conversations yet. Connect with a study partner first.
+                  <p>No conversations yet.</p>
+                  <Button size="sm" className="mt-3 gap-1.5" onClick={() => setNewChatOpen(true)}>
+                    <MessageSquarePlus className="h-4 w-4" /> Start a new chat
+                  </Button>
                 </div>
               );
             }
