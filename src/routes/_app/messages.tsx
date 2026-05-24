@@ -686,14 +686,25 @@ function MessagesPage() {
         <div className="border-b p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-lg font-bold">Messages</h1>
-            {(() => {
-              const total = conversations.reduce((s, c) => s + (muted[c.id] ? 0 : (c.unread ?? 0)), 0);
-              return total > 0 ? (
-                <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
-                  {total} new
-                </span>
-              ) : null;
-            })()}
+            <div className="flex items-center gap-1.5">
+              {(() => {
+                const total = conversations.reduce((s, c) => s + (muted[c.id] ? 0 : (c.unread ?? 0)), 0);
+                return total > 0 ? (
+                  <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground">
+                    {total} new
+                  </span>
+                ) : null;
+              })()}
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setNewChatOpen(true)}
+                className="h-8 gap-1.5 px-2.5"
+              >
+                <MessageSquarePlus className="h-4 w-4" />
+                <span className="hidden sm:inline">New</span>
+              </Button>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Input
