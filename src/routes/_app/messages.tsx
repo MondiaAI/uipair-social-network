@@ -1088,6 +1088,8 @@ function MessagesPage() {
           </>
         )}
       </section>
+      <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} />
     </div>
   );
 }
+
