@@ -112,15 +112,84 @@ function PickTenantPage() {
           );
         })}
         {!filtered.length && (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            No match. Ask an admin to add your university.
+          <p className="py-4 text-center text-sm text-muted-foreground">
+            No match for "{query}".
           </p>
         )}
       </div>
 
+      <AddUniversityForm
+        initialName={query}
+        onAdded={(t) => {
+          setTenants((prev) => [...prev, t].sort((a, b) => a.name.localeCompare(b.name)));
+          setSelected(t.id);
+          setQuery("");
+        }}
+      />
+
       <Button className="mt-6 w-full" size="lg" disabled={!selected || saving} onClick={confirm}>
         {saving ? "Saving…" : "Continue"}
       </Button>
+    </div>
+  );
+}
+
+function slugify(s: string) {
+  return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+}
+
+function AddUniversityForm({ initialName, onAdded }: { initialName: string; onAdded: (t: TenantRow) => void }) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState(initialName);
+  const [country, setCountry] = useState("");
+  const [saving, setSaving] = useState(false);
+  const { user } = useAuth();
+
+  useEffect(() => { if (open) setName(initialName); }, [initialName, open]);
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="mt-3 w-full rounded-lg border border-dashed p-3 text-sm text-muted-foreground hover:bg-muted"
+      >
+        + Can't find your university? Add it
+      </button>
+    );
+  }
+
+  const submit = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) return toast.error("Enter a university name");
+    setSaving(true);
+    const slug = `${slugify(trimmed)}-${Math.random().toString(36).slice(2, 6)}`;
+    const { data, error } = await supabase
+      .from("tenants")
+      .insert({ name: trimmed, country: country.trim() || null, slug, is_active: true })
+      .select("id, slug, name, country, email_domain, primary_color")
+      .single();
+    if (!error && data && user) {
+      await supabase.from("tenant_admins").insert({ tenant_id: data.id, user_id: user.id, role: "owner" });
+    }
+    setSaving(false);
+    if (error || !data) return toast.error(error?.message ?? "Could not add");
+    toast.success(`Added ${data.name}`);
+    onAdded(data as TenantRow);
+    setOpen(false);
+  };
+
+  return (
+    <div className="mt-3 space-y-2 rounded-lg border bg-muted/40 p-3">
+      <p className="text-sm font-medium">Add your university</p>
+      <Input placeholder="University name" value={name} onChange={(e) => setName(e.target.value)} />
+      <Input placeholder="Country (optional)" value={country} onChange={(e) => setCountry(e.target.value)} />
+      <div className="flex gap-2">
+        <Button variant="outline" size="sm" className="flex-1" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
+        <Button size="sm" className="flex-1" onClick={submit} disabled={saving || !name.trim()}>
+          {saving ? "Adding…" : "Add & select"}
+        </Button>
+      </div>
     </div>
   );
 }
