@@ -21,24 +21,24 @@ export function CreateCircleModal({ open, onOpenChange }: { open: boolean; onOpe
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [name, setName] = useState("");
+  const [kind, setKind] = useState<"study" | "social">("study");
   const [subject, setSubject] = useState<string>(SUBJECTS[0]);
   const [customSubject, setCustomSubject] = useState("");
   const [degree, setDegree] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [campusOnly, setCampusOnly] = useState(false);
-  // Global circles are premium-paid by default; campus circles are free unless toggled.
   const [isPremium, setIsPremium] = useState(true);
   const [price, setPrice] = useState("4.99");
-  // When global, premium is enforced (cannot be turned off).
-  const premiumLocked = !campusOnly;
-  const effectivePremium = premiumLocked ? true : isPremium;
+  // Global study circles are premium by default. Social clubs are always free.
+  const premiumLocked = !campusOnly && kind === "study";
+  const effectivePremium = kind === "social" ? false : (premiumLocked ? true : isPremium);
   const [schedule, setSchedule] = useState("");
   const [resourcesUrl, setResourcesUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setName(""); setDescription(""); setCampusOnly(false); setIsPremium(true);
-    setPrice("4.99"); setSchedule(""); setResourcesUrl("");
+    setPrice("4.99"); setSchedule(""); setResourcesUrl(""); setKind("study");
   };
 
   const handleSubmit = async () => {
