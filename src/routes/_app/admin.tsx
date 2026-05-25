@@ -152,7 +152,7 @@ function JoinRequestsPanel({ tenantId }: { tenantId: string }) {
     setItems(null);
     try {
       const { requests } = await listTenantJoinRequests({ data: { tenantId, status: "pending" } });
-      setItems(requests as JoinRequest[]);
+      setItems(requests as unknown as JoinRequest[]);
     } catch (e: any) {
       toast.error(e.message ?? "Failed to load requests");
       setItems([]);
@@ -256,7 +256,7 @@ function CirclesPanel({ tenantId }: { tenantId: string }) {
     (async () => {
       try {
         const { circles } = await listTenantCircles({ data: { tenantId } });
-        setCircles(circles as AdminCircle[]);
+        setCircles(circles as unknown as AdminCircle[]);
       } catch (e: any) {
         toast.error(e.message ?? "Failed to load circles");
         setCircles([]);
@@ -268,7 +268,7 @@ function CirclesPanel({ tenantId }: { tenantId: string }) {
     setMembers((p) => ({ ...p, [circleId]: "loading" }));
     try {
       const { members } = await listCircleMembers({ data: { circleId } });
-      setMembers((p) => ({ ...p, [circleId]: members as CircleMember[] }));
+      setMembers((p) => ({ ...p, [circleId]: members as unknown as CircleMember[] }));
     } catch (e: any) {
       toast.error(e.message ?? "Failed to load members");
       setMembers((p) => ({ ...p, [circleId]: [] }));
@@ -382,7 +382,7 @@ function GlobalFeedPanel() {
     setRefreshing(true);
     try {
       const { posts } = await globalFeed({ data: { limit: 50 } });
-      setPosts(posts as GlobalPost[]);
+      setPosts(posts as unknown as GlobalPost[]);
     } catch (e: any) {
       toast.error(e.message ?? "Failed to load global feed");
       setPosts([]);

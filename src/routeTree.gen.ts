@@ -22,6 +22,7 @@ import { Route as AppJoinRouteImport } from './routes/_app/join'
 import { Route as AppGigsRouteImport } from './routes/_app/gigs'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
 import { Route as AppAmbassadorRouteImport } from './routes/_app/ambassador'
+import { Route as AppAdminRouteImport } from './routes/_app/admin'
 import { Route as AppLabIndexRouteImport } from './routes/_app/lab.index'
 import { Route as AppCirclesIndexRouteImport } from './routes/_app/circles.index'
 import { Route as AppProfileUserIdRouteImport } from './routes/_app/profile.$userId'
@@ -97,6 +98,11 @@ const AppAmbassadorRoute = AppAmbassadorRouteImport.update({
   path: '/ambassador',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppLabIndexRoute = AppLabIndexRouteImport.update({
   id: '/lab/',
   path: '/lab/',
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/admin': typeof AppAdminRoute
   '/ambassador': typeof AppAmbassadorRoute
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
@@ -179,6 +186,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/admin': typeof AppAdminRoute
   '/ambassador': typeof AppAmbassadorRoute
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
@@ -205,6 +213,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
+  '/_app/admin': typeof AppAdminRoute
   '/_app/ambassador': typeof AppAmbassadorRoute
   '/_app/feed': typeof AppFeedRoute
   '/_app/gigs': typeof AppGigsRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/signup'
     | '/terms'
+    | '/admin'
     | '/ambassador'
     | '/feed'
     | '/gigs'
@@ -255,6 +265,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/signup'
     | '/terms'
+    | '/admin'
     | '/ambassador'
     | '/feed'
     | '/gigs'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/signup'
     | '/terms'
+    | '/_app/admin'
     | '/_app/ambassador'
     | '/_app/feed'
     | '/_app/gigs'
@@ -402,6 +414,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAmbassadorRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin': {
+      id: '/_app/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/lab/': {
       id: '/_app/lab/'
       path: '/lab'
@@ -476,6 +495,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAdminRoute: typeof AppAdminRoute
   AppAmbassadorRoute: typeof AppAmbassadorRoute
   AppFeedRoute: typeof AppFeedRoute
   AppGigsRoute: typeof AppGigsRoute
@@ -495,6 +515,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAdminRoute: AppAdminRoute,
   AppAmbassadorRoute: AppAmbassadorRoute,
   AppFeedRoute: AppFeedRoute,
   AppGigsRoute: AppGigsRoute,
