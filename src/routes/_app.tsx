@@ -1,22 +1,10 @@
-import { createFileRoute, redirect, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { AppShell } from "@/components/peerly/AppShell";
 import { useAuth } from "@/lib/auth-context";
 import { NotificationsProvider } from "@/lib/notifications-context";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_app")({
-  beforeLoad: async () => {
-    try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session) {
-        throw redirect({ to: "/login" });
-      }
-    } catch (e: any) {
-      if (e instanceof Response || (e && typeof e === "object" && "headers" in e && "status" in e)) throw e;
-      console.error("[_app beforeLoad] session check failed", e);
-    }
-  },
   component: AppLayout,
 });
 
@@ -25,18 +13,26 @@ function AppLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Force users without a home tenant to the tenant-picker.
+  // Only redirect to /login once the AuthProvider has finished hydrating.
+  // Using router-level beforeLoad with a fresh getSession() caused redirect
+  // loops during token refresh, which made the app flash between /login and /feed.
   useEffect(() => {
     if (loading) return;
-    if (!user) return;
-    if (profile === null) return; // not yet loaded
+    if (!user) {
+      navigate({ to: "/login", replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Force users without a home tenant to the tenant-picker, only after profile loads.
+  useEffect(() => {
+    if (loading || !user || !profile) return;
     const onboardingPath = "/onboarding/tenant";
     if (!profile.tenant_id && location.pathname !== onboardingPath) {
-      navigate({ to: onboardingPath });
+      navigate({ to: onboardingPath, replace: true });
     }
   }, [user, profile, loading, location.pathname, navigate]);
 
-  if (loading && !user) {
+  if (loading || !user) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
   }
   return (
