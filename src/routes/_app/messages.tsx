@@ -140,6 +140,9 @@ function MessagesPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
+  const [chatSearch, setChatSearch] = useState("");
+  const [chatSearchOpen, setChatSearchOpen] = useState(false);
+
   const [muted, setMuted] = useState<Record<string, boolean>>({});
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -352,9 +355,13 @@ function MessagesPage() {
   useEffect(() => {
     if (!activeId) {
       setMessages([]);
+      setChatSearch("");
+      setChatSearchOpen(false);
       return;
     }
-    // Clear unread badge immediately when opening a conversation
+    setChatSearch("");
+    setChatSearchOpen(false);
+
     setConversations((prev) => prev.map((c) => c.id === activeId ? { ...c, unread: 0 } : c));
     const load = async () => {
       const { data } = await supabase
@@ -768,37 +775,51 @@ function MessagesPage() {
               const initials = name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
               const isActive = c.id === activeId;
               const unread = c.unread ?? 0;
+              const ago = c.last_message_at
+                ? formatDistanceToNow(new Date(c.last_message_at), { addSuffix: false })
+                    .replace("about ", "")
+                    .replace(" minutes", "m")
+                    .replace(" minute", "m")
+                    .replace(" hours", "h")
+                    .replace(" hour", "h")
+                    .replace(" days", "d")
+                    .replace(" day", "d")
+                    .replace("less than am", "now")
+                : "";
               return (
                 <button
                   key={c.id}
                   onClick={() => navigate({ to: "/messages", search: { c: c.id } })}
                   className={cn(
-                    "flex w-full items-center gap-2.5 border-b px-3 py-2 sm:gap-3 sm:p-3 text-left transition-colors hover:bg-accent",
-                    isActive && "bg-accent"
+                    "flex w-full items-center gap-2.5 border-b px-3 py-2.5 text-left transition-colors active:bg-accent/70 hover:bg-accent min-h-[60px]",
+                    isActive && "bg-accent",
                   )}
                 >
-                  <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
+                  <Avatar className="h-10 w-10 shrink-0">
                     <AvatarImage src={c.other?.avatar_url ?? undefined} />
                     <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className={cn("truncate text-[13px] sm:text-sm flex items-center gap-1 min-w-0 leading-tight", unread > 0 && !muted[c.id] ? "font-bold" : "font-medium")}>
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className={cn("truncate text-sm flex items-center gap-1 min-w-0 leading-tight", unread > 0 && !muted[c.id] ? "font-semibold" : "font-medium")}>
                         {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground shrink-0" />}
                         <span className="truncate">{name}</span>
+                      </p>
+                      <span className="shrink-0 text-[10px] text-muted-foreground tabular-nums">{ago}</span>
+                    </div>
+                    <div className="mt-0.5 flex items-center justify-between gap-2">
+                      <p className={cn("truncate text-xs leading-tight flex-1", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
+                        {previewText(c.preview)}
                       </p>
                       {unread > 0 && (
                         <span className={cn(
                           "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none",
-                          muted[c.id] ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground"
+                          muted[c.id] ? "bg-muted text-muted-foreground" : "bg-primary text-primary-foreground",
                         )}>
                           {unread}
                         </span>
                       )}
                     </div>
-                    <p className={cn("truncate text-[11px] sm:text-xs leading-tight mt-0.5", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
-                      {previewText(c.preview)}
-                    </p>
                   </div>
                 </button>
               );
@@ -806,6 +827,7 @@ function MessagesPage() {
           })()}
         </div>
       </aside>
+
 
       {/* Chat panel — full-width on mobile when a chat is open */}
       <section className={cn(
@@ -848,6 +870,16 @@ function MessagesPage() {
                 type="button"
                 size="icon"
                 variant="ghost"
+                onClick={() => setChatSearchOpen((v) => !v)}
+                title={chatSearchOpen ? "Close search" : "Search messages"}
+                aria-label={chatSearchOpen ? "Close search" : "Search messages"}
+              >
+                <MessageSquare className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
                 onClick={() => {
                   toggleMute(active.id);
                   toast.message(muted[active.id] ? "Notifications unmuted" : "Notifications muted");
@@ -859,6 +891,42 @@ function MessagesPage() {
               </Button>
             </header>
 
+            {chatSearchOpen && (
+              <div className="border-b bg-muted/30 px-3 py-2 flex items-center gap-2">
+                <Input
+                  autoFocus
+                  value={chatSearch}
+                  onChange={(e) => setChatSearch(e.target.value)}
+                  placeholder="Search messages in this chat…"
+                  className="h-8 flex-1 text-sm"
+                />
+                {chatSearch && (
+                  <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
+                    {(() => {
+                      const q = chatSearch.trim().toLowerCase();
+                      const n = messages.reduce((acc, m) => {
+                        const enc = isEncrypted(m.content);
+                        const plain = enc ? decryptContent(m.content) : { ok: true as const, plaintext: m.content };
+                        return plain.ok && plain.plaintext.toLowerCase().includes(q) ? acc + 1 : acc;
+                      }, 0);
+                      return `${n} match${n === 1 ? "" : "es"}`;
+                    })()}
+                  </span>
+                )}
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  onClick={() => { setChatSearchOpen(false); setChatSearch(""); }}
+                  aria-label="Close search"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+
             <div ref={scrollerRef} className="flex-1 space-y-1.5 sm:space-y-3 overflow-y-auto p-3 sm:p-4">
               {(() => {
                 if (messages.length === 0) {
@@ -868,9 +936,25 @@ function MessagesPage() {
                     </p>
                   );
                 }
+                const q = chatSearchOpen ? chatSearch.trim().toLowerCase() : "";
+                const visible = q
+                  ? messages.filter((m) => {
+                      const enc = isEncrypted(m.content);
+                      const plain = enc ? decryptContent(m.content) : { ok: true as const, plaintext: m.content };
+                      return plain.ok && plain.plaintext.toLowerCase().includes(q);
+                    })
+                  : messages;
+                if (q && visible.length === 0) {
+                  return (
+                    <p className="py-8 text-center text-sm text-muted-foreground">
+                      No messages match "{chatSearch}"
+                    </p>
+                  );
+                }
                 return (
                   <>
-                    {messages.map((m) => {
+                    {visible.map((m) => {
+
                       const mine = m.sender_id === user?.id;
                       const encrypted = isEncrypted(m.content);
                       const decrypted = encrypted
