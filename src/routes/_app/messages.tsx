@@ -355,9 +355,13 @@ function MessagesPage() {
   useEffect(() => {
     if (!activeId) {
       setMessages([]);
+      setChatSearch("");
+      setChatSearchOpen(false);
       return;
     }
-    // Clear unread badge immediately when opening a conversation
+    setChatSearch("");
+    setChatSearchOpen(false);
+
     setConversations((prev) => prev.map((c) => c.id === activeId ? { ...c, unread: 0 } : c));
     const load = async () => {
       const { data } = await supabase
