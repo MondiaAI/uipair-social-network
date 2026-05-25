@@ -140,6 +140,9 @@ function MessagesPage() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
+  const [chatSearch, setChatSearch] = useState("");
+  const [chatSearchOpen, setChatSearchOpen] = useState(false);
+
   const [muted, setMuted] = useState<Record<string, boolean>>({});
   const [newChatOpen, setNewChatOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
