@@ -870,6 +870,16 @@ function MessagesPage() {
                 type="button"
                 size="icon"
                 variant="ghost"
+                onClick={() => setChatSearchOpen((v) => !v)}
+                title={chatSearchOpen ? "Close search" : "Search messages"}
+                aria-label={chatSearchOpen ? "Close search" : "Search messages"}
+              >
+                <MessageSquare className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
                 onClick={() => {
                   toggleMute(active.id);
                   toast.message(muted[active.id] ? "Notifications unmuted" : "Notifications muted");
@@ -880,6 +890,42 @@ function MessagesPage() {
                 {muted[active.id] ? <BellOff className="h-4 w-4" /> : <Bell className="h-4 w-4" />}
               </Button>
             </header>
+
+            {chatSearchOpen && (
+              <div className="border-b bg-muted/30 px-3 py-2 flex items-center gap-2">
+                <Input
+                  autoFocus
+                  value={chatSearch}
+                  onChange={(e) => setChatSearch(e.target.value)}
+                  placeholder="Search messages in this chat…"
+                  className="h-8 flex-1 text-sm"
+                />
+                {chatSearch && (
+                  <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">
+                    {(() => {
+                      const q = chatSearch.trim().toLowerCase();
+                      const n = messages.reduce((acc, m) => {
+                        const enc = isEncrypted(m.content);
+                        const plain = enc ? decryptContent(m.content) : { ok: true as const, plaintext: m.content };
+                        return plain.ok && plain.plaintext.toLowerCase().includes(q) ? acc + 1 : acc;
+                      }, 0);
+                      return `${n} match${n === 1 ? "" : "es"}`;
+                    })()}
+                  </span>
+                )}
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8"
+                  onClick={() => { setChatSearchOpen(false); setChatSearch(""); }}
+                  aria-label="Close search"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
 
             <div ref={scrollerRef} className="flex-1 space-y-1.5 sm:space-y-3 overflow-y-auto p-3 sm:p-4">
               {(() => {
