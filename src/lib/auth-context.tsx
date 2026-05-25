@@ -68,25 +68,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    let lastUserId: string | null = null;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+      // Ignore token refreshes and initial-session re-fires that don't change user identity.
+      // Without this, every refresh re-ran setState, re-fetched the profile, and made the
+      // whole app re-render (the "swapping/jumping" the user reported).
+      const nextUserId = newSession?.user?.id ?? null;
       setSession(newSession);
-      setUser(newSession?.user ?? null);
-      if (newSession?.user) {
-        setTimeout(() => loadProfile(newSession.user.id), 0);
-        setTimeout(() => { ensureDeviceKeypair(newSession.user.id).catch(() => {}); }, 0);
-      } else {
-        setProfile(null);
-        setTenant(null);
+      if (nextUserId !== lastUserId) {
+        lastUserId = nextUserId;
+        setUser(newSession?.user ?? null);
+        if (newSession?.user) {
+          setTimeout(() => loadProfile(newSession.user.id), 0);
+          setTimeout(() => { ensureDeviceKeypair(newSession.user.id).catch(() => {}); }, 0);
+        } else if (event === "SIGNED_OUT") {
+          setProfile(null);
+          setTenant(null);
+        }
       }
       setLoading(false);
     });
 
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
-      setUser(s?.user ?? null);
-      if (s?.user) {
-        loadProfile(s.user.id);
-        ensureDeviceKeypair(s.user.id).catch(() => {});
+      const uid = s?.user?.id ?? null;
+      if (uid !== lastUserId) {
+        lastUserId = uid;
+        setUser(s?.user ?? null);
+        if (s?.user) {
+          loadProfile(s.user.id);
+          ensureDeviceKeypair(s.user.id).catch(() => {});
+        }
       }
       setLoading(false);
     }).catch(() => setLoading(false));
