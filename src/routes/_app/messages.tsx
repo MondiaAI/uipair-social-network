@@ -936,9 +936,25 @@ function MessagesPage() {
                     </p>
                   );
                 }
+                const q = chatSearchOpen ? chatSearch.trim().toLowerCase() : "";
+                const visible = q
+                  ? messages.filter((m) => {
+                      const enc = isEncrypted(m.content);
+                      const plain = enc ? decryptContent(m.content) : { ok: true as const, plaintext: m.content };
+                      return plain.ok && plain.plaintext.toLowerCase().includes(q);
+                    })
+                  : messages;
+                if (q && visible.length === 0) {
+                  return (
+                    <p className="py-8 text-center text-sm text-muted-foreground">
+                      No messages match "{chatSearch}"
+                    </p>
+                  );
+                }
                 return (
                   <>
-                    {messages.map((m) => {
+                    {visible.map((m) => {
+
                       const mine = m.sender_id === user?.id;
                       const encrypted = isEncrypted(m.content);
                       const decrypted = encrypted
