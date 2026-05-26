@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Camera, Star, BadgeCheck, GraduationCap, UserPlus, MessageCircle, Check, X, Clock, Send, Loader2, Paperclip, FileIcon, Pencil } from "lucide-react";
-import { uploadToBucket } from "@/lib/storage";
+import { uploadToBucketDetailed } from "@/lib/storage";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
@@ -112,10 +112,19 @@ function ProfilePage() {
 
   const onUpload = async (kind: "avatar" | "cover", file: File) => {
     if (!user || !isMe) return;
-    const url = await uploadToBucket(kind === "avatar" ? "avatars" : "covers", user.id, file);
-    if (!url) return toast.error("Upload failed");
+    const toastId = toast.loading(`Uploading ${kind}…`);
+    const { url, error } = await uploadToBucketDetailed(kind === "avatar" ? "avatars" : "covers", user.id, file);
+    if (!url) {
+      toast.dismiss(toastId);
+      return toast.error(error || "Upload failed");
+    }
     const update = kind === "avatar" ? { avatar_url: url } : { cover_url: url };
-    await supabase.from("profiles").update(update).eq("id", user.id);
+    const { error: dbErr } = await supabase.from("profiles").update(update).eq("id", user.id);
+    toast.dismiss(toastId);
+    if (dbErr) return toast.error(dbErr.message || "Couldn't save photo");
+    toast.success(`${kind === "avatar" ? "Profile photo" : "Cover photo"} updated`);
+    setProfile((prev: any) => ({ ...prev, ...update }));
+    broadcastProfileUpdate(user.id);
     await refreshProfile();
     load();
   };
