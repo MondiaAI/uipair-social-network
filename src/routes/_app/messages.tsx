@@ -1053,11 +1053,11 @@ function MessagesPage() {
                                       </a>
                                     ) : /^https?:\/\//i.test(line) ? (
                                       <a key={i} href={line} target="_blank" rel="noreferrer" className="block break-all underline underline-offset-2">
-                                        {line}
+                                        {q ? renderHighlighted(line, q) : line}
                                       </a>
                                     ) : (
                                       <p key={i} className="whitespace-pre-wrap break-words leading-snug">
-                                        {line}
+                                        {q ? renderHighlighted(line, q) : line}
                                       </p>
                                     )
                                   )}
