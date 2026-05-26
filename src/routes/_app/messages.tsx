@@ -193,12 +193,40 @@ function MessagesPage() {
     return decryptMessage(content, keypair, counterpartPub);
   };
 
-  // Plain-text preview for sidebar (only works for messages decryptable on this device).
+  // Plain-text preview for sidebar — collapsed to a single line, capped length.
   const previewText = (content: string | undefined): string => {
     if (!content) return "Say hi 👋";
-    if (!isEncrypted(content)) return content;
-    const r = decryptMessage(content, keypair, null);
-    return r.ok ? r.plaintext : "🔒 Encrypted message";
+    const raw = !isEncrypted(content)
+      ? content
+      : (() => {
+          const r = decryptMessage(content, keypair, null);
+          return r.ok ? r.plaintext : "🔒 Encrypted message";
+        })();
+    const oneLine = raw.replace(/\s+/g, " ").trim();
+    return oneLine.length > 60 ? oneLine.slice(0, 60).trimEnd() + "…" : oneLine;
+  };
+
+  // Render text with matches against `q` highlighted.
+  const renderHighlighted = (text: string, q: string) => {
+    if (!q) return text;
+    const lower = text.toLowerCase();
+    const ql = q.toLowerCase();
+    const parts: Array<{ t: string; hit: boolean }> = [];
+    let i = 0;
+    while (i < text.length) {
+      const idx = lower.indexOf(ql, i);
+      if (idx === -1) { parts.push({ t: text.slice(i), hit: false }); break; }
+      if (idx > i) parts.push({ t: text.slice(i, idx), hit: false });
+      parts.push({ t: text.slice(idx, idx + ql.length), hit: true });
+      i = idx + ql.length;
+    }
+    return parts.map((p, k) =>
+      p.hit ? (
+        <mark key={k} className="rounded-sm bg-yellow-300/70 px-0.5 text-foreground dark:bg-yellow-500/40">{p.t}</mark>
+      ) : (
+        <span key={k}>{p.t}</span>
+      ),
+    );
   };
 
   const persistMuted = async (id: string, next: boolean) => {
@@ -791,24 +819,24 @@ function MessagesPage() {
                   key={c.id}
                   onClick={() => navigate({ to: "/messages", search: { c: c.id } })}
                   className={cn(
-                    "flex w-full items-center gap-2.5 border-b px-3 py-2.5 text-left transition-colors active:bg-accent/70 hover:bg-accent min-h-[60px]",
+                    "flex w-full items-center gap-2 border-b px-3 py-2 text-left transition-colors active:bg-accent/70 hover:bg-accent min-h-[64px] touch-manipulation",
                     isActive && "bg-accent",
                   )}
                 >
-                  <Avatar className="h-10 w-10 shrink-0">
+                  <Avatar className="h-11 w-11 shrink-0">
                     <AvatarImage src={c.other?.avatar_url ?? undefined} />
                     <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <p className={cn("truncate text-sm flex items-center gap-1 min-w-0 leading-tight", unread > 0 && !muted[c.id] ? "font-semibold" : "font-medium")}>
+                      <p className={cn("truncate text-[13px] flex items-center gap-1 min-w-0 leading-tight", unread > 0 && !muted[c.id] ? "font-semibold" : "font-medium")}>
                         {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground shrink-0" />}
                         <span className="truncate">{name}</span>
                       </p>
                       <span className="shrink-0 text-[10px] text-muted-foreground tabular-nums">{ago}</span>
                     </div>
                     <div className="mt-0.5 flex items-center justify-between gap-2">
-                      <p className={cn("truncate text-xs leading-tight flex-1", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
+                      <p className={cn("truncate text-xs leading-tight flex-1 whitespace-nowrap", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
                         {previewText(c.preview)}
                       </p>
                       {unread > 0 && (
@@ -897,7 +925,7 @@ function MessagesPage() {
                   autoFocus
                   value={chatSearch}
                   onChange={(e) => setChatSearch(e.target.value)}
-                  placeholder="Search messages in this chat…"
+                  placeholder="Search this conversation…"
                   className="h-8 flex-1 text-sm"
                 />
                 {chatSearch && (
@@ -1025,11 +1053,11 @@ function MessagesPage() {
                                       </a>
                                     ) : /^https?:\/\//i.test(line) ? (
                                       <a key={i} href={line} target="_blank" rel="noreferrer" className="block break-all underline underline-offset-2">
-                                        {line}
+                                        {q ? renderHighlighted(line, q) : line}
                                       </a>
                                     ) : (
                                       <p key={i} className="whitespace-pre-wrap break-words leading-snug">
-                                        {line}
+                                        {q ? renderHighlighted(line, q) : line}
                                       </p>
                                     )
                                   )}
