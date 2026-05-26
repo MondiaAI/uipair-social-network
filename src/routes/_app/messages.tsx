@@ -712,12 +712,13 @@ function MessagesPage() {
   };
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-9rem)] md:h-[calc(100vh-8rem)] max-w-5xl flex-col md:flex-row gap-0 md:gap-4 px-0 md:px-4 py-0 md:py-6">
+    <div className="mx-auto flex h-[calc(100vh-9rem)] md:h-[calc(100vh-8rem)] w-full max-w-5xl flex-col md:flex-row gap-0 md:gap-4 px-0 md:px-4 py-0 md:py-6 overflow-hidden">
       {/* Sidebar — full-width list on mobile when no chat is selected */}
       <aside className={cn(
-        "flex-col rounded-none md:rounded-xl border-x-0 md:border bg-card shadow-sm w-full md:w-72 flex-1 md:flex-none",
+        "min-w-0 max-w-full flex-col rounded-none md:rounded-xl border-x-0 md:border bg-card shadow-sm w-full md:w-72 flex-1 md:flex-none overflow-hidden",
         active ? "hidden md:flex" : "flex",
       )}>
+
         <div className="border-b p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <h1 className="text-lg font-bold">Messages</h1>
@@ -819,24 +820,24 @@ function MessagesPage() {
                   key={c.id}
                   onClick={() => navigate({ to: "/messages", search: { c: c.id } })}
                   className={cn(
-                    "flex w-full items-center gap-2 border-b px-3 py-2 text-left transition-colors active:bg-accent/70 hover:bg-accent min-h-[64px] touch-manipulation",
+                    "flex w-full max-w-full items-center gap-2 border-b px-3 py-2 text-left transition-colors active:bg-accent/70 hover:bg-accent min-h-[60px] touch-manipulation overflow-hidden",
                     isActive && "bg-accent",
                   )}
                 >
-                  <Avatar className="h-11 w-11 shrink-0">
+                  <Avatar className="h-10 w-10 shrink-0">
                     <AvatarImage src={c.other?.avatar_url ?? undefined} />
                     <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <p className={cn("truncate text-[13px] flex items-center gap-1 min-w-0 leading-tight", unread > 0 && !muted[c.id] ? "font-semibold" : "font-medium")}>
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <div className="flex items-baseline justify-between gap-2 min-w-0">
+                      <p className={cn("truncate text-[13px] flex items-center gap-1 min-w-0 flex-1 leading-tight", unread > 0 && !muted[c.id] ? "font-semibold" : "font-medium")}>
                         {muted[c.id] && <BellOff className="h-3 w-3 text-muted-foreground shrink-0" />}
                         <span className="truncate">{name}</span>
                       </p>
                       <span className="shrink-0 text-[10px] text-muted-foreground tabular-nums">{ago}</span>
                     </div>
-                    <div className="mt-0.5 flex items-center justify-between gap-2">
-                      <p className={cn("truncate text-xs leading-tight flex-1 whitespace-nowrap", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
+                    <div className="mt-0.5 flex items-center justify-between gap-2 min-w-0">
+                      <p className={cn("truncate text-xs leading-tight flex-1 min-w-0", unread > 0 && !muted[c.id] ? "text-foreground" : "text-muted-foreground")}>
                         {previewText(c.preview)}
                       </p>
                       {unread > 0 && (
