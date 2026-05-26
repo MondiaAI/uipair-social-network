@@ -193,12 +193,40 @@ function MessagesPage() {
     return decryptMessage(content, keypair, counterpartPub);
   };
 
-  // Plain-text preview for sidebar (only works for messages decryptable on this device).
+  // Plain-text preview for sidebar — collapsed to a single line, capped length.
   const previewText = (content: string | undefined): string => {
     if (!content) return "Say hi 👋";
-    if (!isEncrypted(content)) return content;
-    const r = decryptMessage(content, keypair, null);
-    return r.ok ? r.plaintext : "🔒 Encrypted message";
+    const raw = !isEncrypted(content)
+      ? content
+      : (() => {
+          const r = decryptMessage(content, keypair, null);
+          return r.ok ? r.plaintext : "🔒 Encrypted message";
+        })();
+    const oneLine = raw.replace(/\s+/g, " ").trim();
+    return oneLine.length > 60 ? oneLine.slice(0, 60).trimEnd() + "…" : oneLine;
+  };
+
+  // Render text with matches against `q` highlighted.
+  const renderHighlighted = (text: string, q: string) => {
+    if (!q) return text;
+    const lower = text.toLowerCase();
+    const ql = q.toLowerCase();
+    const parts: Array<{ t: string; hit: boolean }> = [];
+    let i = 0;
+    while (i < text.length) {
+      const idx = lower.indexOf(ql, i);
+      if (idx === -1) { parts.push({ t: text.slice(i), hit: false }); break; }
+      if (idx > i) parts.push({ t: text.slice(i, idx), hit: false });
+      parts.push({ t: text.slice(idx, idx + ql.length), hit: true });
+      i = idx + ql.length;
+    }
+    return parts.map((p, k) =>
+      p.hit ? (
+        <mark key={k} className="rounded-sm bg-yellow-300/70 px-0.5 text-foreground dark:bg-yellow-500/40">{p.t}</mark>
+      ) : (
+        <span key={k}>{p.t}</span>
+      ),
+    );
   };
 
   const persistMuted = async (id: string, next: boolean) => {
