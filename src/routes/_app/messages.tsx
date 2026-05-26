@@ -925,7 +925,7 @@ function MessagesPage() {
                   autoFocus
                   value={chatSearch}
                   onChange={(e) => setChatSearch(e.target.value)}
-                  placeholder="Search messages in this chat…"
+                  placeholder="Search this conversation…"
                   className="h-8 flex-1 text-sm"
                 />
                 {chatSearch && (
