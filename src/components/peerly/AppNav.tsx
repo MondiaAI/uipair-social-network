@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
 import { useNotifications } from "@/lib/notifications-context";
 import { useUnreadChats } from "@/hooks/use-unread-chats";
+import { useFriendRequestCount } from "@/hooks/use-friend-request-count";
 import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { SettingsRouteLink } from "./SettingsLink";
 
@@ -65,6 +66,7 @@ export function AppNav() {
   const [moreOpen, setMoreOpen] = useState(false);
   const chatUnread = useUnreadChats();
   const { unread: notifUnread } = useNotifications();
+  const friendReqCount = useFriendRequestCount();
 
   // (profileTo handled inline below via to + params for type safety)
   const isProfileActive = pathname.startsWith("/profile");
@@ -90,8 +92,9 @@ export function AppNav() {
       to: user ? "/profile/$userId" : "/feed",
       params: user ? { userId: user.id } : undefined,
       active: isProfileActive,
+      badge: friendReqCount,
     },
-    { key: "more", label: "More", icon: Menu, active: moreOpen, onClick: () => setMoreOpen(true), badge: notifUnread },
+    { key: "more", label: "More", icon: Menu, active: moreOpen, onClick: () => setMoreOpen(true), badge: notifUnread + friendReqCount },
   ];
 
   // Mobile overflow shown inside the More sheet
