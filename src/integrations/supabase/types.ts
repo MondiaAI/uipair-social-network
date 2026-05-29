@@ -1146,6 +1146,42 @@ export type Database = {
           },
         ]
       }
+      partner_matches: {
+        Row: {
+          availability_overlap: string[]
+          created_at: string
+          id: string
+          match_reason: string | null
+          match_score: number
+          matched_user_id: string
+          shared_skills: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          availability_overlap?: string[]
+          created_at?: string
+          id?: string
+          match_reason?: string | null
+          match_score: number
+          matched_user_id: string
+          shared_skills?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          availability_overlap?: string[]
+          created_at?: string
+          id?: string
+          match_reason?: string | null
+          match_score?: number
+          matched_user_id?: string
+          shared_skills?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           content: string
