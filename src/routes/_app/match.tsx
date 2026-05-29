@@ -79,6 +79,7 @@ function MatchPage() {
   const { mode, setMode } = useFeedMode();
   const { edges } = useFriendships();
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
+  const [storedScores, setStoredScores] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
   const [subjects, setSubjects] = useState<string[]>([]);
@@ -114,12 +115,19 @@ function MatchPage() {
     if (!user) return;
     const load = async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, full_name, username, avatar_url, university, university_id, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at, created_at")
-        .neq("id", user.id)
-        .limit(100);
+      const [{ data }, { data: matches }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, full_name, username, avatar_url, university, university_id, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at, created_at")
+          .neq("id", user.id)
+          .limit(100),
+        supabase
+          .from("partner_matches")
+          .select("matched_user_id, match_score")
+          .eq("user_id", user.id),
+      ]);
       setProfiles((data ?? []) as ProfileRow[]);
+      setStoredScores(Object.fromEntries((matches ?? []).map((m) => [m.matched_user_id, m.match_score])));
       setLoading(false);
     };
     load();
@@ -174,7 +182,7 @@ function MatchPage() {
         }
         return true;
       })
-      .map((p) => ({ profile: p, score: computeScore(me, p) }))
+      .map((p) => ({ profile: p, score: storedScores[p.id] ?? computeScore(me, p) }))
       .sort((a, b) => {
         if (sortKey === "newest") {
           const ta = a.profile.created_at ? new Date(a.profile.created_at).getTime() : 0;
@@ -188,7 +196,7 @@ function MatchPage() {
         }
         return b.score - a.score;
       });
-  }, [profiles, me, mode, profile?.university, subjects, customSubject, availability, yearRange, query, sortKey, hidden]);
+  }, [profiles, me, mode, profile?.university, subjects, customSubject, availability, yearRange, query, sortKey, hidden, storedScores]);
 
   const toggleSubject = (s: string) =>
     setSubjects((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));

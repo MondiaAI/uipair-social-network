@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { uploadPrivateFileForSignedUrl } from "@/lib/storage";
 
 export type FriendStatus =
   | "none"
@@ -127,15 +128,9 @@ export async function startConversationWithMessage(
 
   let body = content;
   if (attachment) {
-    const path = `${meId}/${Date.now()}-${attachment.name.replace(/\s+/g, "_")}`;
-    const { error: upErr } = await supabase.storage.from("resources").upload(path, attachment);
-    if (upErr) throw upErr;
-    const { data: signed } = await supabase.storage
-      .from("resources")
-      .createSignedUrl(path, 60 * 60 * 24 * 7);
-    if (signed?.signedUrl) {
-      body = body ? `${body}\n${signed.signedUrl}` : signed.signedUrl;
-    }
+    const { url, error } = await uploadPrivateFileForSignedUrl("resources", meId, attachment);
+    if (error || !url) throw new Error(error || "Could not share file");
+    body = body ? `${body}\n${url}` : url;
   }
 
   const { error } = await supabase

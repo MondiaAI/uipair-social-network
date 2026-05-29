@@ -30,6 +30,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { logClientError } from "@/lib/client-logger";
 import { submitCrashReport } from "@/lib/crash-report";
 import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
+import { uploadPrivateFileForSignedUrl } from "@/lib/storage";
 
 const search = z.object({ c: z.string().uuid().optional(), m: z.string().optional() });
 
@@ -642,13 +643,9 @@ function MessagesPage() {
         progressTimer = setInterval(() => {
           setUploadProgress((p) => (p < 90 ? p + Math.max(1, (90 - p) * 0.15) : p));
         }, 200);
-        const path = `${user.id}/${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-        const { error: upErr } = await supabase.storage.from("resources").upload(path, file);
-        if (upErr) throw upErr;
-        const { data: signed } = await supabase.storage.from("resources").createSignedUrl(path, 60 * 60 * 24 * 7);
-        if (signed?.signedUrl) {
-          content = content ? `${content}\n${signed.signedUrl}` : signed.signedUrl;
-        }
+        const { url, error } = await uploadPrivateFileForSignedUrl("resources", user.id, file);
+        if (error || !url) throw new Error(error || "Could not share file");
+        content = content ? `${content}\n${url}` : url;
         setUploadProgress(100);
       }
       // Encrypt when both keys are available; otherwise send plaintext so
