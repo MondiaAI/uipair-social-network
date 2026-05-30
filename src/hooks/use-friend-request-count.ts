@@ -30,7 +30,13 @@ export function useFriendRequestCount(): number {
         () => recount(),
       )
       .subscribe();
-    return () => { cancelled = true; supabase.removeChannel(channel); };
+    const onLocal = () => recount();
+    window.addEventListener("friend-requests:changed", onLocal);
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+      window.removeEventListener("friend-requests:changed", onLocal);
+    };
   }, [user?.id]);
 
   return count;

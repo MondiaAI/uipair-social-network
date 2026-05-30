@@ -73,6 +73,13 @@ function ProfilePage() {
   const [stats, setStats] = useState({ posts: 0, circles: 0, gigs: 0 });
   const [following, setFollowing] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [photoPicker, setPhotoPicker] = useState<{
+    kind: "avatar" | "cover";
+    file: File;
+    previewUrl: string;
+  } | null>(null);
+  const [photoState, setPhotoState] = useState<"idle" | "uploading" | "error">("idle");
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   const load = async () => {
     const { data: p } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
@@ -110,23 +117,77 @@ function ProfilePage() {
      
   }, [userId]);
 
-  const onUpload = async (kind: "avatar" | "cover", file: File) => {
-    if (!user || !isMe) return;
-    const toastId = toast.loading(`Uploading ${kind}…`);
-    const { url, error } = await uploadToBucketDetailed(kind === "avatar" ? "avatars" : "covers", user.id, file);
+  const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+
+  const pickPhoto = (kind: "avatar" | "cover", file: File | undefined | null) => {
+    if (!file) return;
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error("Unsupported image format. Please use JPG, PNG, WEBP, or GIF.");
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      toast.error(
+        `Image is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Please choose one under 8 MB.`,
+      );
+      return;
+    }
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoError(null);
+    setPhotoState("idle");
+    setPhotoPicker({ kind, file, previewUrl });
+  };
+
+  const closePhotoPicker = () => {
+    if (photoPicker?.previewUrl) URL.revokeObjectURL(photoPicker.previewUrl);
+    setPhotoPicker(null);
+    setPhotoError(null);
+    setPhotoState("idle");
+  };
+
+  const friendlyUploadError = (raw?: string | null) => {
+    const m = (raw ?? "").toLowerCase();
+    if (!m) return "Upload failed. Please try again.";
+    if (m.includes("row-level security") || m.includes("policy") || m.includes("unauthorized"))
+      return "Permission denied — please sign out and sign in again, then retry.";
+    if (m.includes("payload") || m.includes("too large") || m.includes("size"))
+      return "Image is too large. Please choose one under 8 MB.";
+    if (m.includes("network") || m.includes("fetch") || m.includes("failed to fetch"))
+      return "Network issue while uploading. Check your connection and retry.";
+    if (m.includes("mime") || m.includes("content-type"))
+      return "That file type isn't supported. Try a JPG, PNG, or WEBP.";
+    return raw ?? "Upload failed. Please try again.";
+  };
+
+  const confirmPhotoUpload = async () => {
+    if (!user || !isMe || !photoPicker) return;
+    const { kind, file } = photoPicker;
+    setPhotoState("uploading");
+    setPhotoError(null);
+    const { url, error } = await uploadToBucketDetailed(
+      kind === "avatar" ? "avatars" : "covers",
+      user.id,
+      file,
+    );
     if (!url) {
-      toast.dismiss(toastId);
-      return toast.error(error || "Upload failed");
+      const friendly = friendlyUploadError(error);
+      setPhotoError(friendly);
+      setPhotoState("error");
+      return;
     }
     const update = kind === "avatar" ? { avatar_url: url } : { cover_url: url };
     const { error: dbErr } = await supabase.from("profiles").update(update).eq("id", user.id);
-    toast.dismiss(toastId);
-    if (dbErr) return toast.error(dbErr.message || "Couldn't save photo");
+    if (dbErr) {
+      setPhotoError(friendlyUploadError(dbErr.message));
+      setPhotoState("error");
+      return;
+    }
     toast.success(`${kind === "avatar" ? "Profile photo" : "Cover photo"} updated`);
     setProfile((prev: any) => ({ ...prev, ...update }));
     broadcastProfileUpdate(user.id);
     await refreshProfile();
     load();
+    closePhotoPicker();
   };
 
   const toggleFollow = async () => {
@@ -152,7 +213,7 @@ function ProfilePage() {
         {isMe && (
           <label className="absolute right-3 top-3 cursor-pointer rounded-full bg-background/90 p-2 shadow hover:bg-background">
             <Camera className="h-4 w-4" />
-            <input type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onUpload("cover", e.target.files[0])} />
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onChange={(e) => { pickPhoto("cover", e.target.files?.[0]); e.target.value = ""; }} />
           </label>
         )}
       </div>
@@ -167,7 +228,7 @@ function ProfilePage() {
             {isMe && (
               <label className="absolute bottom-0 right-0 cursor-pointer rounded-full bg-primary p-1.5 text-primary-foreground shadow">
                 <Camera className="h-3.5 w-3.5" />
-                <input type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onUpload("avatar", e.target.files[0])} />
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onChange={(e) => { pickPhoto("avatar", e.target.files?.[0]); e.target.value = ""; }} />
               </label>
             )}
           </div>
@@ -331,6 +392,43 @@ function ProfilePage() {
           }}
         />
       )}
+
+      {/* Photo preview / retry dialog */}
+      <Dialog open={!!photoPicker} onOpenChange={(o) => { if (!o && photoState !== "uploading") closePhotoPicker(); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {photoPicker?.kind === "avatar" ? "Update profile photo" : "Update cover photo"}
+            </DialogTitle>
+          </DialogHeader>
+          {photoPicker && (
+            <div className="space-y-3">
+              <div className={photoPicker.kind === "avatar"
+                ? "mx-auto h-40 w-40 overflow-hidden rounded-full border-4 border-background shadow"
+                : "h-40 w-full overflow-hidden rounded-md bg-muted"}>
+                <img src={photoPicker.previewUrl} alt="Selected preview" className="h-full w-full object-cover" />
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                {photoPicker.file.name} · {(photoPicker.file.size / 1024).toFixed(0)} KB
+              </p>
+              {photoError && (
+                <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                  {photoError}
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={closePhotoPicker} disabled={photoState === "uploading"}>
+              Cancel
+            </Button>
+            <Button onClick={confirmPhotoUpload} disabled={photoState === "uploading"}>
+              {photoState === "uploading" && <Loader2 className="h-4 w-4 animate-spin" />}
+              {photoState === "uploading" ? "Uploading…" : photoState === "error" ? "Retry upload" : "Upload"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
