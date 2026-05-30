@@ -213,7 +213,7 @@ function ProfilePage() {
         {isMe && (
           <label className="absolute right-3 top-3 cursor-pointer rounded-full bg-background/90 p-2 shadow hover:bg-background">
             <Camera className="h-4 w-4" />
-            <input type="file" accept="image/*" hidden onChange={(e) => e.target.files?.[0] && onUpload("cover", e.target.files[0])} />
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden onChange={(e) => { pickPhoto("cover", e.target.files?.[0]); e.target.value = ""; }} />
           </label>
         )}
       </div>
