@@ -75,17 +75,27 @@ export async function sendFriendRequest(senderId: string, recipientId: string) {
   return data;
 }
 
+/** Notify in-app listeners (e.g. nav badge) to recount immediately, without
+ *  waiting for the Postgres realtime round-trip. */
+function emitFriendRequestsChanged() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("friend-requests:changed"));
+  }
+}
+
 export async function respondToRequest(id: string, accept: boolean) {
   const { error } = await supabase
     .from("friend_requests")
     .update({ status: accept ? "accepted" : "declined" })
     .eq("id", id);
   if (error) throw error;
+  emitFriendRequestsChanged();
 }
 
 export async function cancelRequest(id: string) {
   const { error } = await supabase.from("friend_requests").delete().eq("id", id);
   if (error) throw error;
+  emitFriendRequestsChanged();
 }
 
 /** Get or create a 1:1 conversation between two friends. Race-safe. */
