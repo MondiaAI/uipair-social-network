@@ -392,6 +392,43 @@ function ProfilePage() {
           }}
         />
       )}
+
+      {/* Photo preview / retry dialog */}
+      <Dialog open={!!photoPicker} onOpenChange={(o) => { if (!o && photoState !== "uploading") closePhotoPicker(); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {photoPicker?.kind === "avatar" ? "Update profile photo" : "Update cover photo"}
+            </DialogTitle>
+          </DialogHeader>
+          {photoPicker && (
+            <div className="space-y-3">
+              <div className={photoPicker.kind === "avatar"
+                ? "mx-auto h-40 w-40 overflow-hidden rounded-full border-4 border-background shadow"
+                : "h-40 w-full overflow-hidden rounded-md bg-muted"}>
+                <img src={photoPicker.previewUrl} alt="Selected preview" className="h-full w-full object-cover" />
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                {photoPicker.file.name} · {(photoPicker.file.size / 1024).toFixed(0)} KB
+              </p>
+              {photoError && (
+                <div className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+                  {photoError}
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={closePhotoPicker} disabled={photoState === "uploading"}>
+              Cancel
+            </Button>
+            <Button onClick={confirmPhotoUpload} disabled={photoState === "uploading"}>
+              {photoState === "uploading" && <Loader2 className="h-4 w-4 animate-spin" />}
+              {photoState === "uploading" ? "Uploading…" : photoState === "error" ? "Retry upload" : "Upload"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
