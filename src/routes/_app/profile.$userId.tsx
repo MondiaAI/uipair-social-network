@@ -117,23 +117,77 @@ function ProfilePage() {
      
   }, [userId]);
 
-  const onUpload = async (kind: "avatar" | "cover", file: File) => {
-    if (!user || !isMe) return;
-    const toastId = toast.loading(`Uploading ${kind}…`);
-    const { url, error } = await uploadToBucketDetailed(kind === "avatar" ? "avatars" : "covers", user.id, file);
+  const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+  const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+
+  const pickPhoto = (kind: "avatar" | "cover", file: File | undefined | null) => {
+    if (!file) return;
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error("Unsupported image format. Please use JPG, PNG, WEBP, or GIF.");
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      toast.error(
+        `Image is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Please choose one under 8 MB.`,
+      );
+      return;
+    }
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoError(null);
+    setPhotoState("idle");
+    setPhotoPicker({ kind, file, previewUrl });
+  };
+
+  const closePhotoPicker = () => {
+    if (photoPicker?.previewUrl) URL.revokeObjectURL(photoPicker.previewUrl);
+    setPhotoPicker(null);
+    setPhotoError(null);
+    setPhotoState("idle");
+  };
+
+  const friendlyUploadError = (raw?: string | null) => {
+    const m = (raw ?? "").toLowerCase();
+    if (!m) return "Upload failed. Please try again.";
+    if (m.includes("row-level security") || m.includes("policy") || m.includes("unauthorized"))
+      return "Permission denied — please sign out and sign in again, then retry.";
+    if (m.includes("payload") || m.includes("too large") || m.includes("size"))
+      return "Image is too large. Please choose one under 8 MB.";
+    if (m.includes("network") || m.includes("fetch") || m.includes("failed to fetch"))
+      return "Network issue while uploading. Check your connection and retry.";
+    if (m.includes("mime") || m.includes("content-type"))
+      return "That file type isn't supported. Try a JPG, PNG, or WEBP.";
+    return raw ?? "Upload failed. Please try again.";
+  };
+
+  const confirmPhotoUpload = async () => {
+    if (!user || !isMe || !photoPicker) return;
+    const { kind, file } = photoPicker;
+    setPhotoState("uploading");
+    setPhotoError(null);
+    const { url, error } = await uploadToBucketDetailed(
+      kind === "avatar" ? "avatars" : "covers",
+      user.id,
+      file,
+    );
     if (!url) {
-      toast.dismiss(toastId);
-      return toast.error(error || "Upload failed");
+      const friendly = friendlyUploadError(error);
+      setPhotoError(friendly);
+      setPhotoState("error");
+      return;
     }
     const update = kind === "avatar" ? { avatar_url: url } : { cover_url: url };
     const { error: dbErr } = await supabase.from("profiles").update(update).eq("id", user.id);
-    toast.dismiss(toastId);
-    if (dbErr) return toast.error(dbErr.message || "Couldn't save photo");
+    if (dbErr) {
+      setPhotoError(friendlyUploadError(dbErr.message));
+      setPhotoState("error");
+      return;
+    }
     toast.success(`${kind === "avatar" ? "Profile photo" : "Cover photo"} updated`);
     setProfile((prev: any) => ({ ...prev, ...update }));
     broadcastProfileUpdate(user.id);
     await refreshProfile();
     load();
+    closePhotoPicker();
   };
 
   const toggleFollow = async () => {
