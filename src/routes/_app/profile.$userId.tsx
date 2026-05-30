@@ -73,6 +73,13 @@ function ProfilePage() {
   const [stats, setStats] = useState({ posts: 0, circles: 0, gigs: 0 });
   const [following, setFollowing] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [photoPicker, setPhotoPicker] = useState<{
+    kind: "avatar" | "cover";
+    file: File;
+    previewUrl: string;
+  } | null>(null);
+  const [photoState, setPhotoState] = useState<"idle" | "uploading" | "error">("idle");
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   const load = async () => {
     const { data: p } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
