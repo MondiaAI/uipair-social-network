@@ -139,6 +139,19 @@ function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [oneTime, setOneTime] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [viewedOtt, setViewedOtt] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("uipair.ott.viewed") || "{}"); } catch { return {}; }
+  });
+  const markOttViewed = (key: string) => {
+    setViewedOtt((prev) => {
+      const next = { ...prev, [key]: true };
+      try { localStorage.setItem("uipair.ott.viewed", JSON.stringify(next)); } catch { /* noop */ }
+      return next;
+    });
+  };
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
