@@ -30,7 +30,7 @@ function PrivacyPage() {
           <li><strong>Profile data:</strong> avatar, bio, skills, interests.</li>
           <li><strong>Content:</strong> posts, comments, gigs, messages, resources you upload.</li>
           <li><strong>Usage data:</strong> log data, device, IP, and interaction events.</li>
-          <li><strong>Payment data:</strong> processed by Stripe; we never store full card numbers.</li>
+          <li><strong>Payment data:</strong> processed by Flutterwave; we never store full card numbers.</li>
         </ul>
 
         <h2>2. How We Use Your Information</h2>

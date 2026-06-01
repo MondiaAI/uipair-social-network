@@ -80,7 +80,7 @@ function TermsPage() {
         <h2>5. StudyGigs & Marketplace</h2>
         <p>
           Transactions on StudyGigs and other marketplace surfaces are between
-          buyers and sellers. UiPair facilitates payments via Stripe and may
+          buyers and sellers. UiPair facilitates payments via Flutterwave and may
           charge a service fee. Refunds are handled per our refund policy and
           applicable consumer law.
         </p>
@@ -133,7 +133,7 @@ function TermsPage() {
           <strong>Subscriptions automatically renew</strong> at the end of each billing
           period (monthly or yearly, as selected) at the then-current price,
           using the payment method on file, until you cancel. By subscribing,
-          you expressly authorise UiPair and its payment processor (Stripe) to
+          you expressly authorise UiPair and its payment processor (Flutterwave) to
           charge that payment method on a recurring basis.
         </p>
 
@@ -175,7 +175,7 @@ function TermsPage() {
 
         <h2>G. Failed Payments</h2>
         <p>
-          If a renewal payment fails, we (via Stripe) may retry the charge.
+          If a renewal payment fails, we (via Flutterwave) may retry the charge.
           If payment cannot be collected, your paid features may be paused or
           downgraded to the free tier until the balance is settled.
         </p>

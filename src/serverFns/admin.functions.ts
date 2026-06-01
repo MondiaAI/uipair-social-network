@@ -214,7 +214,6 @@ export const globalFeed = createServerFn({ method: "POST" })
     return { limit, postType: d?.postType, tenantId: d?.tenantId };
   })
   .handler(async ({ data, context }) => {
-    // Must be an admin of at least one tenant.
     const { data: admin } = await supabaseAdmin
       .from("tenant_admins")
       .select("tenant_id")

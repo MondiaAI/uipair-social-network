@@ -12,12 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Beaker, HelpCircle, Handshake, BookOpen } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { EmbeddedCheckoutModal } from "@/components/peerly/EmbeddedCheckoutModal";
 import { CircleCreatorPanel } from "@/components/peerly/CircleCreatorPanel";
 import { CircleAnnouncements } from "@/components/peerly/CircleAnnouncements";
 import { LogOut } from "lucide-react";
-import { createCircleCheckout, verifyCircleCheckout, cancelCircleSubscription } from "@/server/payments.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
 import { subjectChipClass } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -74,14 +71,6 @@ function CircleDetailPage() {
   const [sessionOpen, setSessionOpen] = useState(false);
   const [confirmJoinOpen, setConfirmJoinOpen] = useState(false);
   const [joining, setJoining] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
-  const [subscription, setSubscription] = useState<{
-    status: string;
-    cancel_at_period_end: boolean;
-    current_period_end: string | null;
-  } | null>(null);
-  const [canceling, setCanceling] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [generatingInvite, setGeneratingInvite] = useState(false);
 
@@ -104,7 +93,6 @@ function CircleDetailPage() {
     }
   };
 
-  const stripeEnv = getStripeEnvironment();
   const isMember = members.some((m) => m.id === user?.id);
   // Premium gating: non-subscribed users see a limited preview only.
   const isPremiumLocked = !!circle?.is_premium && !isMember;
@@ -171,8 +159,7 @@ function CircleDetailPage() {
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [circleId]);
 
-  // Realtime + polling: auto-grant access when membership is created
-  // (e.g., after a Stripe subscription webhook inserts the membership row).
+  // Realtime + polling: auto-grant access when membership is created.
   useEffect(() => {
     if (!user || !circleId || isMember) return;
 
@@ -247,19 +234,8 @@ function CircleDetailPage() {
   const confirmJoin = async () => {
     if (!user || !circle) return;
     if (circle.is_premium) {
-      setJoining(true);
-      try {
-        const { clientSecret } = await createCircleCheckout({
-          data: { circleId: circle.id, environment: stripeEnv },
-        });
-        setCheckoutClientSecret(clientSecret);
-        setConfirmJoinOpen(false);
-        setCheckoutOpen(true);
-      } catch (err: any) {
-        toast.error(err?.message ?? "Could not start checkout");
-      } finally {
-        setJoining(false);
-      }
+      toast.info("Premium circle subscriptions coming soon.");
+      setConfirmJoinOpen(false);
       return;
     }
     setJoining(true);
@@ -285,76 +261,6 @@ function CircleDetailPage() {
     toast.success("Joined circle!");
     load();
   };
-
-  const handleCheckoutComplete = async () => {
-    try {
-      const sessionId = new URLSearchParams(window.location.search).get("checkout_session_id");
-      if (sessionId) {
-        await verifyCircleCheckout({ data: { sessionId, environment: stripeEnv } });
-      }
-    } catch (err) {
-      console.warn("verify after checkout failed (webhook will still grant)", err);
-    }
-    setCheckoutOpen(false);
-    setCheckoutClientSecret(null);
-    load();
-  };
-
-  const handleCancelSubscription = async () => {
-    if (!circle) return;
-    if (!confirm("Cancel your subscription? You'll keep access until the end of the current billing period.")) return;
-    setCanceling(true);
-    try {
-      await cancelCircleSubscription({ data: { circleId: circle.id, environment: stripeEnv } });
-      toast.success("Subscription canceled — you keep access until the period ends.");
-      loadSubscription();
-    } catch (err: any) {
-      toast.error(err?.message ?? "Could not cancel subscription");
-    } finally {
-      setCanceling(false);
-    }
-  };
-
-  const loadSubscription = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("circle_subscriptions")
-      .select("status,cancel_at_period_end,current_period_end")
-      .eq("user_id", user.id)
-      .eq("circle_id", circleId)
-      .eq("environment", stripeEnv)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    setSubscription(data ?? null);
-  };
-
-  // Refresh subscription info whenever membership state may have changed.
-  useEffect(() => {
-    if (isMember) loadSubscription();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMember, user?.id, circleId]);
-
-  // Handle return from Stripe — verify on mount if a session_id is in the URL
-  // (covers full-page reload after embedded checkout completes).
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    const sessionId = url.searchParams.get("checkout_session_id");
-    if (!sessionId || !user) return;
-    (async () => {
-      try {
-        await verifyCircleCheckout({ data: { sessionId, environment: stripeEnv } });
-        toast.success("Payment confirmed — checking access…");
-        // Strip the param so refresh doesn't re-verify
-        url.searchParams.delete("checkout_session_id");
-        window.history.replaceState({}, "", url.toString());
-        load();
-      } catch (err) {
-        console.warn("Return-URL verify failed; webhook will still grant", err);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
 
   const handlePost = async () => {
     if (!user || !postContent.trim()) return;
@@ -462,32 +368,6 @@ function CircleDetailPage() {
           </div>
         </div>
 
-        {isMember && circle.is_premium && subscription && user?.id !== circle.leader_id && (
-          <div className="mt-4 pt-4 border-t flex items-center justify-between gap-3 flex-wrap">
-            <div className="text-xs text-muted-foreground">
-              {subscription.cancel_at_period_end ? (
-                <>Subscription canceled — access ends{" "}
-                  {subscription.current_period_end
-                    ? format(new Date(subscription.current_period_end), "MMM d, yyyy")
-                    : "soon"}.
-                </>
-              ) : subscription.status === "past_due" ? (
-                <>⚠ Payment past due — Stripe is retrying. Update your card to keep access.</>
-              ) : (
-                <>Subscribed · renews{" "}
-                  {subscription.current_period_end
-                    ? format(new Date(subscription.current_period_end), "MMM d, yyyy")
-                    : "monthly"}
-                </>
-              )}
-            </div>
-            {!subscription.cancel_at_period_end && ["active","trialing","past_due"].includes(subscription.status) && (
-              <Button size="sm" variant="outline" onClick={handleCancelSubscription} disabled={canceling}>
-                {canceling ? "Canceling…" : "Cancel subscription"}
-              </Button>
-            )}
-          </div>
-        )}
       </div>
 
       {user?.id === circle.leader_id && (
@@ -784,17 +664,6 @@ function CircleDetailPage() {
         </DialogContent>
       </Dialog>
 
-      <EmbeddedCheckoutModal
-        open={checkoutOpen}
-        onOpenChange={(o) => {
-          setCheckoutOpen(o);
-          if (!o) setCheckoutClientSecret(null);
-        }}
-        clientSecret={checkoutClientSecret}
-        title={`Subscribe to ${circle.name}`}
-        description={`$${Number(circle.price_monthly).toFixed(0)}/month — cancel anytime.`}
-        onComplete={handleCheckoutComplete}
-      />
     </div>
   );
 }

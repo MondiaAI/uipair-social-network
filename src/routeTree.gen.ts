@@ -32,7 +32,6 @@ import { Route as AppInviteTokenRouteImport } from './routes/_app/invite.$token'
 import { Route as AppCirclesNewRouteImport } from './routes/_app/circles.new'
 import { Route as AppCirclesDiscoverRouteImport } from './routes/_app/circles.discover'
 import { Route as AppCirclesCircleIdRouteImport } from './routes/_app/circles.$circleId'
-import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -148,12 +147,6 @@ const AppCirclesCircleIdRoute = AppCirclesCircleIdRouteImport.update({
   path: '/circles/$circleId',
   getParentRoute: () => AppRoute,
 } as any)
-const ApiPublicPaymentsWebhookRoute =
-  ApiPublicPaymentsWebhookRouteImport.update({
-    id: '/api/public/payments/webhook',
-    path: '/api/public/payments/webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -178,7 +171,6 @@ export interface FileRoutesByFullPath {
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/circles/': typeof AppCirclesIndexRoute
   '/lab/': typeof AppLabIndexRoute
-  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -203,7 +195,6 @@ export interface FileRoutesByTo {
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/circles': typeof AppCirclesIndexRoute
   '/lab': typeof AppLabIndexRoute
-  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -230,7 +221,6 @@ export interface FileRoutesById {
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
   '/_app/circles/': typeof AppCirclesIndexRoute
   '/_app/lab/': typeof AppLabIndexRoute
-  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -257,7 +247,6 @@ export interface FileRouteTypes {
     | '/profile/$userId'
     | '/circles/'
     | '/lab/'
-    | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -282,7 +271,6 @@ export interface FileRouteTypes {
     | '/profile/$userId'
     | '/circles'
     | '/lab'
-    | '/api/public/payments/webhook'
   id:
     | '__root__'
     | '/'
@@ -308,7 +296,6 @@ export interface FileRouteTypes {
     | '/_app/profile/$userId'
     | '/_app/circles/'
     | '/_app/lab/'
-    | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -318,7 +305,6 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
-  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -484,13 +470,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCirclesCircleIdRouteImport
       parentRoute: typeof AppRoute
     }
-    '/api/public/payments/webhook': {
-      id: '/api/public/payments/webhook'
-      path: '/api/public/payments/webhook'
-      fullPath: '/api/public/payments/webhook'
-      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -543,8 +522,16 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
-  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

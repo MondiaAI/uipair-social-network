@@ -9,7 +9,7 @@ import {
   listCircleMembers,
   removeCircleMember,
   globalFeed,
-} from "@/server/admin.functions";
+} from "@/serverFns/admin.functions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";

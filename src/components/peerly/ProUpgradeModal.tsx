@@ -48,7 +48,7 @@ export function ProUpgradeModal({ open, onOpenChange }: { open: boolean; onOpenC
       toast.error("Please accept the Purchaser Terms to continue.");
       return;
     }
-    toast.info("Stripe checkout coming soon — payments setup pending.");
+    toast.info("Pro upgrades coming soon — stay tuned!");
     handleOpenChange(false);
   };
 
@@ -185,7 +185,7 @@ export function ProUpgradeModal({ open, onOpenChange }: { open: boolean; onOpenC
             <Button onClick={startTrial} className="w-full" size="lg" disabled={!acceptedTerms}>
               Start 7-day free trial
             </Button>
-            <p className="text-center text-xs text-muted-foreground">Powered by Stripe • Cancel anytime</p>
+            <p className="text-center text-xs text-muted-foreground">Cancel anytime</p>
 
             <button
               onClick={() => setStep("eligibility")}

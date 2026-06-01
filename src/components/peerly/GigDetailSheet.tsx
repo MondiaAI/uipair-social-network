@@ -126,7 +126,7 @@ export function GigDetailSheet({ gigId, open, onOpenChange }: { gigId: string | 
                 {ordering ? "Placing order…" : `Order for ${formatPrice(gig.price_cents)}`}
               </Button>
               <p className="text-center text-xs text-muted-foreground">
-                Stripe checkout will be enabled once payments are connected. For now, your order is recorded and the seller is notified.
+                Flutterwave checkout will be enabled once payments are connected. For now, your order is recorded and the seller is notified.
               </p>
             </div>
           </>
