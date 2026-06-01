@@ -1302,6 +1302,24 @@ function MessagesPage() {
         )}
       </section>
       <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} />
+      <Dialog open={!!lightbox} onOpenChange={(o) => { if (!o) setLightbox(null); }}>
+        <DialogContent className="max-w-3xl p-0 bg-transparent border-0 shadow-none">
+          {lightbox && (
+            <div className="relative">
+              <img src={lightbox} alt="preview" className="max-h-[85vh] w-full rounded-lg object-contain" />
+              <a
+                href={lightbox}
+                target="_blank"
+                rel="noreferrer"
+                download
+                className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-md bg-black/70 px-3 py-1.5 text-xs font-medium text-white hover:bg-black/85"
+              >
+                <Download className="h-3.5 w-3.5" /> Download
+              </a>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
