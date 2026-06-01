@@ -989,6 +989,8 @@ function MessagesPage() {
                       const displayText = decrypted.ok ? decrypted.plaintext : m.content;
                       const showFallback = !decrypted.ok;
                       const isEditing = editingId === m.id;
+                      // Hide messages that cannot be decrypted on this device
+                      if (showFallback) return null;
                       return (
                         <div key={m.id} className={cn("group flex items-end gap-1", mine ? "justify-end" : "justify-start")}>
                           {mine && !isEditing && (
@@ -1037,11 +1039,7 @@ function MessagesPage() {
                                   </Button>
                                 </div>
                               </div>
-                            ) : showFallback ? (
-                              <p className={cn("italic", mine ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                                {fallbackLabel(decrypted.reason)}
-                              </p>
-                            ) : (
+                            ) : showFallback ? null : (
                               <div className="flex flex-wrap items-end gap-x-2 gap-y-0.5">
                                 <div className="min-w-0 flex-1">
                                   {displayText.split("\n").map((line, i) =>
