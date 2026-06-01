@@ -1039,11 +1039,7 @@ function MessagesPage() {
                                   </Button>
                                 </div>
                               </div>
-                            ) : showFallback ? (
-                              <p className={cn("italic", mine ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                                {fallbackLabel(decrypted.reason)}
-                              </p>
-                            ) : (
+                            ) : showFallback ? null : (
                               <div className="flex flex-wrap items-end gap-x-2 gap-y-0.5">
                                 <div className="min-w-0 flex-1">
                                   {displayText.split("\n").map((line, i) =>
