@@ -1077,21 +1077,70 @@ function MessagesPage() {
                             ) : showFallback ? null : (
                               <div className="flex flex-wrap items-end gap-x-2 gap-y-0.5">
                                 <div className="min-w-0 flex-1">
-                                  {displayText.split("\n").map((line, i) =>
-                                    isImageUrl(line) ? (
-                                      <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
-                                        <img src={line} alt="attachment" className="my-1 max-h-52 rounded-lg object-cover" />
-                                      </a>
-                                    ) : /^https?:\/\//i.test(line) ? (
-                                      <a key={i} href={line} target="_blank" rel="noreferrer" className="block break-all underline underline-offset-2">
-                                        {q ? renderHighlighted(line, q) : line}
-                                      </a>
-                                    ) : (
+                                  {displayText.split("\n").map((rawLine, i) => {
+                                    const ott = isOneTimeLine(rawLine);
+                                    const line = ott ? stripOtt(rawLine) : rawLine;
+                                    const img = isImageUrl(line);
+                                    const link = /^https?:\/\//i.test(line);
+                                    if (img && ott) {
+                                      const key = `${m.id}:${i}`;
+                                      if (mine) {
+                                        return (
+                                          <button key={i} type="button" onClick={() => setLightbox(line)} className="relative my-1 block">
+                                            <img src={line} alt="one-time" className="max-h-52 rounded-lg object-cover" />
+                                            <span className="absolute right-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white flex items-center gap-1">
+                                              <Eye className="h-3 w-3" /> One-time
+                                            </span>
+                                          </button>
+                                        );
+                                      }
+                                      if (viewedOtt[key]) {
+                                        return (
+                                          <div key={i} className={cn("my-1 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs", mine ? "border-primary-foreground/30 text-primary-foreground/80" : "border-border bg-background/50 text-muted-foreground")}>
+                                            <EyeOff className="h-3.5 w-3.5" /> Photo viewed
+                                          </div>
+                                        );
+                                      }
+                                      return (
+                                        <button
+                                          key={i}
+                                          type="button"
+                                          onClick={() => { setLightbox(line); markOttViewed(key); }}
+                                          className={cn("my-1 flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors", mine ? "border-primary-foreground/40 hover:bg-primary-foreground/10" : "border-primary/40 bg-primary/10 hover:bg-primary/20")}
+                                        >
+                                          <Eye className="h-3.5 w-3.5" /> Tap to view once
+                                        </button>
+                                      );
+                                    }
+                                    if (img) {
+                                      return (
+                                        <button key={i} type="button" onClick={() => setLightbox(line)} className="block">
+                                          <img src={line} alt="attachment" className="my-1 max-h-52 rounded-lg object-cover" />
+                                        </button>
+                                      );
+                                    }
+                                    if (link) {
+                                      return (
+                                        <a
+                                          key={i}
+                                          href={line}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          download
+                                          className={cn("my-1 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs no-underline transition-colors", mine ? "border-primary-foreground/30 hover:bg-primary-foreground/10" : "border-border bg-background/60 hover:bg-accent")}
+                                        >
+                                          <FileText className="h-4 w-4 shrink-0 opacity-70" />
+                                          <span className="truncate flex-1 font-medium">{filenameFromUrl(line)}</span>
+                                          <Download className="h-3.5 w-3.5 opacity-60" />
+                                        </a>
+                                      );
+                                    }
+                                    return (
                                       <p key={i} className="whitespace-pre-wrap break-words leading-snug">
                                         {q ? renderHighlighted(line, q) : line}
                                       </p>
-                                    )
-                                  )}
+                                    );
+                                  })}
                                 </div>
                                 <span className={cn("ml-auto shrink-0 text-[9px] sm:text-[10px] leading-none pb-0.5", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
                                   {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
