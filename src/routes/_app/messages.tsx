@@ -6,11 +6,12 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2, ArrowLeft, MessageSquarePlus } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2, ArrowLeft, MessageSquarePlus, Eye, EyeOff, Download } from "lucide-react";
 import { NewChatDialog } from "@/components/peerly/NewChatDialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 const EMOJIS = ["😀","😂","😍","🥲","🙌","👍","🎉","🔥","💯","🤔","😎","🙏","❤️","👀","✅","🚀","📚","☕","🌙","✨"];
