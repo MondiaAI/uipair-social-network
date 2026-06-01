@@ -1167,7 +1167,11 @@ function MessagesPage() {
                 <div className="mb-2 rounded-lg border bg-muted/40 p-2 text-xs">
                   <div className="flex items-center gap-2">
                     {attachment.type.startsWith("image/") ? (
-                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      <img
+                        src={URL.createObjectURL(attachment)}
+                        alt="preview"
+                        className="h-10 w-10 rounded object-cover"
+                      />
                     ) : (
                       <FileText className="h-4 w-4 text-muted-foreground" />
                     )}
@@ -1175,9 +1179,26 @@ function MessagesPage() {
                     <span className="text-muted-foreground">
                       {(attachment.size / 1024).toFixed(0)} KB
                     </span>
+                    {attachment.type.startsWith("image/") && (
+                      <button
+                        type="button"
+                        onClick={() => setOneTime((v) => !v)}
+                        disabled={uploading}
+                        className={cn(
+                          "flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
+                          oneTime
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background hover:bg-accent text-muted-foreground"
+                        )}
+                        title="View once: recipient can only open it a single time"
+                      >
+                        {oneTime ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                        One-time
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => setAttachment(null)}
+                      onClick={() => { setAttachment(null); setOneTime(false); }}
                       disabled={uploading}
                       className="rounded p-1 hover:bg-accent disabled:opacity-50"
                       aria-label="Remove attachment"
