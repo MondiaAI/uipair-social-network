@@ -989,6 +989,8 @@ function MessagesPage() {
                       const displayText = decrypted.ok ? decrypted.plaintext : m.content;
                       const showFallback = !decrypted.ok;
                       const isEditing = editingId === m.id;
+                      // Hide messages that cannot be decrypted on this device
+                      if (showFallback) return null;
                       return (
                         <div key={m.id} className={cn("group flex items-end gap-1", mine ? "justify-end" : "justify-start")}>
                           {mine && !isEditing && (
