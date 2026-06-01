@@ -6,11 +6,12 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2, ArrowLeft, MessageSquarePlus } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2, ArrowLeft, MessageSquarePlus, Eye, EyeOff, Download } from "lucide-react";
 import { NewChatDialog } from "@/components/peerly/NewChatDialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 const EMOJIS = ["😀","😂","😍","🥲","🙌","👍","🎉","🔥","💯","🤔","😎","🙏","❤️","👀","✅","🚀","📚","☕","🌙","✨"];
@@ -138,6 +139,19 @@ function MessagesPage() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [attachment, setAttachment] = useState<File | null>(null);
+  const [oneTime, setOneTime] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [viewedOtt, setViewedOtt] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(localStorage.getItem("uipair.ott.viewed") || "{}"); } catch { return {}; }
+  });
+  const markOttViewed = (key: string) => {
+    setViewedOtt((prev) => {
+      const next = { ...prev, [key]: true };
+      try { localStorage.setItem("uipair.ott.viewed", JSON.stringify(next)); } catch { /* noop */ }
+      return next;
+    });
+  };
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [search, setSearch] = useState("");
@@ -261,7 +275,25 @@ function MessagesPage() {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   const MAX_LEN = 2000;
-  const isImageUrl = (s: string) => /\.(png|jpe?g|gif|webp|avif)$/i.test(s.trim());
+  const OTT_PREFIX = "ott1:";
+  const isOneTimeLine = (s: string) => s.trim().startsWith(OTT_PREFIX);
+  const stripOtt = (s: string) => s.trim().slice(OTT_PREFIX.length);
+  const urlPath = (s: string): string => {
+    try { return new URL(s).pathname; } catch { return s; }
+  };
+  const isImageUrl = (s: string) => {
+    const t = isOneTimeLine(s) ? stripOtt(s) : s.trim();
+    if (!/^https?:\/\//i.test(t)) return false;
+    return /\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test(urlPath(t)) || /\.(png|jpe?g|gif|webp|avif)$/i.test(urlPath(t));
+  };
+  const filenameFromUrl = (s: string) => {
+    try {
+      const last = decodeURIComponent(new URL(s).pathname.split("/").pop() || "file");
+      // strip our "<timestamp>-<rand>." prefix from safeStorageName
+      const cleaned = last.replace(/^\d+-[a-z0-9]+\./i, "");
+      return cleaned || last;
+    } catch { return "file"; }
+  };
 
   // Apply prefill from query string once per active conversation
   useEffect(() => {
@@ -645,7 +677,9 @@ function MessagesPage() {
         }, 200);
         const { url, error } = await uploadPrivateFileForSignedUrl("resources", user.id, file);
         if (error || !url) throw new Error(error || "Could not share file");
-        content = content ? `${content}\n${url}` : url;
+        const isImg = file.type.startsWith("image/");
+        const fileLine = oneTime && isImg ? `${OTT_PREFIX}${url}` : url;
+        content = content ? `${content}\n${fileLine}` : fileLine;
         setUploadProgress(100);
       }
       // Encrypt when both keys are available; otherwise send plaintext so
@@ -668,6 +702,7 @@ function MessagesPage() {
       // Only clear draft + attachment after a fully successful send
       setDraft("");
       setAttachment(null);
+      setOneTime(false);
     } catch (e: any) {
       toast.error(e.message ?? "Failed to send");
       // Restore exactly what the user had
@@ -1042,21 +1077,70 @@ function MessagesPage() {
                             ) : showFallback ? null : (
                               <div className="flex flex-wrap items-end gap-x-2 gap-y-0.5">
                                 <div className="min-w-0 flex-1">
-                                  {displayText.split("\n").map((line, i) =>
-                                    isImageUrl(line) ? (
-                                      <a key={i} href={line} target="_blank" rel="noreferrer" className="block">
-                                        <img src={line} alt="attachment" className="my-1 max-h-52 rounded-lg object-cover" />
-                                      </a>
-                                    ) : /^https?:\/\//i.test(line) ? (
-                                      <a key={i} href={line} target="_blank" rel="noreferrer" className="block break-all underline underline-offset-2">
-                                        {q ? renderHighlighted(line, q) : line}
-                                      </a>
-                                    ) : (
+                                  {displayText.split("\n").map((rawLine, i) => {
+                                    const ott = isOneTimeLine(rawLine);
+                                    const line = ott ? stripOtt(rawLine) : rawLine;
+                                    const img = isImageUrl(line);
+                                    const link = /^https?:\/\//i.test(line);
+                                    if (img && ott) {
+                                      const key = `${m.id}:${i}`;
+                                      if (mine) {
+                                        return (
+                                          <button key={i} type="button" onClick={() => setLightbox(line)} className="relative my-1 block">
+                                            <img src={line} alt="one-time" className="max-h-52 rounded-lg object-cover" />
+                                            <span className="absolute right-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white flex items-center gap-1">
+                                              <Eye className="h-3 w-3" /> One-time
+                                            </span>
+                                          </button>
+                                        );
+                                      }
+                                      if (viewedOtt[key]) {
+                                        return (
+                                          <div key={i} className={cn("my-1 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs", mine ? "border-primary-foreground/30 text-primary-foreground/80" : "border-border bg-background/50 text-muted-foreground")}>
+                                            <EyeOff className="h-3.5 w-3.5" /> Photo viewed
+                                          </div>
+                                        );
+                                      }
+                                      return (
+                                        <button
+                                          key={i}
+                                          type="button"
+                                          onClick={() => { setLightbox(line); markOttViewed(key); }}
+                                          className={cn("my-1 flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors", mine ? "border-primary-foreground/40 hover:bg-primary-foreground/10" : "border-primary/40 bg-primary/10 hover:bg-primary/20")}
+                                        >
+                                          <Eye className="h-3.5 w-3.5" /> Tap to view once
+                                        </button>
+                                      );
+                                    }
+                                    if (img) {
+                                      return (
+                                        <button key={i} type="button" onClick={() => setLightbox(line)} className="block">
+                                          <img src={line} alt="attachment" className="my-1 max-h-52 rounded-lg object-cover" />
+                                        </button>
+                                      );
+                                    }
+                                    if (link) {
+                                      return (
+                                        <a
+                                          key={i}
+                                          href={line}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          download
+                                          className={cn("my-1 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs no-underline transition-colors", mine ? "border-primary-foreground/30 hover:bg-primary-foreground/10" : "border-border bg-background/60 hover:bg-accent")}
+                                        >
+                                          <FileText className="h-4 w-4 shrink-0 opacity-70" />
+                                          <span className="truncate flex-1 font-medium">{filenameFromUrl(line)}</span>
+                                          <Download className="h-3.5 w-3.5 opacity-60" />
+                                        </a>
+                                      );
+                                    }
+                                    return (
                                       <p key={i} className="whitespace-pre-wrap break-words leading-snug">
                                         {q ? renderHighlighted(line, q) : line}
                                       </p>
-                                    )
-                                  )}
+                                    );
+                                  })}
                                 </div>
                                 <span className={cn("ml-auto shrink-0 text-[9px] sm:text-[10px] leading-none pb-0.5", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
                                   {new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -1083,7 +1167,11 @@ function MessagesPage() {
                 <div className="mb-2 rounded-lg border bg-muted/40 p-2 text-xs">
                   <div className="flex items-center gap-2">
                     {attachment.type.startsWith("image/") ? (
-                      <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                      <img
+                        src={URL.createObjectURL(attachment)}
+                        alt="preview"
+                        className="h-10 w-10 rounded object-cover"
+                      />
                     ) : (
                       <FileText className="h-4 w-4 text-muted-foreground" />
                     )}
@@ -1091,9 +1179,26 @@ function MessagesPage() {
                     <span className="text-muted-foreground">
                       {(attachment.size / 1024).toFixed(0)} KB
                     </span>
+                    {attachment.type.startsWith("image/") && (
+                      <button
+                        type="button"
+                        onClick={() => setOneTime((v) => !v)}
+                        disabled={uploading}
+                        className={cn(
+                          "flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
+                          oneTime
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background hover:bg-accent text-muted-foreground"
+                        )}
+                        title="View once: recipient can only open it a single time"
+                      >
+                        {oneTime ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                        One-time
+                      </button>
+                    )}
                     <button
                       type="button"
-                      onClick={() => setAttachment(null)}
+                      onClick={() => { setAttachment(null); setOneTime(false); }}
                       disabled={uploading}
                       className="rounded p-1 hover:bg-accent disabled:opacity-50"
                       aria-label="Remove attachment"
@@ -1197,6 +1302,24 @@ function MessagesPage() {
         )}
       </section>
       <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} />
+      <Dialog open={!!lightbox} onOpenChange={(o) => { if (!o) setLightbox(null); }}>
+        <DialogContent className="max-w-3xl p-0 bg-transparent border-0 shadow-none">
+          {lightbox && (
+            <div className="relative">
+              <img src={lightbox} alt="preview" className="max-h-[85vh] w-full rounded-lg object-contain" />
+              <a
+                href={lightbox}
+                target="_blank"
+                rel="noreferrer"
+                download
+                className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-md bg-black/70 px-3 py-1.5 text-xs font-medium text-white hover:bg-black/85"
+              >
+                <Download className="h-3.5 w-3.5" /> Download
+              </a>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
