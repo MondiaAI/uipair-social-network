@@ -275,7 +275,25 @@ function MessagesPage() {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   const MAX_LEN = 2000;
-  const isImageUrl = (s: string) => /\.(png|jpe?g|gif|webp|avif)$/i.test(s.trim());
+  const OTT_PREFIX = "ott1:";
+  const isOneTimeLine = (s: string) => s.trim().startsWith(OTT_PREFIX);
+  const stripOtt = (s: string) => s.trim().slice(OTT_PREFIX.length);
+  const urlPath = (s: string): string => {
+    try { return new URL(s).pathname; } catch { return s; }
+  };
+  const isImageUrl = (s: string) => {
+    const t = isOneTimeLine(s) ? stripOtt(s) : s.trim();
+    if (!/^https?:\/\//i.test(t)) return false;
+    return /\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test(urlPath(t)) || /\.(png|jpe?g|gif|webp|avif)$/i.test(urlPath(t));
+  };
+  const filenameFromUrl = (s: string) => {
+    try {
+      const last = decodeURIComponent(new URL(s).pathname.split("/").pop() || "file");
+      // strip our "<timestamp>-<rand>." prefix from safeStorageName
+      const cleaned = last.replace(/^\d+-[a-z0-9]+\./i, "");
+      return cleaned || last;
+    } catch { return "file"; }
+  };
 
   // Apply prefill from query string once per active conversation
   useEffect(() => {
