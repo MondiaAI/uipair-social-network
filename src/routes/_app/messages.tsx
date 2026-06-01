@@ -702,6 +702,7 @@ function MessagesPage() {
       // Only clear draft + attachment after a fully successful send
       setDraft("");
       setAttachment(null);
+      setOneTime(false);
     } catch (e: any) {
       toast.error(e.message ?? "Failed to send");
       // Restore exactly what the user had
