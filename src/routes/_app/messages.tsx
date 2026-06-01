@@ -677,7 +677,9 @@ function MessagesPage() {
         }, 200);
         const { url, error } = await uploadPrivateFileForSignedUrl("resources", user.id, file);
         if (error || !url) throw new Error(error || "Could not share file");
-        content = content ? `${content}\n${url}` : url;
+        const isImg = file.type.startsWith("image/");
+        const fileLine = oneTime && isImg ? `${OTT_PREFIX}${url}` : url;
+        content = content ? `${content}\n${fileLine}` : fileLine;
         setUploadProgress(100);
       }
       // Encrypt when both keys are available; otherwise send plaintext so
