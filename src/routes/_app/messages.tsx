@@ -141,16 +141,26 @@ function MessagesPage() {
   const [attachment, setAttachment] = useState<File | null>(null);
   const [oneTime, setOneTime] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const [viewedOtt, setViewedOtt] = useState<Record<string, boolean>>(() => {
-    if (typeof window === "undefined") return {};
-    try { return JSON.parse(localStorage.getItem("uipair.ott.viewed") || "{}"); } catch { return {}; }
-  });
-  const markOttViewed = (key: string) => {
-    setViewedOtt((prev) => {
-      const next = { ...prev, [key]: true };
-      try { localStorage.setItem("uipair.ott.viewed", JSON.stringify(next)); } catch { /* noop */ }
-      return next;
-    });
+  // DB-backed per-recipient one-time view tracking.
+  // Key = `${message_id}:${line_index}`. Value = viewer_id (who viewed it).
+  // RLS ensures:
+  //  - Recipient only sees their own view records.
+  //  - Sender sees view records on messages they sent (so they know it was opened).
+  const [ottViews, setOttViews] = useState<Record<string, string>>({});
+  const markOttViewedLocal = (key: string, viewerId: string) => {
+    setOttViews((prev) => (prev[key] ? prev : { ...prev, [key]: viewerId }));
+  };
+  const recordOttView = async (messageId: string, lineIndex: number) => {
+    if (!user) return;
+    const key = `${messageId}:${lineIndex}`;
+    markOttViewedLocal(key, user.id);
+    const { error } = await supabase
+      .from("message_attachment_views")
+      .insert({ message_id: messageId, line_index: lineIndex, viewer_id: user.id });
+    // Ignore duplicate key conflict — already recorded
+    if (error && !/duplicate/i.test(error.message)) {
+      console.warn("[ott] failed to record view", error);
+    }
   };
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
