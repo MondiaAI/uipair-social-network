@@ -29,14 +29,21 @@ const EMAIL = process.env.E2E_TEST_EMAIL || "e2e-smoke@uipair.test";
 const PASSWORD = process.env.E2E_TEST_PASSWORD || "Smoke-Test-Pass-2026!";
 const TENANT_ID =
   process.env.E2E_TENANT_ID || "35eb8149-03d3-43a5-8322-c231e32de9ca"; // MIT
+// Deterministic UUID for the smoke test user. Lets us avoid the admin
+// `listUsers` / `?email=` endpoints, which are unreliable on some Supabase
+// instances ("Database error finding users").
+const USER_ID =
+  process.env.E2E_TEST_USER_ID || "c856217c-e3f8-4603-a55a-638843b582d6";
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
 async function ensureUser() {
-  // Try create first; if the user already exists, fall back to lookup + reset.
+  // Try create with a deterministic id. If it already exists, just reset
+  // the password on that id — no email-based lookup needed.
   const created = await admin.auth.admin.createUser({
+    id: USER_ID,
     email: EMAIL,
     password: PASSWORD,
     email_confirm: true,
@@ -50,29 +57,18 @@ async function ensureUser() {
     created.error.status === 422 ||
     msg.includes("already") ||
     msg.includes("registered") ||
-    msg.includes("exists");
+    msg.includes("exists") ||
+    msg.includes("duplicate");
   if (!isDup) throw created.error;
 
-  // User exists — find by email via the admin REST endpoint (supports ?email=).
-  const url = new URL(`${SUPABASE_URL}/auth/v1/admin/users`);
-  url.searchParams.set("email", EMAIL);
-  const resp = await fetch(url, {
-    headers: {
-      apikey: SERVICE_ROLE,
-      Authorization: `Bearer ${SERVICE_ROLE}`,
-    },
-  });
-  if (!resp.ok) throw new Error(`admin/users lookup failed: ${resp.status} ${await resp.text()}`);
-  const body = await resp.json();
-  const user = Array.isArray(body?.users) ? body.users[0] : body?.id ? body : null;
-  if (!user?.id) throw new Error(`could not locate existing user ${EMAIL}`);
-
-  const { error: updErr } = await admin.auth.admin.updateUserById(user.id, {
+  const { error: updErr } = await admin.auth.admin.updateUserById(USER_ID, {
+    email: EMAIL,
     password: PASSWORD,
     email_confirm: true,
   });
   if (updErr) throw updErr;
-  return user.id;
+  return USER_ID;
+}
 }
 
 async function ensureProfile(userId) {
