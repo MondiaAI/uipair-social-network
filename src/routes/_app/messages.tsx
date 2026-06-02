@@ -150,16 +150,48 @@ function MessagesPage() {
   const markOttViewedLocal = (key: string, viewerId: string) => {
     setOttViews((prev) => (prev[key] ? prev : { ...prev, [key]: viewerId }));
   };
-  const recordOttView = async (messageId: string, lineIndex: number) => {
-    if (!user) return;
+  const unmarkOttViewedLocal = (key: string) => {
+    setOttViews((prev) => {
+      if (!prev[key]) return prev;
+      const { [key]: _drop, ...rest } = prev;
+      return rest;
+    });
+  };
+  // In-flight guard so a double-tap doesn't double-insert.
+  const ottInFlight = useRef<Set<string>>(new Set());
+  // Returns true if the view was durably recorded (or already existed).
+  // Optimistically marks local state, then writes to DB with retries+backoff.
+  // Rolls back local state and toasts if every attempt fails.
+  const recordOttView = async (messageId: string, lineIndex: number): Promise<boolean> => {
+    if (!user) return false;
     const key = `${messageId}:${lineIndex}`;
+    if (ottInFlight.current.has(key)) return false;
+    if (ottViews[key]) return true;
+    ottInFlight.current.add(key);
     markOttViewedLocal(key, user.id);
-    const { error } = await supabase
-      .from("message_attachment_views")
-      .insert({ message_id: messageId, line_index: lineIndex, viewer_id: user.id });
-    // Ignore duplicate key conflict — already recorded
-    if (error && !/duplicate/i.test(error.message)) {
-      console.warn("[ott] failed to record view", error);
+    const delays = [0, 400, 1200]; // total ~1.6s across 3 attempts
+    let lastErr: unknown = null;
+    try {
+      for (let attempt = 0; attempt < delays.length; attempt++) {
+        if (delays[attempt]) await new Promise((r) => setTimeout(r, delays[attempt]));
+        const { error } = await supabase
+          .from("message_attachment_views")
+          .insert({ message_id: messageId, line_index: lineIndex, viewer_id: user.id });
+        if (!error) return true;
+        // Duplicate = already recorded (race with realtime), treat as success.
+        if (/duplicate|unique/i.test(error.message)) return true;
+        lastErr = error;
+        console.warn(`[ott] insert attempt ${attempt + 1} failed`, error);
+      }
+      unmarkOttViewedLocal(key);
+      toast.error("Couldn't mark as viewed", {
+        description: "Network issue — tap to try again.",
+        action: { label: "Retry", onClick: () => void recordOttView(messageId, lineIndex) },
+      });
+      logClientError("ott.recordView", lastErr, { messageId, lineIndex });
+      return false;
+    } finally {
+      ottInFlight.current.delete(key);
     }
   };
   const [uploading, setUploading] = useState(false);
@@ -1174,7 +1206,8 @@ function MessagesPage() {
                                           key={i}
                                           type="button"
                                           onClick={async () => {
-                                            await recordOttView(m.id, i);
+                                            const ok = await recordOttView(m.id, i);
+                                            if (!ok) return; // don't reveal if we couldn't durably mark it viewed
                                             if (img) {
                                               setLightbox(line);
                                             } else if (typeof window !== "undefined") {
