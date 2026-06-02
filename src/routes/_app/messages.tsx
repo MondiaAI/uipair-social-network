@@ -1206,7 +1206,8 @@ function MessagesPage() {
                                           key={i}
                                           type="button"
                                           onClick={async () => {
-                                            await recordOttView(m.id, i);
+                                            const ok = await recordOttView(m.id, i);
+                                            if (!ok) return; // don't reveal if we couldn't durably mark it viewed
                                             if (img) {
                                               setLightbox(line);
                                             } else if (typeof window !== "undefined") {
