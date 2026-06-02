@@ -1,0 +1,75 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: false
+        default: "production"
+        type: choice
+        options:
+          - production
+          - preview
+
+concurrency:
+  group: cf-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      deployments: write
+
+    env:
+      # Vite build-time env (publishable values only — never secrets).
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build (Cloudflare Workers bundle)
+        run: bun run build
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # The Cloudflare Vite plugin emits the worker into dist/server.
+          # `wrangler deploy` reads wrangler.jsonc at the repo root.
+          command: deploy
+          # Push the runtime secrets the worker needs at request time.
+          # Add/remove names here to match what your server functions read.
+          secrets: |
+            SUPABASE_URL
+            SUPABASE_PUBLISHABLE_KEY
+            SUPABASE_SERVICE_ROLE_KEY
+            LOVABLE_API_KEY
+            PAYMENTS_SANDBOX_WEBHOOK_SECRET
+            STRIPE_SANDBOX_API_KEY
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          LOVABLE_API_KEY: ${{ secrets.LOVABLE_API_KEY }}
+          PAYMENTS_SANDBOX_WEBHOOK_SECRET: ${{ secrets.PAYMENTS_SANDBOX_WEBHOOK_SECRET }}
+          STRIPE_SANDBOX_API_KEY: ${{ secrets.STRIPE_SANDBOX_API_KEY }}
