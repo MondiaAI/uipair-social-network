@@ -489,6 +489,44 @@ function MessagesPage() {
     };
   }, [activeId]);
 
+  // Load + subscribe to one-time-view records for the current conversation.
+  // RLS narrows rows to: my own views, plus views on messages I sent.
+  useEffect(() => {
+    if (!user || !activeId || messages.length === 0) return;
+    const ids = messages.map((m) => m.id);
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("message_attachment_views")
+        .select("message_id, line_index, viewer_id")
+        .in("message_id", ids);
+      if (cancelled || !data) return;
+      setOttViews((prev) => {
+        const next = { ...prev };
+        for (const r of data as Array<{ message_id: string; line_index: number; viewer_id: string }>) {
+          next[`${r.message_id}:${r.line_index}`] = r.viewer_id;
+        }
+        return next;
+      });
+    })();
+    const channel = supabase
+      .channel(uniqueRealtimeChannelName(`ott-views:${activeId}`))
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "message_attachment_views" },
+        (payload) => {
+          const r = payload.new as { message_id: string; line_index: number; viewer_id: string };
+          if (!ids.includes(r.message_id)) return;
+          setOttViews((prev) => ({ ...prev, [`${r.message_id}:${r.line_index}`]: r.viewer_id }));
+        }
+      )
+      .subscribe();
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [user, activeId, messages]);
+
   // Fetch counterpart's E2EE public key when active conversation changes
   useEffect(() => {
     if (!user || !activeId) { setCounterpartPub(null); return; }
