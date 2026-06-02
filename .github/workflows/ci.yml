@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-client:
+    name: Build SPA client (Vercel-compatible)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build SPA (build:client)
+        run: bun run build:client
+      - name: Verify SPA output
+        run: |
+          test -f dist/client/index.html || (echo "Missing dist/client/index.html" && exit 1)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-bundle
+          path: dist/client
+          if-no-files-found: error
+          retention-days: 3
+
+  build-worker:
+    name: Build Cloudflare Workers bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Build Worker (build:worker)
+        run: bun run build:worker
+      - uses: actions/upload-artifact@v4
+        with:
+          name: worker-bundle
+          path: dist/server
+          if-no-files-found: error
+          retention-days: 3
+
+  smoke-test:
+    name: SPA smoke test (headless Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build-client
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Download SPA bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: client-bundle
+          path: dist/client
+      - name: Install Playwright (Chromium)
+        run: bunx playwright install --with-deps chromium
+      - name: Serve SPA in background
+        run: |
+          bunx --bun serve -s dist/client -l 5173 > /tmp/serve.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:5173 > /dev/null && break || sleep 1
+          done
+          curl -sf http://localhost:5173 > /dev/null || (echo "static server failed to start" && cat /tmp/serve.log && exit 1)
+      - name: Run smoke test
+        env:
+          BASE_URL: http://localhost:5173
+        run: bunx playwright test e2e/smoke.spec.ts --project=chromium
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7
