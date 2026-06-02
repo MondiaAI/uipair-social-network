@@ -1053,6 +1053,35 @@ export type Database = {
           },
         ]
       }
+      message_attachment_views: {
+        Row: {
+          line_index: number
+          message_id: string
+          viewed_at: string
+          viewer_id: string
+        }
+        Insert: {
+          line_index: number
+          message_id: string
+          viewed_at?: string
+          viewer_id: string
+        }
+        Update: {
+          line_index?: number
+          message_id?: string
+          viewed_at?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachment_views_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
