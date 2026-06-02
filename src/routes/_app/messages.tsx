@@ -1130,33 +1130,65 @@ function MessagesPage() {
                                     const line = ott ? stripOtt(rawLine) : rawLine;
                                     const img = isImageUrl(line);
                                     const link = /^https?:\/\//i.test(line);
-                                    if (img && ott) {
-                                      const key = `${m.id}:${i}`;
+                                    const key = `${m.id}:${i}`;
+                                    const viewedBy = ott ? ottViews[key] : undefined;
+                                    if (ott) {
+                                      // Sender's own view: always visible + shows viewed status.
                                       if (mine) {
+                                        const wasViewed = !!viewedBy && viewedBy !== user?.id;
+                                        if (img) {
+                                          return (
+                                            <button key={i} type="button" onClick={() => setLightbox(line)} className="relative my-1 block">
+                                              <img src={line} alt="one-time" className="max-h-52 rounded-lg object-cover" />
+                                              <span className="absolute right-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white flex items-center gap-1">
+                                                {wasViewed ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                                {wasViewed ? "Viewed" : "One-time"}
+                                              </span>
+                                            </button>
+                                          );
+                                        }
                                         return (
-                                          <button key={i} type="button" onClick={() => setLightbox(line)} className="relative my-1 block">
-                                            <img src={line} alt="one-time" className="max-h-52 rounded-lg object-cover" />
-                                            <span className="absolute right-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white flex items-center gap-1">
-                                              <Eye className="h-3 w-3" /> One-time
+                                          <div key={i} className="my-1 flex items-center gap-2 rounded-lg border border-primary-foreground/30 px-3 py-2 text-xs">
+                                            <FileText className="h-4 w-4 shrink-0 opacity-70" />
+                                            <span className="truncate flex-1 font-medium">{filenameFromUrl(line)}</span>
+                                            <span className="flex items-center gap-1 rounded bg-black/30 px-1.5 py-0.5 text-[10px] font-medium">
+                                              {wasViewed ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                              {wasViewed ? "Viewed" : "One-time"}
                                             </span>
-                                          </button>
-                                        );
-                                      }
-                                      if (viewedOtt[key]) {
-                                        return (
-                                          <div key={i} className={cn("my-1 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs", mine ? "border-primary-foreground/30 text-primary-foreground/80" : "border-border bg-background/50 text-muted-foreground")}>
-                                            <EyeOff className="h-3.5 w-3.5" /> Photo viewed
                                           </div>
                                         );
                                       }
+                                      // Recipient: already viewed → locked state.
+                                      if (viewedBy) {
+                                        return (
+                                          <div key={i} className={cn("my-1 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs", "border-border bg-background/50 text-muted-foreground")}>
+                                            <EyeOff className="h-3.5 w-3.5" />
+                                            {img ? "Photo viewed" : "Document viewed"}
+                                          </div>
+                                        );
+                                      }
+                                      // Recipient: first open. Image → lightbox; document → open in new tab.
                                       return (
                                         <button
                                           key={i}
                                           type="button"
-                                          onClick={() => { setLightbox(line); markOttViewed(key); }}
-                                          className={cn("my-1 flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors", mine ? "border-primary-foreground/40 hover:bg-primary-foreground/10" : "border-primary/40 bg-primary/10 hover:bg-primary/20")}
+                                          onClick={async () => {
+                                            await recordOttView(m.id, i);
+                                            if (img) {
+                                              setLightbox(line);
+                                            } else if (typeof window !== "undefined") {
+                                              window.open(line, "_blank", "noopener,noreferrer");
+                                            }
+                                          }}
+                                          className={cn("my-1 flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors", "border-primary/40 bg-primary/10 hover:bg-primary/20")}
                                         >
-                                          <Eye className="h-3.5 w-3.5" /> Tap to view once
+                                          <Eye className="h-3.5 w-3.5" />
+                                          {img ? "Tap to view once" : (
+                                            <>
+                                              <span className="truncate flex-1 text-left">{filenameFromUrl(line)}</span>
+                                              <span className="shrink-0">Open once</span>
+                                            </>
+                                          )}
                                         </button>
                                       );
                                     }
