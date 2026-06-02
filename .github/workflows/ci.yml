@@ -27,6 +27,9 @@ jobs:
       VITE_FLUTTERWAVE_PUBLIC_KEY: ${{ secrets.VITE_FLUTTERWAVE_PUBLIC_KEY }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
