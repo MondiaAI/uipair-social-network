@@ -21,9 +21,10 @@ import { ProjectWorkspace } from "@/components/peerly/ProjectWorkspace";
 
 export const Route = createFileRoute("/_app/lab/$projectId")({
   component: ProjectDetailPage,
-  validateSearch: (s: Record<string, unknown>) => ({
-    action: typeof s.action === "string" ? (s.action as string) : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { action?: string } => {
+    const action = typeof s.action === "string" ? s.action : undefined;
+    return action ? { action } : {};
+  },
 });
 
 interface ProjectDetail {

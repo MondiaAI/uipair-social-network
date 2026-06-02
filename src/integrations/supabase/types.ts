@@ -467,8 +467,8 @@ export type Database = {
           environment: string
           id: string
           status: string
-          fw_customer_id: string
-          fw_subscription_id: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
           tenant_id: string
           updated_at: string
           user_id: string
@@ -482,8 +482,8 @@ export type Database = {
           environment?: string
           id?: string
           status?: string
-          fw_customer_id: string
-          fw_subscription_id: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
           tenant_id?: string
           updated_at?: string
           user_id: string
@@ -497,8 +497,8 @@ export type Database = {
           environment?: string
           id?: string
           status?: string
-          fw_customer_id?: string
-          fw_subscription_id?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
           tenant_id?: string
           updated_at?: string
           user_id?: string
@@ -1049,6 +1049,35 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_attachment_views: {
+        Row: {
+          line_index: number
+          message_id: string
+          viewed_at: string
+          viewer_id: string
+        }
+        Insert: {
+          line_index: number
+          message_id: string
+          viewed_at?: string
+          viewer_id: string
+        }
+        Update: {
+          line_index?: number
+          message_id?: string
+          viewed_at?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachment_views_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]

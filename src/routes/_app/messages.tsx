@@ -141,16 +141,26 @@ function MessagesPage() {
   const [attachment, setAttachment] = useState<File | null>(null);
   const [oneTime, setOneTime] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const [viewedOtt, setViewedOtt] = useState<Record<string, boolean>>(() => {
-    if (typeof window === "undefined") return {};
-    try { return JSON.parse(localStorage.getItem("uipair.ott.viewed") || "{}"); } catch { return {}; }
-  });
-  const markOttViewed = (key: string) => {
-    setViewedOtt((prev) => {
-      const next = { ...prev, [key]: true };
-      try { localStorage.setItem("uipair.ott.viewed", JSON.stringify(next)); } catch { /* noop */ }
-      return next;
-    });
+  // DB-backed per-recipient one-time view tracking.
+  // Key = `${message_id}:${line_index}`. Value = viewer_id (who viewed it).
+  // RLS ensures:
+  //  - Recipient only sees their own view records.
+  //  - Sender sees view records on messages they sent (so they know it was opened).
+  const [ottViews, setOttViews] = useState<Record<string, string>>({});
+  const markOttViewedLocal = (key: string, viewerId: string) => {
+    setOttViews((prev) => (prev[key] ? prev : { ...prev, [key]: viewerId }));
+  };
+  const recordOttView = async (messageId: string, lineIndex: number) => {
+    if (!user) return;
+    const key = `${messageId}:${lineIndex}`;
+    markOttViewedLocal(key, user.id);
+    const { error } = await supabase
+      .from("message_attachment_views")
+      .insert({ message_id: messageId, line_index: lineIndex, viewer_id: user.id });
+    // Ignore duplicate key conflict — already recorded
+    if (error && !/duplicate/i.test(error.message)) {
+      console.warn("[ott] failed to record view", error);
+    }
   };
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -479,6 +489,44 @@ function MessagesPage() {
     };
   }, [activeId]);
 
+  // Load + subscribe to one-time-view records for the current conversation.
+  // RLS narrows rows to: my own views, plus views on messages I sent.
+  useEffect(() => {
+    if (!user || !activeId || messages.length === 0) return;
+    const ids = messages.map((m) => m.id);
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("message_attachment_views")
+        .select("message_id, line_index, viewer_id")
+        .in("message_id", ids);
+      if (cancelled || !data) return;
+      setOttViews((prev) => {
+        const next = { ...prev };
+        for (const r of data as Array<{ message_id: string; line_index: number; viewer_id: string }>) {
+          next[`${r.message_id}:${r.line_index}`] = r.viewer_id;
+        }
+        return next;
+      });
+    })();
+    const channel = supabase
+      .channel(uniqueRealtimeChannelName(`ott-views:${activeId}`))
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "message_attachment_views" },
+        (payload) => {
+          const r = payload.new as { message_id: string; line_index: number; viewer_id: string };
+          if (!ids.includes(r.message_id)) return;
+          setOttViews((prev) => ({ ...prev, [`${r.message_id}:${r.line_index}`]: r.viewer_id }));
+        }
+      )
+      .subscribe();
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [user, activeId, messages]);
+
   // Fetch counterpart's E2EE public key when active conversation changes
   useEffect(() => {
     if (!user || !activeId) { setCounterpartPub(null); return; }
@@ -678,8 +726,9 @@ function MessagesPage() {
         const { url, error } = await uploadPrivateFileForSignedUrl("resources", user.id, file);
         if (error || !url) throw new Error(error || "Could not share file");
         const isImg = file.type.startsWith("image/");
-        const fileLine = oneTime && isImg ? `${OTT_PREFIX}${url}` : url;
+        const fileLine = oneTime ? `${OTT_PREFIX}${url}` : url;
         content = content ? `${content}\n${fileLine}` : fileLine;
+        void isImg;
         setUploadProgress(100);
       }
       // Encrypt when both keys are available; otherwise send plaintext so
@@ -1082,33 +1131,65 @@ function MessagesPage() {
                                     const line = ott ? stripOtt(rawLine) : rawLine;
                                     const img = isImageUrl(line);
                                     const link = /^https?:\/\//i.test(line);
-                                    if (img && ott) {
-                                      const key = `${m.id}:${i}`;
+                                    const key = `${m.id}:${i}`;
+                                    const viewedBy = ott ? ottViews[key] : undefined;
+                                    if (ott) {
+                                      // Sender's own view: always visible + shows viewed status.
                                       if (mine) {
+                                        const wasViewed = !!viewedBy && viewedBy !== user?.id;
+                                        if (img) {
+                                          return (
+                                            <button key={i} type="button" onClick={() => setLightbox(line)} className="relative my-1 block">
+                                              <img src={line} alt="one-time" className="max-h-52 rounded-lg object-cover" />
+                                              <span className="absolute right-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white flex items-center gap-1">
+                                                {wasViewed ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                                {wasViewed ? "Viewed" : "One-time"}
+                                              </span>
+                                            </button>
+                                          );
+                                        }
                                         return (
-                                          <button key={i} type="button" onClick={() => setLightbox(line)} className="relative my-1 block">
-                                            <img src={line} alt="one-time" className="max-h-52 rounded-lg object-cover" />
-                                            <span className="absolute right-1 top-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white flex items-center gap-1">
-                                              <Eye className="h-3 w-3" /> One-time
+                                          <div key={i} className="my-1 flex items-center gap-2 rounded-lg border border-primary-foreground/30 px-3 py-2 text-xs">
+                                            <FileText className="h-4 w-4 shrink-0 opacity-70" />
+                                            <span className="truncate flex-1 font-medium">{filenameFromUrl(line)}</span>
+                                            <span className="flex items-center gap-1 rounded bg-black/30 px-1.5 py-0.5 text-[10px] font-medium">
+                                              {wasViewed ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                              {wasViewed ? "Viewed" : "One-time"}
                                             </span>
-                                          </button>
-                                        );
-                                      }
-                                      if (viewedOtt[key]) {
-                                        return (
-                                          <div key={i} className={cn("my-1 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs", mine ? "border-primary-foreground/30 text-primary-foreground/80" : "border-border bg-background/50 text-muted-foreground")}>
-                                            <EyeOff className="h-3.5 w-3.5" /> Photo viewed
                                           </div>
                                         );
                                       }
+                                      // Recipient: already viewed → locked state.
+                                      if (viewedBy) {
+                                        return (
+                                          <div key={i} className={cn("my-1 flex items-center gap-2 rounded-lg border px-3 py-2 text-xs", "border-border bg-background/50 text-muted-foreground")}>
+                                            <EyeOff className="h-3.5 w-3.5" />
+                                            {img ? "Photo viewed" : "Document viewed"}
+                                          </div>
+                                        );
+                                      }
+                                      // Recipient: first open. Image → lightbox; document → open in new tab.
                                       return (
                                         <button
                                           key={i}
                                           type="button"
-                                          onClick={() => { setLightbox(line); markOttViewed(key); }}
-                                          className={cn("my-1 flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors", mine ? "border-primary-foreground/40 hover:bg-primary-foreground/10" : "border-primary/40 bg-primary/10 hover:bg-primary/20")}
+                                          onClick={async () => {
+                                            await recordOttView(m.id, i);
+                                            if (img) {
+                                              setLightbox(line);
+                                            } else if (typeof window !== "undefined") {
+                                              window.open(line, "_blank", "noopener,noreferrer");
+                                            }
+                                          }}
+                                          className={cn("my-1 flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors", "border-primary/40 bg-primary/10 hover:bg-primary/20")}
                                         >
-                                          <Eye className="h-3.5 w-3.5" /> Tap to view once
+                                          <Eye className="h-3.5 w-3.5" />
+                                          {img ? "Tap to view once" : (
+                                            <>
+                                              <span className="truncate flex-1 text-left">{filenameFromUrl(line)}</span>
+                                              <span className="shrink-0">Open once</span>
+                                            </>
+                                          )}
                                         </button>
                                       );
                                     }
@@ -1179,23 +1260,21 @@ function MessagesPage() {
                     <span className="text-muted-foreground">
                       {(attachment.size / 1024).toFixed(0)} KB
                     </span>
-                    {attachment.type.startsWith("image/") && (
-                      <button
-                        type="button"
-                        onClick={() => setOneTime((v) => !v)}
-                        disabled={uploading}
-                        className={cn(
-                          "flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
-                          oneTime
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-background hover:bg-accent text-muted-foreground"
-                        )}
-                        title="View once: recipient can only open it a single time"
-                      >
-                        {oneTime ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                        One-time
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setOneTime((v) => !v)}
+                      disabled={uploading}
+                      className={cn(
+                        "flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium transition-colors",
+                        oneTime
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-background hover:bg-accent text-muted-foreground"
+                      )}
+                      title="View once: recipient can only open it a single time"
+                    >
+                      {oneTime ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                      One-time
+                    </button>
                     <button
                       type="button"
                       onClick={() => { setAttachment(null); setOneTime(false); }}
