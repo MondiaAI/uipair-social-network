@@ -22,9 +22,12 @@ if (!existsSync(ASSETS_DIR)) {
 }
 
 const files = readdirSync(ASSETS_DIR);
-const entry = files.find((f) => /^main-[\w-]+\.js$/.test(f));
+const entry =
+  files.find((f) => /^main-[\w-]+\.js$/.test(f)) ||
+  files.find((f) => /^index-[\w-]+\.js$/.test(f)) ||
+  files.find((f) => /^(client|entry|app)-[\w-]+\.js$/.test(f));
 if (!entry) {
-  console.error("[spa-shell] Could not find a main-*.js entry in", ASSETS_DIR);
+  console.error("[spa-shell] Could not find a client entry chunk in", ASSETS_DIR);
   console.error("[spa-shell] Files seen:", files.slice(0, 20).join(", "));
   process.exit(1);
 }
