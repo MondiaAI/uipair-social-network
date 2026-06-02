@@ -1,35 +1,26 @@
-name: Deploy to Cloudflare Workers
+name: Deploy
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Deployment environment"
-        required: false
-        default: "production"
-        type: choice
-        options:
-          - production
-          - preview
 
 concurrency:
-  group: cf-deploy-${{ github.ref }}
+  group: deploy-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build-and-deploy:
-    name: Build & Deploy Worker
+    name: Build & Deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     permissions:
       contents: read
       deployments: write
 
     env:
-      # Vite build-time env (publishable values only — never secrets).
+      # Build-time (publishable) env, used by both client and worker bundles.
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
       VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
@@ -46,19 +37,40 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build (Cloudflare Workers bundle)
-        run: bun run build
+      # ----- Frontend (Vercel-compatible client bundle) -----
+      # Produces dist/client/ with a synthesized SPA index.html so any
+      # static host (Vercel, Netlify, S3, etc.) can serve it.
+      - name: Build React frontend (SPA client)
+        run: bun run build:client
 
-      - name: Deploy to Cloudflare Workers
+      - name: Upload client bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-bundle
+          path: dist/client
+          if-no-files-found: error
+          retention-days: 7
+
+      # ----- Server (Cloudflare Workers bundle) -----
+      # `vite build` re-runs and emits the Worker into dist/server/.
+      - name: Build Cloudflare Workers server bundle
+        run: bun run build:worker
+
+      - name: Upload worker bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-bundle
+          path: dist/server
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Deploy Worker to Cloudflare
+        if: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # The Cloudflare Vite plugin emits the worker into dist/server.
-          # `wrangler deploy` reads wrangler.jsonc at the repo root.
           command: deploy
-          # Push the runtime secrets the worker needs at request time.
-          # Add/remove names here to match what your server functions read.
           secrets: |
             SUPABASE_URL
             SUPABASE_PUBLISHABLE_KEY
@@ -73,3 +85,16 @@ jobs:
           LOVABLE_API_KEY: ${{ secrets.LOVABLE_API_KEY }}
           PAYMENTS_SANDBOX_WEBHOOK_SECRET: ${{ secrets.PAYMENTS_SANDBOX_WEBHOOK_SECRET }}
           STRIPE_SANDBOX_API_KEY: ${{ secrets.STRIPE_SANDBOX_API_KEY }}
+
+      # ----- Deploy SPA to Vercel (optional, only if VERCEL_TOKEN is set) -----
+      # Vercel can also auto-deploy directly from GitHub using vercel.json —
+      # this step is here for fully-CI-driven deploys.
+      - name: Deploy SPA to Vercel
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
+        run: |
+          npm i -g vercel@latest
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
