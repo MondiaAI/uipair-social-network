@@ -78,4 +78,32 @@ test.describe("SPA smoke", () => {
 
     expect(pageErrors, `page errors: ${pageErrors.map((e) => e.message).join("\n")}`).toHaveLength(0);
   });
+
+  // Authenticated path — only runs if the CI seed step (scripts/seed-e2e.mjs)
+  // populated these env vars. Locally, skip silently.
+  test("authenticated /feed renders seeded post", async ({ page }) => {
+    const email = process.env.E2E_TEST_EMAIL;
+    const password = process.env.E2E_TEST_PASSWORD;
+    test.skip(!email || !password, "E2E_TEST_EMAIL/PASSWORD not set; skipping authenticated smoke");
+
+    const pageErrors: Error[] = [];
+    page.on("pageerror", (err) => pageErrors.push(err));
+
+    await page.goto("/login", { waitUntil: "domcontentloaded" });
+    await page.locator("#email").fill(email!);
+    await page.locator("#password").fill(password!);
+    await page.getByRole("button", { name: /sign in|log in/i }).first().click();
+
+    // After sign-in the app routes to /feed (or /onboarding/tenant if the
+    // profile isn't ready). Seed script sets tenant+onboarding, so feed wins.
+    await page.waitForURL(/\/feed(\?|$|#)/, { timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: /knowledge feed/i })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // Seeded post is identifiable by its marker substring.
+    await expect(page.getByText(/\[e2e-smoke-seed\]/)).toBeVisible({ timeout: 15_000 });
+
+    expect(pageErrors, `page errors: ${pageErrors.map((e) => e.message).join("\n")}`).toHaveLength(0);
+  });
 });
