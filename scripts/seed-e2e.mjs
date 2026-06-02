@@ -69,7 +69,6 @@ async function ensureUser() {
   if (updErr) throw updErr;
   return USER_ID;
 }
-}
 
 async function ensureProfile(userId) {
   const dob = "2000-01-01"; // >= 18 years old; satisfies age trigger
