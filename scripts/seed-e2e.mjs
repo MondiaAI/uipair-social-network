@@ -35,32 +35,44 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
 });
 
 async function ensureUser() {
-  // Try to find by email via listUsers (small project; fine for smoke seed).
-  const { data: list, error: listErr } = await admin.auth.admin.listUsers({
-    page: 1,
-    perPage: 200,
-  });
-  if (listErr) throw listErr;
-  const existing = list.users.find((u) => u.email?.toLowerCase() === EMAIL.toLowerCase());
-
-  if (existing) {
-    // Reset password to known value so the test can sign in deterministically.
-    const { error } = await admin.auth.admin.updateUserById(existing.id, {
-      password: PASSWORD,
-      email_confirm: true,
-    });
-    if (error) throw error;
-    return existing.id;
-  }
-
-  const { data, error } = await admin.auth.admin.createUser({
+  // Try create first; if the user already exists, fall back to lookup + reset.
+  const created = await admin.auth.admin.createUser({
     email: EMAIL,
     password: PASSWORD,
     email_confirm: true,
     user_metadata: { full_name: "E2E Smoke", username: "e2e_smoke" },
   });
-  if (error) throw error;
-  return data.user.id;
+
+  if (!created.error) return created.data.user.id;
+
+  const msg = (created.error.message || "").toLowerCase();
+  const isDup =
+    created.error.status === 422 ||
+    msg.includes("already") ||
+    msg.includes("registered") ||
+    msg.includes("exists");
+  if (!isDup) throw created.error;
+
+  // User exists — find by email via the admin REST endpoint (supports ?email=).
+  const url = new URL(`${SUPABASE_URL}/auth/v1/admin/users`);
+  url.searchParams.set("email", EMAIL);
+  const resp = await fetch(url, {
+    headers: {
+      apikey: SERVICE_ROLE,
+      Authorization: `Bearer ${SERVICE_ROLE}`,
+    },
+  });
+  if (!resp.ok) throw new Error(`admin/users lookup failed: ${resp.status} ${await resp.text()}`);
+  const body = await resp.json();
+  const user = Array.isArray(body?.users) ? body.users[0] : body?.id ? body : null;
+  if (!user?.id) throw new Error(`could not locate existing user ${EMAIL}`);
+
+  const { error: updErr } = await admin.auth.admin.updateUserById(user.id, {
+    password: PASSWORD,
+    email_confirm: true,
+  });
+  if (updErr) throw updErr;
+  return user.id;
 }
 
 async function ensureProfile(userId) {
