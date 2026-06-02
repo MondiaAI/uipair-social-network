@@ -107,6 +107,21 @@ jobs:
             curl -sf http://localhost:5173 > /dev/null && break || sleep 1
           done
           curl -sf http://localhost:5173 > /dev/null || (echo "static server failed to start" && cat /tmp/serve.log && exit 1)
+      - name: Seed temporary E2E user + feed data
+        id: seed
+        if: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://nlebbmfxwztutflkxdff.supabase.co' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          SEED_JSON=$(bun scripts/seed-e2e.mjs)
+          echo "Seeded: $SEED_JSON"
+          # Mask the password and export creds for the next step.
+          E2E_EMAIL=$(echo "$SEED_JSON" | bun -e "process.stdin.on('data',d=>{try{console.log(JSON.parse(d).email)}catch{}})")
+          E2E_PASS=$(echo "$SEED_JSON" | bun -e "process.stdin.on('data',d=>{try{console.log(JSON.parse(d).password)}catch{}})")
+          echo "::add-mask::$E2E_PASS"
+          echo "E2E_TEST_EMAIL=$E2E_EMAIL" >> "$GITHUB_ENV"
+          echo "E2E_TEST_PASSWORD=$E2E_PASS" >> "$GITHUB_ENV"
       - name: Run smoke test
         env:
           BASE_URL: http://localhost:5173
