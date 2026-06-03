@@ -166,7 +166,7 @@ function CirclesPage() {
       if (!matchesDegree(c.subject, degree)) return false;
       if (mode === "campus") {
         if (c.scope !== "campus") return false;
-        if (userUniversity && c.university && c.university !== userUniversity) return false;
+        if (userUniversity && c.university && normalizeLocation(c.university) !== userUniversity) return false;
       } else {
         if (c.scope !== "global") return false;
       }
