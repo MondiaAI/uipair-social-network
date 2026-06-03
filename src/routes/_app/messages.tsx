@@ -260,6 +260,7 @@ function MessagesPage() {
           return r.ok ? r.plaintext : "";
         })();
     const oneLine = raw.replace(/\s+/g, " ").trim();
+    if (!oneLine) return "Say hi 👋";
     return oneLine.length > 60 ? oneLine.slice(0, 60).trimEnd() + "…" : oneLine;
   };
 
