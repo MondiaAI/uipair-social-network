@@ -10,7 +10,7 @@
 // server-only env, requireSupabaseAuth on public loaders, etc.) will fall
 // back to client-side fetching — see the project's TanStack Start docs.
 
-import { readdirSync, writeFileSync, existsSync } from "node:fs";
+import { readdirSync, writeFileSync, existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const OUT_DIR = "dist/client";
@@ -22,14 +22,26 @@ if (!existsSync(ASSETS_DIR)) {
 }
 
 const files = readdirSync(ASSETS_DIR);
-const entry =
-  files.find((f) => /^main-[\w-]+\.js$/.test(f)) ||
-  files.find((f) => /^index-[\w-]+\.js$/.test(f)) ||
-  files.find((f) => /^(client|entry|app)-[\w-]+\.js$/.test(f)) ||
-  files.find((f) => /^(__root|root|start|bundle)-[\w-]+\.js$/.test(f)) ||
-  files.find((f) => f.endsWith(".js") && !f.includes("chunk") && !f.includes("vendor"));
+const jsFiles = files.filter((f) => f.endsWith(".js"));
+
+// The real client entry is the chunk that bootstraps React (calls hydrateRoot/
+// createRoot) — NOT just any file matching `index-*.js`, because TanStack
+// Router's code-splitter emits many `index-*.js` chunks (one per route file
+// named index.tsx). Detect by content: scan for the bootstrap markers, and
+// fall back to the largest JS chunk if none match.
+const ENTRY_MARKERS = /hydrateRoot|createRoot\(|__vite__mapDeps/;
+const entryCandidates = jsFiles
+  .map((f) => {
+    const content = readFileSync(join(ASSETS_DIR, f), "utf8");
+    return { f, size: statSync(join(ASSETS_DIR, f)).size, isEntry: ENTRY_MARKERS.test(content) };
+  })
+  .filter((x) => x.isEntry)
+  .sort((a, b) => b.size - a.size);
+
+const entry = entryCandidates[0]?.f;
 if (!entry) {
   console.error("[spa-shell] Could not find a client entry chunk in", ASSETS_DIR);
+  console.error("[spa-shell] No JS file contained hydrateRoot/createRoot/__vite__mapDeps.");
   console.error("[spa-shell] Files seen:", files.slice(0, 20).join(", "));
   process.exit(1);
 }
