@@ -37,8 +37,9 @@ function FeedPage() {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    if (mode === "campus" && profile?.university) {
-      q = q.eq("university", profile.university);
+    const myUni = normalizeLocation(profile?.university);
+    if (mode === "campus" && myUni) {
+      q = q.eq("university", myUni);
     }
     if (filter !== "all") {
       q = q.eq("post_type", filter);
