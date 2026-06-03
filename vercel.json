@@ -3,9 +3,6 @@
   "buildCommand": "npm run build:client",
   "outputDirectory": "dist/client",
   "framework": null,
-  "env": {
-    "NODE_OPTIONS": "--no-deprecation"
-  },
   "rewrites": [
     { "source": "/((?!assets/|.*\\.[a-zA-Z0-9]+$).*)", "destination": "/index.html" }
   ]
