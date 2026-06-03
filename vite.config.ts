@@ -17,7 +17,11 @@ export default defineConfig({
     ? {
         nitro: false,
         tanstackStart: {
-          spa: { enabled: true, maskPath: "/" },
+          spa: {
+            enabled: true,
+            maskPath: "/",
+            prerender: { outputPath: "/index.html" },
+          },
         },
       }
     : {}),
