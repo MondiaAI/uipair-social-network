@@ -23,12 +23,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 );
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Profiles viewable by authenticated users"
-  ON public.profiles FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Users can insert own profile"
-  ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update own profile"
-  ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Profiles viewable by authenticated users" ON public.profiles;
+CREATE POLICY "Profiles viewable by authenticated users" ON public.profiles FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
 
 -- updated_at trigger
 CREATE OR REPLACE FUNCTION public.set_updated_at()
@@ -75,14 +75,14 @@ CREATE INDEX posts_created_idx ON public.posts (created_at DESC);
 CREATE INDEX posts_university_idx ON public.posts (university);
 ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Posts viewable by authenticated"
-  ON public.posts FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Users can create their own posts"
-  ON public.posts FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update their own posts"
-  ON public.posts FOR UPDATE TO authenticated USING (auth.uid() = user_id);
-CREATE POLICY "Users can delete their own posts"
-  ON public.posts FOR DELETE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Posts viewable by authenticated" ON public.posts;
+CREATE POLICY "Posts viewable by authenticated" ON public.posts FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Users can create their own posts" ON public.posts;
+CREATE POLICY "Users can create their own posts" ON public.posts FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update their own posts" ON public.posts;
+CREATE POLICY "Users can update their own posts" ON public.posts FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete their own posts" ON public.posts;
+CREATE POLICY "Users can delete their own posts" ON public.posts FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- REACTIONS
 CREATE TABLE IF NOT EXISTS public.reactions (
@@ -95,12 +95,12 @@ CREATE TABLE IF NOT EXISTS public.reactions (
 );
 ALTER TABLE public.reactions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Reactions viewable by authenticated"
-  ON public.reactions FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Users add own reactions"
-  ON public.reactions FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users delete own reactions"
-  ON public.reactions FOR DELETE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Reactions viewable by authenticated" ON public.reactions;
+CREATE POLICY "Reactions viewable by authenticated" ON public.reactions FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Users add own reactions" ON public.reactions;
+CREATE POLICY "Users add own reactions" ON public.reactions FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users delete own reactions" ON public.reactions;
+CREATE POLICY "Users delete own reactions" ON public.reactions FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- COMMENTS
 CREATE TABLE IF NOT EXISTS public.comments (
@@ -113,14 +113,14 @@ CREATE TABLE IF NOT EXISTS public.comments (
 CREATE INDEX comments_post_idx ON public.comments (post_id, created_at);
 ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Comments viewable by authenticated"
-  ON public.comments FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Users add own comments"
-  ON public.comments FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users update own comments"
-  ON public.comments FOR UPDATE TO authenticated USING (auth.uid() = user_id);
-CREATE POLICY "Users delete own comments"
-  ON public.comments FOR DELETE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Comments viewable by authenticated" ON public.comments;
+CREATE POLICY "Comments viewable by authenticated" ON public.comments FOR SELECT TO authenticated USING (true);
+DROP POLICY IF EXISTS "Users add own comments" ON public.comments;
+CREATE POLICY "Users add own comments" ON public.comments FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users update own comments" ON public.comments;
+CREATE POLICY "Users update own comments" ON public.comments FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users delete own comments" ON public.comments;
+CREATE POLICY "Users delete own comments" ON public.comments FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- NOTIFICATIONS
 CREATE TABLE IF NOT EXISTS public.notifications (
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
 CREATE INDEX notifications_user_idx ON public.notifications (user_id, created_at DESC);
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users view own notifications"
-  ON public.notifications FOR SELECT TO authenticated USING (auth.uid() = user_id);
-CREATE POLICY "Users update own notifications"
-  ON public.notifications FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users view own notifications" ON public.notifications;
+CREATE POLICY "Users view own notifications" ON public.notifications FOR SELECT TO authenticated USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users update own notifications" ON public.notifications;
+CREATE POLICY "Users update own notifications" ON public.notifications FOR UPDATE TO authenticated USING (auth.uid() = user_id);
