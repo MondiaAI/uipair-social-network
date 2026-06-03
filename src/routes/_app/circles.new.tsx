@@ -14,6 +14,7 @@ import { addCustomSubject } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeLocation } from "@/lib/normalize-location";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 
