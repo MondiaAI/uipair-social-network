@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Bell } from "lucide-react";
+import { Bell, UserPlus } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useFeedMode } from "@/lib/feed-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
