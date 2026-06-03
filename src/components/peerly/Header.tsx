@@ -26,6 +26,7 @@ export function Header() {
   const { mode, setMode } = useFeedMode();
   const navigate = useNavigate();
   const { unread } = useNotifications();
+  const friendReqCount = useFriendRequestCount();
   const [notifOpen, setNotifOpen] = useState(false);
   const [proOpen, setProOpen] = useState(false);
   const native = isNativeApp();
