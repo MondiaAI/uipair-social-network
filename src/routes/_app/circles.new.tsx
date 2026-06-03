@@ -14,6 +14,7 @@ import { addCustomSubject } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeLocation } from "@/lib/normalize-location";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
 
@@ -72,7 +73,7 @@ setSubmitting(true);
         description: description.trim() || null,
         leader_id: user.id,
         scope: campusOnly ? ("campus" as const) : ("global" as const),
-        university: campusOnly ? profile?.university ?? null : null,
+        university: campusOnly ? normalizeLocation(profile?.university) : null,
         is_premium: effectivePremium,
         price_monthly: effectivePremium ? Number(price) : null,
         meeting_schedule: schedule.trim() || null,
