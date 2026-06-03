@@ -1,4 +1,4 @@
-CREATE TABLE public.conversation_mutes (
+CREATE TABLE IF NOT EXISTS public.conversation_mutes (
   user_id uuid NOT NULL,
   conversation_id uuid NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),

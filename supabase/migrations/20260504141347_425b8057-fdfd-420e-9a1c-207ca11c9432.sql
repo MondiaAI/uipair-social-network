@@ -1,7 +1,7 @@
 -- ============ Friend requests ============
 CREATE TYPE public.friend_request_status AS ENUM ('pending','accepted','declined','canceled');
 
-CREATE TABLE public.friend_requests (
+CREATE TABLE IF NOT EXISTS public.friend_requests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   sender_id uuid NOT NULL,
   recipient_id uuid NOT NULL,
@@ -52,7 +52,7 @@ AS $$
 $$;
 
 -- ============ Conversations & messages (1:1) ============
-CREATE TABLE public.conversations (
+CREATE TABLE IF NOT EXISTS public.conversations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_a uuid NOT NULL,
   user_b uuid NOT NULL,
@@ -80,7 +80,7 @@ CREATE POLICY "Friends create conversations" ON public.conversations
     AND public.are_friends(user_a, user_b)
   );
 
-CREATE TABLE public.messages (
+CREATE TABLE IF NOT EXISTS public.messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   conversation_id uuid NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
   sender_id uuid NOT NULL,

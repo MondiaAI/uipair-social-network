@@ -1,5 +1,5 @@
 
-CREATE TABLE public.message_attachment_views (
+CREATE TABLE IF NOT EXISTS public.message_attachment_views (
   message_id uuid NOT NULL REFERENCES public.messages(id) ON DELETE CASCADE,
   line_index integer NOT NULL,
   viewer_id uuid NOT NULL,

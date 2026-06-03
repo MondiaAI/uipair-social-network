@@ -6,7 +6,7 @@ BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
 CREATE TYPE public.workspace_type AS ENUM ('document', 'board', 'mindmap', 'thread');
 CREATE TYPE public.workspace_status AS ENUM ('active', 'draft', 'complete');
 
-CREATE TABLE public.project_workspaces (
+CREATE TABLE IF NOT EXISTS public.project_workspaces (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id uuid NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
   type public.workspace_type NOT NULL DEFAULT 'document',

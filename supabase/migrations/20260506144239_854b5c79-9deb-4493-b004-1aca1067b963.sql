@@ -1,5 +1,5 @@
 -- ============== CIRCLE INVITES ==============
-CREATE TABLE public.circle_invites (
+CREATE TABLE IF NOT EXISTS public.circle_invites (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   circle_id uuid NOT NULL,
   created_by uuid NOT NULL,
@@ -72,7 +72,7 @@ END;
 $$;
 
 -- ============== CIRCLE ANNOUNCEMENTS ==============
-CREATE TABLE public.circle_announcements (
+CREATE TABLE IF NOT EXISTS public.circle_announcements (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   circle_id uuid NOT NULL,
   user_id uuid NOT NULL,

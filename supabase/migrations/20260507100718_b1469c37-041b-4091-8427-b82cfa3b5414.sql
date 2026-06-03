@@ -1,7 +1,7 @@
 
 CREATE TYPE public.project_join_request_status AS ENUM ('pending','approved','declined');
 
-CREATE TABLE public.project_join_requests (
+CREATE TABLE IF NOT EXISTS public.project_join_requests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id uuid NOT NULL,
   user_id uuid NOT NULL,

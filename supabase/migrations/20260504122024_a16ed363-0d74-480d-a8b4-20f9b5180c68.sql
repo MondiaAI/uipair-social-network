@@ -5,7 +5,7 @@ CREATE TYPE public.gig_order_status AS ENUM ('pending','in_progress','delivered'
 CREATE TYPE public.bounty_status AS ENUM ('open','claimed','completed','cancelled');
 
 -- Gigs
-CREATE TABLE public.gigs (
+CREATE TABLE IF NOT EXISTS public.gigs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   seller_id uuid NOT NULL,
   title text NOT NULL,
@@ -31,7 +31,7 @@ CREATE POLICY "Sellers delete own gigs" ON public.gigs FOR DELETE TO authenticat
 CREATE TRIGGER set_gigs_updated_at BEFORE UPDATE ON public.gigs FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- Gig orders
-CREATE TABLE public.gig_orders (
+CREATE TABLE IF NOT EXISTS public.gig_orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   gig_id uuid NOT NULL,
   buyer_id uuid NOT NULL,
@@ -50,7 +50,7 @@ CREATE POLICY "Order parties update" ON public.gig_orders FOR UPDATE TO authenti
 CREATE TRIGGER set_gig_orders_updated_at BEFORE UPDATE ON public.gig_orders FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- Bounties
-CREATE TABLE public.bounties (
+CREATE TABLE IF NOT EXISTS public.bounties (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   poster_id uuid NOT NULL,
   claimer_id uuid,
@@ -72,7 +72,7 @@ CREATE POLICY "Poster delete" ON public.bounties FOR DELETE TO authenticated USI
 CREATE TRIGGER set_bounties_updated_at BEFORE UPDATE ON public.bounties FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- Resources
-CREATE TABLE public.resources (
+CREATE TABLE IF NOT EXISTS public.resources (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   uploader_id uuid NOT NULL,
   title text NOT NULL,
@@ -95,7 +95,7 @@ CREATE POLICY "Uploader delete" ON public.resources FOR DELETE TO authenticated 
 CREATE TRIGGER set_resources_updated_at BEFORE UPDATE ON public.resources FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- Resource purchases
-CREATE TABLE public.resource_purchases (
+CREATE TABLE IF NOT EXISTS public.resource_purchases (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   resource_id uuid NOT NULL,
   buyer_id uuid NOT NULL,
