@@ -1,7 +1,13 @@
 
 -- ENUMS
-CREATE TYPE public.post_type AS ENUM ('research','partner','brainstorm','question','resource');
-CREATE TYPE public.reaction_type AS ENUM ('lightbulb','fire','brain','bookmark','agree');
+DO $$ BEGIN
+  CREATE TYPE public.post_type AS ENUM ('research','partner','brainstorm','question','resource');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;;
+DO $$ BEGIN
+  CREATE TYPE public.reaction_type AS ENUM ('lightbulb','fire','brain','bookmark','agree');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;;
 
 -- PROFILES
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -35,6 +41,7 @@ CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
 
+DROP TRIGGER IF EXISTS profiles_updated_at ON public.profiles;
 CREATE TRIGGER profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
@@ -54,6 +61,7 @@ BEGIN
   RETURN NEW;
 END; $$;
 
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
@@ -71,8 +79,8 @@ CREATE TABLE IF NOT EXISTS public.posts (
   university TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX posts_created_idx ON public.posts (created_at DESC);
-CREATE INDEX posts_university_idx ON public.posts (university);
+CREATE INDEX IF NOT EXISTS posts_created_idx ON public.posts (created_at DESC);
+CREATE INDEX IF NOT EXISTS posts_university_idx ON public.posts (university);
 ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Posts viewable by authenticated" ON public.posts;
@@ -110,7 +118,7 @@ CREATE TABLE IF NOT EXISTS public.comments (
   content TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX comments_post_idx ON public.comments (post_id, created_at);
+CREATE INDEX IF NOT EXISTS comments_post_idx ON public.comments (post_id, created_at);
 ALTER TABLE public.comments ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Comments viewable by authenticated" ON public.comments;
@@ -132,7 +140,7 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   related_id UUID,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX notifications_user_idx ON public.notifications (user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS notifications_user_idx ON public.notifications (user_id, created_at DESC);
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users view own notifications" ON public.notifications;
