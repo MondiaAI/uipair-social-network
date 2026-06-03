@@ -26,12 +26,6 @@ export const Route = createFileRoute("/signup")({
   component: SignupPage,
 });
 
-const UNIVERSITIES = [
-  "MIT", "Stanford University", "Harvard University", "University of Cape Town",
-  "University of Lagos", "National University of Singapore", "University of Oxford",
-  "ETH Zurich", "University of Toronto", "Tsinghua University", "Other",
-];
-const COUNTRIES = ["United States", "United Kingdom", "South Africa", "Nigeria", "Singapore", "Canada", "Germany", "India", "Brazil", "Other"];
 const SKILL_OPTIONS = ["Python", "JavaScript", "Research", "Writing", "Design", "Data Analysis", "Public Speaking", "Statistics", "Machine Learning", "UI/UX", "Marketing", "Translation"];
 
 function SignupPage() {
