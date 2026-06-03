@@ -274,9 +274,9 @@ function ProfilePage() {
               <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })} className="flex-1 min-w-[150px]">
                 Earn as Ambassador
               </Button>
+              <SettingsButton className="flex-1 min-w-[110px]" />
             </>
           )}
-          <SettingsButton className="flex-1 min-w-[110px]" />
         </div>
 
         <div className="mt-3">
