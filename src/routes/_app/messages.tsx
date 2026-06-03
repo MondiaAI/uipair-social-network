@@ -257,7 +257,7 @@ function MessagesPage() {
       ? content
       : (() => {
           const r = decryptMessage(content, keypair, null);
-          return r.ok ? r.plaintext : "🔒 Encrypted message";
+          return r.ok ? r.plaintext : "";
         })();
     const oneLine = raw.replace(/\s+/g, " ").trim();
     return oneLine.length > 60 ? oneLine.slice(0, 60).trimEnd() + "…" : oneLine;
