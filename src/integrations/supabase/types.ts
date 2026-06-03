@@ -2212,6 +2212,7 @@ export type Database = {
         Returns: boolean
       }
       join_public_project: { Args: { _project_id: string }; Returns: string }
+      normalize_location: { Args: { input: string }; Returns: string }
       redeem_circle_invite: { Args: { _token: string }; Returns: string }
       request_project_join: {
         Args: { _project_id: string }
