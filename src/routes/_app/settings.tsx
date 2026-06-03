@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { UniversitySelector } from "@/components/peerly/UniversitySelector";
+import { normalizeLocation } from "@/lib/normalize-location";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { broadcastProfileUpdate } from "@/lib/profile-broadcast";
@@ -45,8 +46,8 @@ function SettingsPage() {
     };
     const next = {
       university_id: universityId,
-      university: universityName,
-      country: country,
+      university: normalizeLocation(universityName),
+      country: normalizeLocation(country),
     };
     // Optimistic toast — UI fields already reflect `next` from local state.
     const successToastId = toast.success("Settings saved");
