@@ -83,8 +83,9 @@ export function NewMembersRow({ title = "New on UiPair", limit = 12, scoped = tr
         .select("id, full_name, username, avatar_url, university, field_of_study, is_verified, is_pro, created_at")
         .order("created_at", { ascending: false })
         .limit(limit + 1);
-      if (scoped && mode === "campus" && profile?.university) {
-        q = q.eq("university", profile.university);
+      const myUni = normalizeLocation(profile?.university);
+      if (scoped && mode === "campus" && myUni) {
+        q = q.eq("university", myUni);
       }
       const { data } = await q;
       const filtered = (data ?? []).filter((m) => m.id !== user?.id).slice(0, limit);
