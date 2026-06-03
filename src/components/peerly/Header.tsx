@@ -18,6 +18,7 @@ import { ProUpgradeModal } from "./ProUpgradeModal";
 import { PeerlyLogo } from "./PeerlyLogo";
 import { SettingsRouteLink } from "./SettingsLink";
 import { useNotifications } from "@/lib/notifications-context";
+import { useFriendRequestCount } from "@/hooks/use-friend-request-count";
 import { isNativeApp } from "@/lib/platform";
 
 export function Header() {
