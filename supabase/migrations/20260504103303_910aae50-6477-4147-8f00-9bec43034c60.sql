@@ -4,7 +4,7 @@ CREATE TYPE public.post_type AS ENUM ('research','partner','brainstorm','questio
 CREATE TYPE public.reaction_type AS ENUM ('lightbulb','fire','brain','bookmark','agree');
 
 -- PROFILES
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT,
   username TEXT UNIQUE,
@@ -59,7 +59,7 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- POSTS
-CREATE TABLE public.posts (
+CREATE TABLE IF NOT EXISTS public.posts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
@@ -85,7 +85,7 @@ CREATE POLICY "Users can delete their own posts"
   ON public.posts FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- REACTIONS
-CREATE TABLE public.reactions (
+CREATE TABLE IF NOT EXISTS public.reactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -103,7 +103,7 @@ CREATE POLICY "Users delete own reactions"
   ON public.reactions FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- COMMENTS
-CREATE TABLE public.comments (
+CREATE TABLE IF NOT EXISTS public.comments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   post_id UUID NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -123,7 +123,7 @@ CREATE POLICY "Users delete own comments"
   ON public.comments FOR DELETE TO authenticated USING (auth.uid() = user_id);
 
 -- NOTIFICATIONS
-CREATE TABLE public.notifications (
+CREATE TABLE IF NOT EXISTS public.notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
