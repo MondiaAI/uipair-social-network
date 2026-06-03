@@ -593,7 +593,6 @@ function UniversityField({
     <div className="space-y-1.5">
       <div className="flex gap-2">
         <Input
-          list="university-options"
           value={draft}
           onChange={(e) => onDraftChange(e.target.value)}
           onBlur={() => {
