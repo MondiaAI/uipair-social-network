@@ -347,10 +347,7 @@ function SignupPage() {
               </div>
               <div ref={countryRef}>
                 <Label>Country</Label>
-                <Select value={country} onValueChange={setCountry}>
-                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                  <SelectContent>{COUNTRIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
+                <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. Nigeria" />
               </div>
               <div ref={fieldRef}><Label>Field of study</Label><Input value={field} onChange={(e) => setField(e.target.value)} placeholder="e.g. Computer Science" /></div>
               <div>
