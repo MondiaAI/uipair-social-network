@@ -21,6 +21,8 @@ import { PasswordInput } from "@/components/peerly/PasswordInput";
 import { PasswordStrengthMeter } from "@/components/peerly/PasswordStrengthMeter";
 import { evaluatePassword } from "@/lib/password-strength";
 import { cn } from "@/lib/utils";
+import { useLocationSuggestions } from "@/hooks/use-location-suggestions";
+import { normalizeLocation } from "@/lib/normalize-location";
 
 export const Route = createFileRoute("/signup")({
   component: SignupPage,
@@ -230,7 +232,9 @@ function SignupPage() {
     let avatar_url: string | null = null;
     if (avatarFile) avatar_url = await uploadToBucket("avatars", user.id, avatarFile);
     const update: any = {
-      university, country, field_of_study: field, year_of_study: year, bio,
+      university: normalizeLocation(university),
+      country: normalizeLocation(country),
+      field_of_study: field, year_of_study: year, bio,
       skills, interests, onboarding_completed: true,
       terms_accepted_at: new Date().toISOString(),
       date_of_birth: dob!.toISOString().slice(0, 10),
@@ -347,7 +351,7 @@ function SignupPage() {
               </div>
               <div ref={countryRef}>
                 <Label>Country</Label>
-                <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. Nigeria" />
+                <CountryField value={country} onChange={setCountry} />
               </div>
               <div ref={fieldRef}><Label>Field of study</Label><Input value={field} onChange={(e) => setField(e.target.value)} placeholder="e.g. Computer Science" /></div>
               <div>
@@ -551,16 +555,19 @@ function UniversityField({
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { universities } = useLocationSuggestions();
+  const listId = `uni-suggestions-${userId ?? "anon"}`;
 
   useEffect(() => { setDraft(value); }, [value]);
 
   const persist = async (next: string) => {
-    onChange(next);
+    const norm = normalizeLocation(next) ?? "";
+    onChange(norm);
     if (!userId) return;
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ university: next || null })
+      .update({ university: norm || null })
       .eq("id", userId);
     setSaving(false);
     if (error) {
@@ -574,7 +581,7 @@ function UniversityField({
     setDraft(v);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      persist(v.trim());
+      persist(v);
     }, 700);
   };
 
@@ -593,13 +600,16 @@ function UniversityField({
     <div className="space-y-1.5">
       <div className="flex gap-2">
         <Input
+          list={listId}
           value={draft}
           onChange={(e) => onDraftChange(e.target.value)}
           onBlur={() => {
             if (debounceRef.current) clearTimeout(debounceRef.current);
-            if (draft.trim() !== value) persist(draft.trim());
+            const norm = normalizeLocation(draft) ?? "";
+            if (norm !== value) persist(norm);
+            else if (norm !== draft) setDraft(norm);
           }}
-          placeholder="Type your university name"
+          placeholder="Start typing — pick a match or add a new one"
           autoFocus
         />
         {value && (
@@ -613,9 +623,34 @@ function UniversityField({
           </Button>
         )}
       </div>
+      <datalist id={listId}>
+        {universities.map((u) => <option key={u} value={u} />)}
+      </datalist>
       <p className="text-xs text-muted-foreground">
-        {saving ? "Saving…" : savedAt ? "✓ Saved" : "Autosaves as you type"}
+        {saving ? "Saving…" : savedAt ? "✓ Saved · matches existing entries when possible" : "Autosaves as you type · matches existing entries when possible"}
       </p>
     </div>
+  );
+}
+
+function CountryField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { countries } = useLocationSuggestions();
+  const listId = useId();
+  return (
+    <>
+      <Input
+        list={listId}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={(e) => {
+          const norm = normalizeLocation(e.target.value) ?? "";
+          if (norm !== e.target.value) onChange(norm);
+        }}
+        placeholder="Start typing — e.g. Nigeria"
+      />
+      <datalist id={listId}>
+        {countries.map((c) => <option key={c} value={c} />)}
+      </datalist>
+    </>
   );
 }
