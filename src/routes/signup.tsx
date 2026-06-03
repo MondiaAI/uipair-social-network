@@ -26,12 +26,6 @@ export const Route = createFileRoute("/signup")({
   component: SignupPage,
 });
 
-const UNIVERSITIES = [
-  "MIT", "Stanford University", "Harvard University", "University of Cape Town",
-  "University of Lagos", "National University of Singapore", "University of Oxford",
-  "ETH Zurich", "University of Toronto", "Tsinghua University", "Other",
-];
-const COUNTRIES = ["United States", "United Kingdom", "South Africa", "Nigeria", "Singapore", "Canada", "Germany", "India", "Brazil", "Other"];
 const SKILL_OPTIONS = ["Python", "JavaScript", "Research", "Writing", "Design", "Data Analysis", "Public Speaking", "Statistics", "Machine Learning", "UI/UX", "Marketing", "Translation"];
 
 function SignupPage() {
@@ -353,10 +347,7 @@ function SignupPage() {
               </div>
               <div ref={countryRef}>
                 <Label>Country</Label>
-                <Select value={country} onValueChange={setCountry}>
-                  <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-                  <SelectContent>{COUNTRIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
+                <Input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="e.g. Nigeria" />
               </div>
               <div ref={fieldRef}><Label>Field of study</Label><Input value={field} onChange={(e) => setField(e.target.value)} placeholder="e.g. Computer Science" /></div>
               <div>
@@ -602,7 +593,6 @@ function UniversityField({
     <div className="space-y-1.5">
       <div className="flex gap-2">
         <Input
-          list="university-options"
           value={draft}
           onChange={(e) => onDraftChange(e.target.value)}
           onBlur={() => {
@@ -623,11 +613,6 @@ function UniversityField({
           </Button>
         )}
       </div>
-      <datalist id="university-options">
-        {UNIVERSITIES.filter((u) => u !== "Other").map((u) => (
-          <option key={u} value={u} />
-        ))}
-      </datalist>
       <p className="text-xs text-muted-foreground">
         {saving ? "Saving…" : savedAt ? "✓ Saved" : "Autosaves as you type"}
       </p>
