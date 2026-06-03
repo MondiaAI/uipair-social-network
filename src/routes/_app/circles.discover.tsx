@@ -45,7 +45,7 @@ function DiscoverCirclesPage() {
   const [scope, setScope] = useState<Scope>("all");
   const [campusOnlyMine, setCampusOnlyMine] = useState(true);
 
-  const userUniversity = profile?.university ?? null;
+  const userUniversity = normalizeLocation(profile?.university);
 
   const load = async () => {
     setLoading(true);
