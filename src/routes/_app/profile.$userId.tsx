@@ -248,9 +248,9 @@ function ProfilePage() {
                   <Pencil className="h-4 w-4" /> Edit profile
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })}>Earn as Ambassador</Button>
+                <SettingsButton />
               </>
             )}
-            <SettingsButton />
           </div>
         </div>
 
@@ -274,9 +274,9 @@ function ProfilePage() {
               <Button size="sm" variant="outline" onClick={() => navigate({ to: "/ambassador" })} className="flex-1 min-w-[150px]">
                 Earn as Ambassador
               </Button>
+              <SettingsButton className="flex-1 min-w-[110px]" />
             </>
           )}
-          <SettingsButton className="flex-1 min-w-[110px]" />
         </div>
 
         <div className="mt-3">
