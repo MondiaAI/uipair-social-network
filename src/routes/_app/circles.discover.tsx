@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Search, Sparkles, Users, GraduationCap, Globe, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeLocation } from "@/lib/normalize-location";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +45,7 @@ function DiscoverCirclesPage() {
   const [scope, setScope] = useState<Scope>("all");
   const [campusOnlyMine, setCampusOnlyMine] = useState(true);
 
-  const userUniversity = profile?.university ?? null;
+  const userUniversity = normalizeLocation(profile?.university);
 
   const load = async () => {
     setLoading(true);
@@ -143,7 +144,7 @@ function DiscoverCirclesPage() {
       if (tier === "free" && c.is_premium) return false;
       if (tier === "premium" && !c.is_premium) return false;
       if (scope !== "all" && c.scope !== scope) return false;
-      if (scope === "campus" && campusOnlyMine && userUniversity && c.university && c.university !== userUniversity) return false;
+      if (scope === "campus" && campusOnlyMine && userUniversity && c.university && normalizeLocation(c.university) !== userUniversity) return false;
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q) || c.subject.toLowerCase().includes(q);
     });

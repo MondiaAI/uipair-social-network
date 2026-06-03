@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, GraduationCap, Globe, Compass } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeLocation } from "@/lib/normalize-location";
 import { useAuth } from "@/lib/auth-context";
 import { useFeedMode } from "@/lib/feed-context";
 import { Button } from "@/components/ui/button";
@@ -52,7 +53,7 @@ function CirclesPage() {
   };
   
 
-  const userUniversity = profile?.university ?? null;
+  const userUniversity = normalizeLocation(profile?.university);
 
   const load = async () => {
     setLoading(true);
@@ -165,7 +166,7 @@ function CirclesPage() {
       if (!matchesDegree(c.subject, degree)) return false;
       if (mode === "campus") {
         if (c.scope !== "campus") return false;
-        if (userUniversity && c.university && c.university !== userUniversity) return false;
+        if (userUniversity && c.university && normalizeLocation(c.university) !== userUniversity) return false;
       } else {
         if (c.scope !== "global") return false;
       }

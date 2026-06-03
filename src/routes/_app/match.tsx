@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { normalizeLocation } from "@/lib/normalize-location";
 import { useAuth } from "@/lib/auth-context";
 import { useFeedMode } from "@/lib/feed-context";
 import { SUBJECTS } from "@/lib/subjects";
@@ -67,7 +68,7 @@ function computeScore(me: ProfileRow, other: ProfileRow): number {
   const yearScore = me.year_of_study && me.year_of_study === other.year_of_study ? 15 : 0;
   const sameUniversity =
     (me.university_id && other.university_id && me.university_id === other.university_id) ||
-    (!!me.university && me.university === other.university);
+    (!!me.university && !!other.university && normalizeLocation(me.university) === normalizeLocation(other.university));
   const campusScore = sameUniversity ? 15 : 0;
 
   return Math.round(subjectScore + availScore + yearScore + campusScore);
@@ -152,9 +153,9 @@ function MatchPage() {
       .filter((p) => {
         if (mode === "campus") {
           const myUid = (profile as any)?.university_id ?? null;
-          const myUni = profile?.university ?? null;
+          const myUni = normalizeLocation(profile?.university);
           const sameById = myUid && p.university_id && myUid === p.university_id;
-          const sameByName = myUni && p.university && myUni === p.university;
+          const sameByName = myUni && p.university && normalizeLocation(p.university) === myUni;
           if (!sameById && !sameByName) return false;
         }
         if (q) {
