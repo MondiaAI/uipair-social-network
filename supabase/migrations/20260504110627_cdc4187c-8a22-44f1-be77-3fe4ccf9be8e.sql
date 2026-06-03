@@ -3,7 +3,7 @@ CREATE TYPE public.circle_scope AS ENUM ('campus', 'global');
 CREATE TYPE public.circle_member_role AS ENUM ('leader', 'moderator', 'member');
 
 -- Circles table
-CREATE TABLE public.circles (
+CREATE TABLE IF NOT EXISTS public.circles (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   subject TEXT NOT NULL,
@@ -46,7 +46,7 @@ CREATE TRIGGER trg_circles_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- Circle members
-CREATE TABLE public.circle_members (
+CREATE TABLE IF NOT EXISTS public.circle_members (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   circle_id UUID NOT NULL REFERENCES public.circles(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
@@ -83,7 +83,7 @@ AS $$
 $$;
 
 -- Circle posts (discussion)
-CREATE TABLE public.circle_posts (
+CREATE TABLE IF NOT EXISTS public.circle_posts (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   circle_id UUID NOT NULL REFERENCES public.circles(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
@@ -107,7 +107,7 @@ CREATE POLICY "Users can delete own circle posts"
   USING (auth.uid() = user_id);
 
 -- Circle resources
-CREATE TABLE public.circle_resources (
+CREATE TABLE IF NOT EXISTS public.circle_resources (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   circle_id UUID NOT NULL REFERENCES public.circles(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
@@ -133,7 +133,7 @@ CREATE POLICY "Users can delete own resources"
   USING (auth.uid() = user_id);
 
 -- Circle sessions (scheduled meetings)
-CREATE TABLE public.circle_sessions (
+CREATE TABLE IF NOT EXISTS public.circle_sessions (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   circle_id UUID NOT NULL REFERENCES public.circles(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,

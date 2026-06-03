@@ -6,7 +6,7 @@ CREATE TYPE public.project_application_status AS ENUM ('pending', 'accepted', 'd
 CREATE TYPE public.project_task_status AS ENUM ('todo', 'in_progress', 'done');
 
 -- Projects
-CREATE TABLE public.projects (
+CREATE TABLE IF NOT EXISTS public.projects (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   creator_id UUID NOT NULL,
   name TEXT NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE public.projects (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE public.project_members (
+CREATE TABLE IF NOT EXISTS public.project_members (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE public.project_members (
   UNIQUE (project_id, user_id)
 );
 
-CREATE TABLE public.project_applications (
+CREATE TABLE IF NOT EXISTS public.project_applications (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
   applicant_id UUID NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE public.project_applications (
   UNIQUE (project_id, applicant_id)
 );
 
-CREATE TABLE public.project_tasks (
+CREATE TABLE IF NOT EXISTS public.project_tasks (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE public.project_tasks (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE public.project_files (
+CREATE TABLE IF NOT EXISTS public.project_files (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
@@ -68,7 +68,7 @@ CREATE TABLE public.project_files (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE public.project_activity (
+CREATE TABLE IF NOT EXISTS public.project_activity (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE public.project_activity (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE public.project_comments (
+CREATE TABLE IF NOT EXISTS public.project_comments (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
   user_id UUID NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE public.project_comments (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE public.hackathon_banners (
+CREATE TABLE IF NOT EXISTS public.hackathon_banners (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
   sponsor_name TEXT NOT NULL,

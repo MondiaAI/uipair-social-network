@@ -1,5 +1,5 @@
 -- Track Stripe subscriptions for premium circles
-CREATE TABLE public.circle_subscriptions (
+CREATE TABLE IF NOT EXISTS public.circle_subscriptions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   circle_id uuid NOT NULL,

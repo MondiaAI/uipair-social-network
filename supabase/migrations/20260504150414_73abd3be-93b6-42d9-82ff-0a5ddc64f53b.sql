@@ -1,4 +1,4 @@
-CREATE TABLE public.match_dismissals (
+CREATE TABLE IF NOT EXISTS public.match_dismissals (
   user_id uuid NOT NULL,
   dismissed_id uuid NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),

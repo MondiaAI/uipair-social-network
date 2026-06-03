@@ -1,7 +1,7 @@
 -- =========================
 -- crash_reports
 -- =========================
-CREATE TABLE public.crash_reports (
+CREATE TABLE IF NOT EXISTS public.crash_reports (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID,
   label TEXT NOT NULL,
@@ -40,7 +40,7 @@ CREATE INDEX crash_reports_user_id_idx ON public.crash_reports (user_id);
 -- =========================
 -- universities
 -- =========================
-CREATE TABLE public.universities (
+CREATE TABLE IF NOT EXISTS public.universities (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
   country TEXT NOT NULL,
