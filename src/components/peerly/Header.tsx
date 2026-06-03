@@ -88,6 +88,21 @@ export function Header() {
 
         {/* Right: Bell + Avatar */}
         <div className="flex items-center gap-3">
+          {user && (
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/match" })}
+              className="relative rounded-full p-2 hover:bg-muted transition-colors"
+              aria-label={`Friend requests${friendReqCount > 0 ? ` (${friendReqCount} pending)` : ""}`}
+            >
+              <UserPlus className="h-5 w-5" />
+              {friendReqCount > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground">
+                  {friendReqCount > 99 ? "99+" : friendReqCount}
+                </span>
+              )}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setNotifOpen(true)}
