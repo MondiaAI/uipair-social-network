@@ -153,9 +153,9 @@ function MatchPage() {
       .filter((p) => {
         if (mode === "campus") {
           const myUid = (profile as any)?.university_id ?? null;
-          const myUni = profile?.university ?? null;
+          const myUni = normalizeLocation(profile?.university);
           const sameById = myUid && p.university_id && myUid === p.university_id;
-          const sameByName = myUni && p.university && myUni === p.university;
+          const sameByName = myUni && p.university && normalizeLocation(p.university) === myUni;
           if (!sameById && !sameByName) return false;
         }
         if (q) {
