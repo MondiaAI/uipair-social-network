@@ -23,7 +23,6 @@ if (!existsSync(ASSETS_DIR)) {
 
 const files = readdirSync(ASSETS_DIR);
 const entry =
-  const entry =
   files.find((f) => /^main-[\w-]+\.js$/.test(f)) ||
   files.find((f) => /^index-[\w-]+\.js$/.test(f)) ||
   files.find((f) => /^(client|entry|app)-[\w-]+\.js$/.test(f)) ||
