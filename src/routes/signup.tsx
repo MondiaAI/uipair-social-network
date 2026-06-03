@@ -614,11 +614,6 @@ function UniversityField({
           </Button>
         )}
       </div>
-      <datalist id="university-options">
-        {UNIVERSITIES.filter((u) => u !== "Other").map((u) => (
-          <option key={u} value={u} />
-        ))}
-      </datalist>
       <p className="text-xs text-muted-foreground">
         {saving ? "Saving…" : savedAt ? "✓ Saved" : "Autosaves as you type"}
       </p>
