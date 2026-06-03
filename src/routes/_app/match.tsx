@@ -68,7 +68,7 @@ function computeScore(me: ProfileRow, other: ProfileRow): number {
   const yearScore = me.year_of_study && me.year_of_study === other.year_of_study ? 15 : 0;
   const sameUniversity =
     (me.university_id && other.university_id && me.university_id === other.university_id) ||
-    (!!me.university && me.university === other.university);
+    (!!me.university && !!other.university && normalizeLocation(me.university) === normalizeLocation(other.university));
   const campusScore = sameUniversity ? 15 : 0;
 
   return Math.round(subjectScore + availScore + yearScore + campusScore);
