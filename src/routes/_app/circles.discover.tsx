@@ -144,7 +144,7 @@ function DiscoverCirclesPage() {
       if (tier === "free" && c.is_premium) return false;
       if (tier === "premium" && !c.is_premium) return false;
       if (scope !== "all" && c.scope !== scope) return false;
-      if (scope === "campus" && campusOnlyMine && userUniversity && c.university && c.university !== userUniversity) return false;
+      if (scope === "campus" && campusOnlyMine && userUniversity && c.university && normalizeLocation(c.university) !== userUniversity) return false;
       if (!q) return true;
       return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q) || c.subject.toLowerCase().includes(q);
     });
