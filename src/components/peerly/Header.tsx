@@ -91,7 +91,7 @@ export function Header() {
           {user && (
             <button
               type="button"
-              onClick={() => navigate({ to: "/match" })}
+              onClick={() => navigate({ to: "/requests" })}
               className="relative rounded-full p-2 hover:bg-muted transition-colors"
               aria-label={`Friend requests${friendReqCount > 0 ? ` (${friendReqCount} pending)` : ""}`}
             >
