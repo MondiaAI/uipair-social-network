@@ -122,6 +122,22 @@ function SettingsPage() {
             setCountry(country);
           }}
         />
+        <div>
+          <label className="text-sm font-medium block mb-1.5">Graduation year</label>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1950}
+            max={2100}
+            placeholder="e.g. 2024"
+            value={graduationYear}
+            onChange={(e) => setGraduationYear(e.target.value)}
+            className="w-40 rounded-md border bg-background px-3 py-2 text-sm"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Required to join your university's Alumni Community.
+          </p>
+        </div>
         <div className="flex justify-end">
           <Button onClick={save} disabled={saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
