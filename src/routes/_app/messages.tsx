@@ -1125,10 +1125,28 @@ function MessagesPage() {
                     </p>
                   );
                 }
+                const formatDateDivider = (d: Date) => {
+                  const today = new Date();
+                  const yesterday = new Date();
+                  yesterday.setDate(today.getDate() - 1);
+                  const sameDay = (a: Date, b: Date) =>
+                    a.getFullYear() === b.getFullYear() &&
+                    a.getMonth() === b.getMonth() &&
+                    a.getDate() === b.getDate();
+                  if (sameDay(d, today)) return "Today";
+                  if (sameDay(d, yesterday)) return "Yesterday";
+                  const sameYear = d.getFullYear() === today.getFullYear();
+                  return d.toLocaleDateString([], {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    ...(sameYear ? {} : { year: "numeric" }),
+                  });
+                };
+                let lastDayKey = "";
                 return (
                   <>
                     {visible.map((m) => {
-
                       const mine = m.sender_id === user?.id;
                       const encrypted = isEncrypted(m.content);
                       const decrypted = encrypted
@@ -1139,7 +1157,19 @@ function MessagesPage() {
                       const isEditing = editingId === m.id;
                       // Hide messages that cannot be decrypted on this device
                       if (showFallback) return null;
+                      const dt = new Date(m.created_at);
+                      const dayKey = dt.toDateString();
+                      const showDivider = dayKey !== lastDayKey;
+                      if (showDivider) lastDayKey = dayKey;
                       return (
+                        <div key={`wrap-${m.id}`}>
+                        {showDivider && (
+                          <div className="flex items-center justify-center my-3" aria-label={`Messages from ${formatDateDivider(dt)}`}>
+                            <span className="rounded-full bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground">
+                              {formatDateDivider(dt)}
+                            </span>
+                          </div>
+                        )}
                         <div key={m.id} className={cn("group flex items-end gap-1", mine ? "justify-end" : "justify-start")}>
                           {mine && !isEditing && (
                             <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
