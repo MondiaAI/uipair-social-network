@@ -1097,7 +1097,13 @@ function MessagesPage() {
 
             <div ref={scrollerRef} className="flex-1 space-y-1.5 sm:space-y-3 overflow-y-auto p-3 sm:p-4">
               {(() => {
-                if (messages.length === 0) {
+                // Filter out messages the current user has deleted from their own view
+                const ownFiltered = messages.filter((m) => {
+                  if (!user) return true;
+                  if (m.sender_id === user.id) return !m.deleted_for_sender;
+                  return !m.deleted_for_recipient;
+                });
+                if (ownFiltered.length === 0) {
                   return (
                     <p className="py-8 text-center text-sm text-muted-foreground">
                       No messages yet. Send the first one!
@@ -1106,12 +1112,12 @@ function MessagesPage() {
                 }
                 const q = chatSearchOpen ? chatSearch.trim().toLowerCase() : "";
                 const visible = q
-                  ? messages.filter((m) => {
+                  ? ownFiltered.filter((m) => {
                       const enc = isEncrypted(m.content);
                       const plain = enc ? decryptContent(m.content) : { ok: true as const, plaintext: m.content };
                       return plain.ok && plain.plaintext.toLowerCase().includes(q);
                     })
-                  : messages;
+                  : ownFiltered;
                 if (q && visible.length === 0) {
                   return (
                     <p className="py-8 text-center text-sm text-muted-foreground">
