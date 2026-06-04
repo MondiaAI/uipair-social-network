@@ -721,12 +721,22 @@ function MessagesPage() {
     [conversations, activeId]
   );
 
-  const deleteMessage = async (id: string) => {
-    if (!confirm("Delete this message?")) return;
+  const deleteForMe = async (m: MessageRow) => {
+    if (!user) return;
+    const mine = m.sender_id === user.id;
+    const patch = mine ? { deleted_for_sender: true } : { deleted_for_recipient: true };
+    const { error } = await supabase.from("messages").update(patch).eq("id", m.id);
+    if (error) { toast.error(error.message); return; }
+    setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, ...patch } : x));
+    toast.success("Message removed from your view");
+  };
+
+  const deleteForEveryone = async (id: string) => {
+    if (!confirm("Delete this message for everyone?")) return;
     const { error } = await supabase.from("messages").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     setMessages((prev) => prev.filter((m) => m.id !== id));
-    toast.success("Message deleted");
+    toast.success("Message deleted for everyone");
   };
 
   const saveEdit = async (m: MessageRow) => {
