@@ -509,7 +509,7 @@ function MessagesPage() {
         { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${activeId}` },
         (payload) => {
           const m = payload.new as MessageRow;
-          setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, content: m.content, read_at: m.read_at } : x));
+          setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, content: m.content, read_at: m.read_at, deleted_for_sender: m.deleted_for_sender, deleted_for_recipient: m.deleted_for_recipient } : x));
         }
       )
       .on(
