@@ -40,16 +40,24 @@ function SettingsPage() {
 
   const save = async () => {
     setSaving(true);
+    const gyNum = graduationYear.trim() === "" ? null : Number(graduationYear);
+    if (gyNum !== null && (!Number.isInteger(gyNum) || gyNum < 1950 || gyNum > 2100)) {
+      toast.error("Enter a valid graduation year (1950–2100)");
+      setSaving(false);
+      return;
+    }
     // Snapshot for revert
     const prev = {
       university_id: profile?.university_id ?? null,
       university: profile?.university ?? null,
       country: profile?.country ?? null,
+      graduation_year: (profile as any)?.graduation_year ?? null,
     };
     const next = {
       university_id: universityId,
       university: normalizeLocation(universityName),
       country: normalizeLocation(country),
+      graduation_year: gyNum,
     };
     // Optimistic toast — UI fields already reflect `next` from local state.
     const successToastId = toast.success("Settings saved");
