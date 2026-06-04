@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 const EMOJIS = ["😀","😂","😍","🥲","🙌","👍","🎉","🔥","💯","🤔","😎","🙏","❤️","👀","✅","🚀","📚","☕","🌙","✨"];
@@ -129,6 +130,8 @@ interface MessageRow {
   content: string;
   created_at: string;
   read_at?: string | null;
+  deleted_for_sender?: boolean;
+  deleted_for_recipient?: boolean;
 }
 
 function MessagesPage() {
@@ -472,7 +475,7 @@ function MessagesPage() {
     const load = async () => {
       const { data } = await supabase
         .from("messages")
-        .select("id, conversation_id, sender_id, content, created_at, read_at")
+        .select("id, conversation_id, sender_id, content, created_at, read_at, deleted_for_sender, deleted_for_recipient")
         .eq("conversation_id", activeId)
         .order("created_at", { ascending: true });
       setMessages((data ?? []) as MessageRow[]);
@@ -507,7 +510,7 @@ function MessagesPage() {
         { event: "UPDATE", schema: "public", table: "messages", filter: `conversation_id=eq.${activeId}` },
         (payload) => {
           const m = payload.new as MessageRow;
-          setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, content: m.content, read_at: m.read_at } : x));
+          setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, content: m.content, read_at: m.read_at, deleted_for_sender: m.deleted_for_sender, deleted_for_recipient: m.deleted_for_recipient } : x));
         }
       )
       .on(
@@ -719,12 +722,22 @@ function MessagesPage() {
     [conversations, activeId]
   );
 
-  const deleteMessage = async (id: string) => {
-    if (!confirm("Delete this message?")) return;
+  const deleteForMe = async (m: MessageRow) => {
+    if (!user) return;
+    const mine = m.sender_id === user.id;
+    const patch = mine ? { deleted_for_sender: true } : { deleted_for_recipient: true };
+    const { error } = await supabase.from("messages").update(patch).eq("id", m.id);
+    if (error) { toast.error(error.message); return; }
+    setMessages((prev) => prev.map((x) => x.id === m.id ? { ...x, ...patch } : x));
+    toast.success("Message removed from your view");
+  };
+
+  const deleteForEveryone = async (id: string) => {
+    if (!confirm("Delete this message for everyone?")) return;
     const { error } = await supabase.from("messages").delete().eq("id", id);
     if (error) { toast.error(error.message); return; }
     setMessages((prev) => prev.filter((m) => m.id !== id));
-    toast.success("Message deleted");
+    toast.success("Message deleted for everyone");
   };
 
   const saveEdit = async (m: MessageRow) => {
@@ -1084,7 +1097,13 @@ function MessagesPage() {
 
             <div ref={scrollerRef} className="flex-1 space-y-1.5 sm:space-y-3 overflow-y-auto p-3 sm:p-4">
               {(() => {
-                if (messages.length === 0) {
+                // Filter out messages the current user has deleted from their own view
+                const ownFiltered = messages.filter((m) => {
+                  if (!user) return true;
+                  if (m.sender_id === user.id) return !m.deleted_for_sender;
+                  return !m.deleted_for_recipient;
+                });
+                if (ownFiltered.length === 0) {
                   return (
                     <p className="py-8 text-center text-sm text-muted-foreground">
                       No messages yet. Send the first one!
@@ -1093,12 +1112,12 @@ function MessagesPage() {
                 }
                 const q = chatSearchOpen ? chatSearch.trim().toLowerCase() : "";
                 const visible = q
-                  ? messages.filter((m) => {
+                  ? ownFiltered.filter((m) => {
                       const enc = isEncrypted(m.content);
                       const plain = enc ? decryptContent(m.content) : { ok: true as const, plaintext: m.content };
                       return plain.ok && plain.plaintext.toLowerCase().includes(q);
                     })
-                  : messages;
+                  : ownFiltered;
                 if (q && visible.length === 0) {
                   return (
                     <p className="py-8 text-center text-sm text-muted-foreground">
@@ -1132,9 +1151,29 @@ function MessagesPage() {
                               >
                                 <Pencil className="h-3 w-3" />
                               </button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button
+                                    title="Delete"
+                                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-44">
+                                  <DropdownMenuItem onClick={() => deleteForMe(m)}>Delete for me</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => deleteForEveryone(m.id)} className="text-destructive focus:text-destructive">
+                                    Delete for everyone
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          )}
+                          {!mine && (
+                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
-                                onClick={() => deleteMessage(m.id)}
-                                title="Delete"
+                                onClick={() => deleteForMe(m)}
+                                title="Delete for me"
                                 className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive"
                               >
                                 <Trash2 className="h-3 w-3" />

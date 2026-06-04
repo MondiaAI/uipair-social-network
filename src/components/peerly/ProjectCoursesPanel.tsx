@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
-import { Trash2, UploadCloud, Radio, Video as VideoIcon, ExternalLink } from "lucide-react";
+import { Trash2, UploadCloud, Radio, Video as VideoIcon, ExternalLink, Eye, EyeOff } from "lucide-react";
 
 interface CourseVideoRow {
   id: string;
@@ -22,6 +22,8 @@ interface CourseVideoRow {
   size_bytes: number | null;
   duration_seconds: number | null;
   created_at: string;
+  is_visible: boolean;
+  source_session_id: string | null;
   signedUrl?: string;
 }
 
@@ -157,7 +159,17 @@ export function ProjectCoursesPanel({ projectId, isMember, isCreator }: { projec
       ) : (
         <div className="space-y-3">
           {videos.map((v) => {
-            const canDelete = v.uploader_id === user?.id || isCreator;
+            const canManage = v.uploader_id === user?.id || isCreator;
+            const toggleVisibility = async () => {
+              const next = !v.is_visible;
+              const { error } = await supabase
+                .from("course_videos")
+                .update({ is_visible: next })
+                .eq("id", v.id);
+              if (error) { toast.error(error.message); return; }
+              setVideos((prev) => prev.map((x) => x.id === v.id ? { ...x, is_visible: next } : x));
+              toast.success(next ? "Recording published to members" : "Recording hidden from members");
+            };
             return (
               <Card key={v.id} className="overflow-hidden">
                 {v.signedUrl ? (
@@ -169,14 +181,23 @@ export function ProjectCoursesPanel({ projectId, isMember, isCreator }: { projec
                 )}
                 <div className="p-3 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate">{v.title}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold truncate">{v.title}</p>
+                      {v.source_session_id && <Badge variant="outline" className="text-[10px]">Live recording</Badge>}
+                      {!v.is_visible && <Badge variant="secondary" className="text-[10px] gap-1"><EyeOff className="h-3 w-3" />Hidden</Badge>}
+                    </div>
                     {v.description && <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{v.description}</p>}
                     <p className="text-[11px] text-muted-foreground mt-1">{format(new Date(v.created_at), "PP")}</p>
                   </div>
-                  {canDelete && (
-                    <Button size="icon" variant="ghost" onClick={() => remove(v)} aria-label="Delete video">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  {canManage && (
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <Button size="sm" variant={v.is_visible ? "outline" : "default"} onClick={toggleVisibility}>
+                        {v.is_visible ? (<><EyeOff className="h-3.5 w-3.5 mr-1" />Hide</>) : (<><Eye className="h-3.5 w-3.5 mr-1" />Publish</>)}
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => remove(v)} aria-label="Delete video">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   )}
                 </div>
               </Card>

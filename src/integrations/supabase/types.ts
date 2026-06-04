@@ -706,9 +706,11 @@ export type Database = {
           description: string | null
           duration_seconds: number | null
           id: string
+          is_visible: boolean
           mime_type: string | null
           project_id: string
           size_bytes: number | null
+          source_session_id: string | null
           storage_path: string
           title: string
           updated_at: string
@@ -719,9 +721,11 @@ export type Database = {
           description?: string | null
           duration_seconds?: number | null
           id?: string
+          is_visible?: boolean
           mime_type?: string | null
           project_id: string
           size_bytes?: number | null
+          source_session_id?: string | null
           storage_path: string
           title: string
           updated_at?: string
@@ -732,9 +736,11 @@ export type Database = {
           description?: string | null
           duration_seconds?: number | null
           id?: string
+          is_visible?: boolean
           mime_type?: string | null
           project_id?: string
           size_bytes?: number | null
+          source_session_id?: string | null
           storage_path?: string
           title?: string
           updated_at?: string
@@ -746,6 +752,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_videos_source_session_id_fkey"
+            columns: ["source_session_id"]
+            isOneToOne: false
+            referencedRelation: "live_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -1200,6 +1213,8 @@ export type Database = {
           content: string
           conversation_id: string
           created_at: string
+          deleted_for_recipient: boolean
+          deleted_for_sender: boolean
           id: string
           read_at: string | null
           sender_id: string
@@ -1209,6 +1224,8 @@ export type Database = {
           content: string
           conversation_id: string
           created_at?: string
+          deleted_for_recipient?: boolean
+          deleted_for_sender?: boolean
           id?: string
           read_at?: string | null
           sender_id: string
@@ -1218,6 +1235,8 @@ export type Database = {
           content?: string
           conversation_id?: string
           created_at?: string
+          deleted_for_recipient?: boolean
+          deleted_for_sender?: boolean
           id?: string
           read_at?: string | null
           sender_id?: string
