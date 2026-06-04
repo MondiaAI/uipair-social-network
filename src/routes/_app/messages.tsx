@@ -1427,6 +1427,15 @@ function MessagesPage() {
         )}
       </section>
       <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} />
+      {active && (
+        <VideoCallDialog
+          open={videoCallOpen}
+          onOpenChange={setVideoCallOpen}
+          roomName={`uipair-chat-${active.id}`}
+          displayName={user?.email ?? "Student"}
+          title={`Call with ${active.other?.full_name || active.other?.username || "Student"}`}
+        />
+      )}
       <Dialog open={!!lightbox} onOpenChange={(o) => { if (!o) setLightbox(null); }}>
         <DialogContent className="max-w-3xl p-0 bg-transparent border-0 shadow-none">
           {lightbox && (
