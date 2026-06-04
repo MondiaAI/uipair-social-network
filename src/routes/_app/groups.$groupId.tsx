@@ -257,13 +257,31 @@ function MembersPanel({
   onChange: () => void;
 }) {
   const { user } = useAuth();
-  const { friendIds, friends } = useFriendships();
+  const { edges } = useFriendships();
   const memberIds = useMemo(() => new Set(members.map((m) => m.user_id)), [members]);
   const [adding, setAdding] = useState<string | null>(null);
+  const [friendProfiles, setFriendProfiles] = useState<Array<{ id: string; full_name: string | null; username: string | null; avatar_url: string | null }>>([]);
+
+  const friendIds = useMemo(
+    () => Object.entries(edges).filter(([, e]) => e.status === "accepted").map(([id]) => id),
+    [edges],
+  );
+
+  useEffect(() => {
+    if (friendIds.length === 0) {
+      setFriendProfiles([]);
+      return;
+    }
+    supabase
+      .from("profiles")
+      .select("id, full_name, username, avatar_url")
+      .in("id", friendIds)
+      .then(({ data }) => setFriendProfiles((data ?? []) as any));
+  }, [friendIds]);
 
   const friendList = useMemo(
-    () => (friends ?? []).filter((f: any) => !memberIds.has(f.id)),
-    [friends, memberIds],
+    () => friendProfiles.filter((f) => !memberIds.has(f.id)),
+    [friendProfiles, memberIds],
   );
 
   const addFriend = async (friendId: string) => {
