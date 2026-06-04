@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard";
 
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
+import { AlumniCommunityCard } from "@/components/peerly/AlumniCommunityCard";
 import { SUBJECTS } from "@/lib/subjects";
 import { useAllSubjects } from "@/lib/use-all-subjects";
 import { addCustomSubject } from "@/lib/subjects";
