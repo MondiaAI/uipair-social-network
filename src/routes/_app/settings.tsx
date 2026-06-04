@@ -66,6 +66,7 @@ function SettingsPage() {
       setUniversityId(prev.university_id);
       setUniversityName(prev.university);
       setCountry(prev.country);
+      setGraduationYear((prev.graduation_year ?? "").toString());
       toast.dismiss(successToastId);
       toast.error(`Couldn't save settings — changes reverted${reason ? `: ${reason}` : ""}`);
     };
