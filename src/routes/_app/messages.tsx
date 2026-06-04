@@ -203,6 +203,7 @@ function MessagesPage() {
 
   const [muted, setMuted] = useState<Record<string, boolean>>({});
   const [newChatOpen, setNewChatOpen] = useState(false);
+  const [videoCallOpen, setVideoCallOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
   const [keypair, setKeypair] = useState<KeyPair | null>(null);
