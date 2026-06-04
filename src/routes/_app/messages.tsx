@@ -1151,9 +1151,29 @@ function MessagesPage() {
                               >
                                 <Pencil className="h-3 w-3" />
                               </button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button
+                                    title="Delete"
+                                    className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-44">
+                                  <DropdownMenuItem onClick={() => deleteForMe(m)}>Delete for me</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => deleteForEveryone(m.id)} className="text-destructive focus:text-destructive">
+                                    Delete for everyone
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          )}
+                          {!mine && (
+                            <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
-                                onClick={() => deleteMessage(m.id)}
-                                title="Delete"
+                                onClick={() => deleteForMe(m)}
+                                title="Delete for me"
                                 className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-destructive"
                               >
                                 <Trash2 className="h-3 w-3" />
