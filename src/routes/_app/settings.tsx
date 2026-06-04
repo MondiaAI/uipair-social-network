@@ -23,6 +23,7 @@ function SettingsPage() {
   const [universityId, setUniversityId] = useState<string | null>(null);
   const [universityName, setUniversityName] = useState<string | null>(null);
   const [country, setCountry] = useState<string | null>(null);
+  const [graduationYear, setGraduationYear] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ function SettingsPage() {
     setUniversityId(profile.university_id ?? null);
     setUniversityName(profile.university ?? null);
     setCountry(profile.country ?? null);
+    setGraduationYear(((profile as any).graduation_year ?? "").toString());
   }, [profile]);
 
   if (!user) {
