@@ -474,7 +474,7 @@ function MessagesPage() {
     const load = async () => {
       const { data } = await supabase
         .from("messages")
-        .select("id, conversation_id, sender_id, content, created_at, read_at")
+        .select("id, conversation_id, sender_id, content, created_at, read_at, deleted_for_sender, deleted_for_recipient")
         .eq("conversation_id", activeId)
         .order("created_at", { ascending: true });
       setMessages((data ?? []) as MessageRow[]);
