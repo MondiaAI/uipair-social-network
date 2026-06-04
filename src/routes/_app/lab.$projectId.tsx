@@ -674,6 +674,14 @@ function ProjectDetailPage() {
           )}
         </TabsContent>
 
+        <TabsContent value="courses">
+          <ProjectCoursesPanel projectId={projectId} isMember={isMember} isCreator={isCreator} />
+        </TabsContent>
+
+        <TabsContent value="live">
+          <ProjectLivePanel projectId={projectId} isMember={isMember} />
+        </TabsContent>
+
         </>}
 
         <TabsContent value="discussion" className="space-y-3">
