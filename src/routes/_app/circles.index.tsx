@@ -242,6 +242,8 @@ function CirclesPage() {
         <Button onClick={handleJoinByInvite} disabled={!inviteInput.trim()}>Join</Button>
       </div>
 
+      <AlumniCommunityCard />
+
       <div className="mb-6">
         <NewMembersRow title="New students to connect with" />
       </div>
