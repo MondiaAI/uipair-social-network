@@ -129,6 +129,8 @@ interface MessageRow {
   content: string;
   created_at: string;
   read_at?: string | null;
+  deleted_for_sender?: boolean;
+  deleted_for_recipient?: boolean;
 }
 
 function MessagesPage() {
