@@ -56,6 +56,7 @@ const allTabs: Tab[] = [
   { to: "/circles", label: "Circles", icon: Users },
   { to: "/match", label: "Match", icon: Zap },
   { to: "/messages", label: "Chat", icon: MessageSquare },
+  { to: "/groups", label: "Groups", icon: Users },
   { to: "/lab", label: "Lab", icon: FlaskConical },
   { to: "/gigs", label: "Gigs", icon: DollarSign },
 ];
@@ -100,6 +101,7 @@ export function AppNav() {
   // Mobile overflow shown inside the More sheet
   const moreItems: Tab[] = [
     { to: "/match", label: "Match", icon: Zap },
+    { to: "/groups", label: "Groups", icon: Users },
     { to: "/lab", label: "The Lab", icon: FlaskConical },
     { to: "/gigs", label: "StudyGigs", icon: DollarSign },
     { to: "/settings", label: "Settings", icon: SettingsIcon },

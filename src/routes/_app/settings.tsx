@@ -23,6 +23,7 @@ function SettingsPage() {
   const [universityId, setUniversityId] = useState<string | null>(null);
   const [universityName, setUniversityName] = useState<string | null>(null);
   const [country, setCountry] = useState<string | null>(null);
+  const [graduationYear, setGraduationYear] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -30,6 +31,7 @@ function SettingsPage() {
     setUniversityId(profile.university_id ?? null);
     setUniversityName(profile.university ?? null);
     setCountry(profile.country ?? null);
+    setGraduationYear(((profile as any).graduation_year ?? "").toString());
   }, [profile]);
 
   if (!user) {
@@ -38,16 +40,24 @@ function SettingsPage() {
 
   const save = async () => {
     setSaving(true);
+    const gyNum = graduationYear.trim() === "" ? null : Number(graduationYear);
+    if (gyNum !== null && (!Number.isInteger(gyNum) || gyNum < 1950 || gyNum > 2100)) {
+      toast.error("Enter a valid graduation year (1950–2100)");
+      setSaving(false);
+      return;
+    }
     // Snapshot for revert
     const prev = {
       university_id: profile?.university_id ?? null,
       university: profile?.university ?? null,
       country: profile?.country ?? null,
+      graduation_year: (profile as any)?.graduation_year ?? null,
     };
     const next = {
       university_id: universityId,
       university: normalizeLocation(universityName),
       country: normalizeLocation(country),
+      graduation_year: gyNum,
     };
     // Optimistic toast — UI fields already reflect `next` from local state.
     const successToastId = toast.success("Settings saved");
@@ -56,6 +66,7 @@ function SettingsPage() {
       setUniversityId(prev.university_id);
       setUniversityName(prev.university);
       setCountry(prev.country);
+      setGraduationYear((prev.graduation_year ?? "").toString());
       toast.dismiss(successToastId);
       toast.error(`Couldn't save settings — changes reverted${reason ? `: ${reason}` : ""}`);
     };
@@ -111,6 +122,22 @@ function SettingsPage() {
             setCountry(country);
           }}
         />
+        <div>
+          <label className="text-sm font-medium block mb-1.5">Graduation year</label>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1950}
+            max={2100}
+            placeholder="e.g. 2024"
+            value={graduationYear}
+            onChange={(e) => setGraduationYear(e.target.value)}
+            className="w-40 rounded-md border bg-background px-3 py-2 text-sm"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Required to join your university's Alumni Community.
+          </p>
+        </div>
         <div className="flex justify-end">
           <Button onClick={save} disabled={saving}>
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}

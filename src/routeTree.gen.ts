@@ -25,12 +25,14 @@ import { Route as AppFeedRouteImport } from './routes/_app/feed'
 import { Route as AppAmbassadorRouteImport } from './routes/_app/ambassador'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
 import { Route as AppLabIndexRouteImport } from './routes/_app/lab.index'
+import { Route as AppGroupsIndexRouteImport } from './routes/_app/groups.index'
 import { Route as AppCirclesIndexRouteImport } from './routes/_app/circles.index'
 import { Route as AppProfileUserIdRouteImport } from './routes/_app/profile.$userId'
 import { Route as AppOnboardingTenantRouteImport } from './routes/_app/onboarding.tenant'
 import { Route as AppLiveSessionIdRouteImport } from './routes/_app/live.$sessionId'
 import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
 import { Route as AppInviteTokenRouteImport } from './routes/_app/invite.$token'
+import { Route as AppGroupsGroupIdRouteImport } from './routes/_app/groups.$groupId'
 import { Route as AppCirclesNewRouteImport } from './routes/_app/circles.new'
 import { Route as AppCirclesDiscoverRouteImport } from './routes/_app/circles.discover'
 import { Route as AppCirclesCircleIdRouteImport } from './routes/_app/circles.$circleId'
@@ -114,6 +116,11 @@ const AppLabIndexRoute = AppLabIndexRouteImport.update({
   path: '/lab/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGroupsIndexRoute = AppGroupsIndexRouteImport.update({
+  id: '/groups/',
+  path: '/groups/',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCirclesIndexRoute = AppCirclesIndexRouteImport.update({
   id: '/circles/',
   path: '/circles/',
@@ -142,6 +149,11 @@ const AppLabProjectIdRoute = AppLabProjectIdRouteImport.update({
 const AppInviteTokenRoute = AppInviteTokenRouteImport.update({
   id: '/invite/$token',
   path: '/invite/$token',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGroupsGroupIdRoute = AppGroupsGroupIdRouteImport.update({
+  id: '/groups/$groupId',
+  path: '/groups/$groupId',
   getParentRoute: () => AppRoute,
 } as any)
 const AppCirclesNewRoute = AppCirclesNewRouteImport.update({
@@ -178,12 +190,14 @@ export interface FileRoutesByFullPath {
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
+  '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/live/$sessionId': typeof AppLiveSessionIdRoute
   '/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/circles/': typeof AppCirclesIndexRoute
+  '/groups/': typeof AppGroupsIndexRoute
   '/lab/': typeof AppLabIndexRoute
 }
 export interface FileRoutesByTo {
@@ -204,12 +218,14 @@ export interface FileRoutesByTo {
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
+  '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/live/$sessionId': typeof AppLiveSessionIdRoute
   '/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/circles': typeof AppCirclesIndexRoute
+  '/groups': typeof AppGroupsIndexRoute
   '/lab': typeof AppLabIndexRoute
 }
 export interface FileRoutesById {
@@ -232,12 +248,14 @@ export interface FileRoutesById {
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/_app/circles/discover': typeof AppCirclesDiscoverRoute
   '/_app/circles/new': typeof AppCirclesNewRoute
+  '/_app/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/_app/invite/$token': typeof AppInviteTokenRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
   '/_app/live/$sessionId': typeof AppLiveSessionIdRoute
   '/_app/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
   '/_app/circles/': typeof AppCirclesIndexRoute
+  '/_app/groups/': typeof AppGroupsIndexRoute
   '/_app/lab/': typeof AppLabIndexRoute
 }
 export interface FileRouteTypes {
@@ -260,12 +278,14 @@ export interface FileRouteTypes {
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
+    | '/groups/$groupId'
     | '/invite/$token'
     | '/lab/$projectId'
     | '/live/$sessionId'
     | '/onboarding/tenant'
     | '/profile/$userId'
     | '/circles/'
+    | '/groups/'
     | '/lab/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -286,12 +306,14 @@ export interface FileRouteTypes {
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
+    | '/groups/$groupId'
     | '/invite/$token'
     | '/lab/$projectId'
     | '/live/$sessionId'
     | '/onboarding/tenant'
     | '/profile/$userId'
     | '/circles'
+    | '/groups'
     | '/lab'
   id:
     | '__root__'
@@ -313,12 +335,14 @@ export interface FileRouteTypes {
     | '/_app/circles/$circleId'
     | '/_app/circles/discover'
     | '/_app/circles/new'
+    | '/_app/groups/$groupId'
     | '/_app/invite/$token'
     | '/_app/lab/$projectId'
     | '/_app/live/$sessionId'
     | '/_app/onboarding/tenant'
     | '/_app/profile/$userId'
     | '/_app/circles/'
+    | '/_app/groups/'
     | '/_app/lab/'
   fileRoutesById: FileRoutesById
 }
@@ -445,6 +469,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLabIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/groups/': {
+      id: '/_app/groups/'
+      path: '/groups'
+      fullPath: '/groups/'
+      preLoaderRoute: typeof AppGroupsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/circles/': {
       id: '/_app/circles/'
       path: '/circles'
@@ -487,6 +518,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppInviteTokenRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/groups/$groupId': {
+      id: '/_app/groups/$groupId'
+      path: '/groups/$groupId'
+      fullPath: '/groups/$groupId'
+      preLoaderRoute: typeof AppGroupsGroupIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/circles/new': {
       id: '/_app/circles/new'
       path: '/circles/new'
@@ -524,12 +562,14 @@ interface AppRouteChildren {
   AppCirclesCircleIdRoute: typeof AppCirclesCircleIdRoute
   AppCirclesDiscoverRoute: typeof AppCirclesDiscoverRoute
   AppCirclesNewRoute: typeof AppCirclesNewRoute
+  AppGroupsGroupIdRoute: typeof AppGroupsGroupIdRoute
   AppInviteTokenRoute: typeof AppInviteTokenRoute
   AppLabProjectIdRoute: typeof AppLabProjectIdRoute
   AppLiveSessionIdRoute: typeof AppLiveSessionIdRoute
   AppOnboardingTenantRoute: typeof AppOnboardingTenantRoute
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
   AppCirclesIndexRoute: typeof AppCirclesIndexRoute
+  AppGroupsIndexRoute: typeof AppGroupsIndexRoute
   AppLabIndexRoute: typeof AppLabIndexRoute
 }
 
@@ -546,12 +586,14 @@ const AppRouteChildren: AppRouteChildren = {
   AppCirclesCircleIdRoute: AppCirclesCircleIdRoute,
   AppCirclesDiscoverRoute: AppCirclesDiscoverRoute,
   AppCirclesNewRoute: AppCirclesNewRoute,
+  AppGroupsGroupIdRoute: AppGroupsGroupIdRoute,
   AppInviteTokenRoute: AppInviteTokenRoute,
   AppLabProjectIdRoute: AppLabProjectIdRoute,
   AppLiveSessionIdRoute: AppLiveSessionIdRoute,
   AppOnboardingTenantRoute: AppOnboardingTenantRoute,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
   AppCirclesIndexRoute: AppCirclesIndexRoute,
+  AppGroupsIndexRoute: AppGroupsIndexRoute,
   AppLabIndexRoute: AppLabIndexRoute,
 }
 
@@ -568,12 +610,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

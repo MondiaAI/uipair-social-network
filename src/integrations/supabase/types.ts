@@ -521,6 +521,7 @@ export type Database = {
           degree: string | null
           description: string | null
           id: string
+          is_alumni: boolean
           is_premium: boolean
           kind: string
           leader_id: string
@@ -542,6 +543,7 @@ export type Database = {
           degree?: string | null
           description?: string | null
           id?: string
+          is_alumni?: boolean
           is_premium?: boolean
           kind?: string
           leader_id: string
@@ -563,6 +565,7 @@ export type Database = {
           degree?: string | null
           description?: string | null
           id?: string
+          is_alumni?: boolean
           is_premium?: boolean
           kind?: string
           leader_id?: string
@@ -1037,6 +1040,142 @@ export type Database = {
           },
         ]
       }
+      group_chat_members: {
+        Row: {
+          group_id: string
+          joined_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          joined_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          joined_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_chat_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group_chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_chat_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          group_id: string
+          id: string
+          sender_id: string
+          tenant_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          group_id: string
+          id?: string
+          sender_id: string
+          tenant_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          sender_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_chat_messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group_chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_chat_messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_chats: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          kind: string
+          last_message_at: string
+          name: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          kind?: string
+          last_message_at?: string
+          name: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          kind?: string
+          last_message_at?: string
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_chats_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_chats_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hackathon_banners: {
         Row: {
           created_at: string
@@ -1415,6 +1554,7 @@ export type Database = {
           field_of_study: string | null
           full_name: string | null
           goals: string | null
+          graduation_year: number | null
           id: string
           interests: string[]
           is_pro: boolean
@@ -1444,6 +1584,7 @@ export type Database = {
           field_of_study?: string | null
           full_name?: string | null
           goals?: string | null
+          graduation_year?: number | null
           id: string
           interests?: string[]
           is_pro?: boolean
@@ -1473,6 +1614,7 @@ export type Database = {
           field_of_study?: string | null
           full_name?: string | null
           goals?: string | null
+          graduation_year?: number | null
           id?: string
           interests?: string[]
           is_pro?: boolean
@@ -2319,6 +2461,7 @@ export type Database = {
         Args: { _request_id: string }
         Returns: undefined
       }
+      ensure_alumni_circle: { Args: { _tenant: string }; Returns: string }
       has_active_circle_subscription: {
         Args: { _circle_id: string; _environment?: string; _user_id: string }
         Returns: boolean
@@ -2329,6 +2472,10 @@ export type Database = {
       }
       is_circle_member: {
         Args: { _circle_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_group_member: {
+        Args: { _gid: string; _uid: string }
         Returns: boolean
       }
       is_project_creator: {
