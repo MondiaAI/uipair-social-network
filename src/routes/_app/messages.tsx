@@ -1015,6 +1015,16 @@ function MessagesPage() {
                 type="button"
                 size="icon"
                 variant="ghost"
+                onClick={() => setVideoCallOpen(true)}
+                title="Start video call"
+                aria-label="Start video call"
+              >
+                <Video className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
                 onClick={() => setChatSearchOpen((v) => !v)}
                 title={chatSearchOpen ? "Close search" : "Search messages"}
                 aria-label={chatSearchOpen ? "Close search" : "Search messages"}
