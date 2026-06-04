@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format, formatDistanceToNow } from "date-fns";
-import { Trash2, UploadCloud, Radio, Video as VideoIcon, ExternalLink } from "lucide-react";
+import { Trash2, UploadCloud, Radio, Video as VideoIcon, ExternalLink, Eye, EyeOff } from "lucide-react";
 
 interface CourseVideoRow {
   id: string;
