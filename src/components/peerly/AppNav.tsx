@@ -56,6 +56,7 @@ const allTabs: Tab[] = [
   { to: "/circles", label: "Circles", icon: Users },
   { to: "/match", label: "Match", icon: Zap },
   { to: "/messages", label: "Chat", icon: MessageSquare },
+  { to: "/groups", label: "Groups", icon: Users },
   { to: "/lab", label: "Lab", icon: FlaskConical },
   { to: "/gigs", label: "Gigs", icon: DollarSign },
 ];
