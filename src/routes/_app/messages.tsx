@@ -1345,6 +1345,7 @@ function MessagesPage() {
                             )}
                           </div>
                         </div>
+                        </div>
                       );
                     })}
                   </>
