@@ -28,6 +28,7 @@ import { Route as AppLabIndexRouteImport } from './routes/_app/lab.index'
 import { Route as AppCirclesIndexRouteImport } from './routes/_app/circles.index'
 import { Route as AppProfileUserIdRouteImport } from './routes/_app/profile.$userId'
 import { Route as AppOnboardingTenantRouteImport } from './routes/_app/onboarding.tenant'
+import { Route as AppLiveSessionIdRouteImport } from './routes/_app/live.$sessionId'
 import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
 import { Route as AppInviteTokenRouteImport } from './routes/_app/invite.$token'
 import { Route as AppCirclesNewRouteImport } from './routes/_app/circles.new'
@@ -128,6 +129,11 @@ const AppOnboardingTenantRoute = AppOnboardingTenantRouteImport.update({
   path: '/onboarding/tenant',
   getParentRoute: () => AppRoute,
 } as any)
+const AppLiveSessionIdRoute = AppLiveSessionIdRouteImport.update({
+  id: '/live/$sessionId',
+  path: '/live/$sessionId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppLabProjectIdRoute = AppLabProjectIdRouteImport.update({
   id: '/lab/$projectId',
   path: '/lab/$projectId',
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/circles/new': typeof AppCirclesNewRoute
   '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
+  '/live/$sessionId': typeof AppLiveSessionIdRoute
   '/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/circles/': typeof AppCirclesIndexRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/circles/new': typeof AppCirclesNewRoute
   '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
+  '/live/$sessionId': typeof AppLiveSessionIdRoute
   '/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
   '/circles': typeof AppCirclesIndexRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/_app/circles/new': typeof AppCirclesNewRoute
   '/_app/invite/$token': typeof AppInviteTokenRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
+  '/_app/live/$sessionId': typeof AppLiveSessionIdRoute
   '/_app/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
   '/_app/circles/': typeof AppCirclesIndexRoute
@@ -253,6 +262,7 @@ export interface FileRouteTypes {
     | '/circles/new'
     | '/invite/$token'
     | '/lab/$projectId'
+    | '/live/$sessionId'
     | '/onboarding/tenant'
     | '/profile/$userId'
     | '/circles/'
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/circles/new'
     | '/invite/$token'
     | '/lab/$projectId'
+    | '/live/$sessionId'
     | '/onboarding/tenant'
     | '/profile/$userId'
     | '/circles'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/_app/circles/new'
     | '/_app/invite/$token'
     | '/_app/lab/$projectId'
+    | '/_app/live/$sessionId'
     | '/_app/onboarding/tenant'
     | '/_app/profile/$userId'
     | '/_app/circles/'
@@ -454,6 +466,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingTenantRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/live/$sessionId': {
+      id: '/_app/live/$sessionId'
+      path: '/live/$sessionId'
+      fullPath: '/live/$sessionId'
+      preLoaderRoute: typeof AppLiveSessionIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/lab/$projectId': {
       id: '/_app/lab/$projectId'
       path: '/lab/$projectId'
@@ -507,6 +526,7 @@ interface AppRouteChildren {
   AppCirclesNewRoute: typeof AppCirclesNewRoute
   AppInviteTokenRoute: typeof AppInviteTokenRoute
   AppLabProjectIdRoute: typeof AppLabProjectIdRoute
+  AppLiveSessionIdRoute: typeof AppLiveSessionIdRoute
   AppOnboardingTenantRoute: typeof AppOnboardingTenantRoute
   AppProfileUserIdRoute: typeof AppProfileUserIdRoute
   AppCirclesIndexRoute: typeof AppCirclesIndexRoute
@@ -528,6 +548,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCirclesNewRoute: AppCirclesNewRoute,
   AppInviteTokenRoute: AppInviteTokenRoute,
   AppLabProjectIdRoute: AppLabProjectIdRoute,
+  AppLiveSessionIdRoute: AppLiveSessionIdRoute,
   AppOnboardingTenantRoute: AppOnboardingTenantRoute,
   AppProfileUserIdRoute: AppProfileUserIdRoute,
   AppCirclesIndexRoute: AppCirclesIndexRoute,

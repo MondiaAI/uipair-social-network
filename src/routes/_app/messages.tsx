@@ -6,8 +6,9 @@ import { useAuth } from "@/lib/auth-context";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2, ArrowLeft, MessageSquarePlus, Eye, EyeOff, Download } from "lucide-react";
+import { Send, MessageSquare, Paperclip, Smile, X, FileText, Image as ImageIcon, Bell, BellOff, CheckCheck, ShieldCheck, ShieldAlert, ShieldQuestion, Pencil, Trash2, ArrowLeft, MessageSquarePlus, Eye, EyeOff, Download, Video } from "lucide-react";
 import { NewChatDialog } from "@/components/peerly/NewChatDialog";
+import { VideoCallDialog } from "@/components/peerly/VideoCallDialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -202,6 +203,7 @@ function MessagesPage() {
 
   const [muted, setMuted] = useState<Record<string, boolean>>({});
   const [newChatOpen, setNewChatOpen] = useState(false);
+  const [videoCallOpen, setVideoCallOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState("");
   const [keypair, setKeypair] = useState<KeyPair | null>(null);
@@ -1013,6 +1015,16 @@ function MessagesPage() {
                 type="button"
                 size="icon"
                 variant="ghost"
+                onClick={() => setVideoCallOpen(true)}
+                title="Start video call"
+                aria-label="Start video call"
+              >
+                <Video className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
                 onClick={() => setChatSearchOpen((v) => !v)}
                 title={chatSearchOpen ? "Close search" : "Search messages"}
                 aria-label={chatSearchOpen ? "Close search" : "Search messages"}
@@ -1415,6 +1427,15 @@ function MessagesPage() {
         )}
       </section>
       <NewChatDialog open={newChatOpen} onOpenChange={setNewChatOpen} />
+      {active && (
+        <VideoCallDialog
+          open={videoCallOpen}
+          onOpenChange={setVideoCallOpen}
+          roomName={`uipair-chat-${active.id}`}
+          displayName={user?.email ?? "Student"}
+          title={`Call with ${active.other?.full_name || active.other?.username || "Student"}`}
+        />
+      )}
       <Dialog open={!!lightbox} onOpenChange={(o) => { if (!o) setLightbox(null); }}>
         <DialogContent className="max-w-3xl p-0 bg-transparent border-0 shadow-none">
           {lightbox && (
