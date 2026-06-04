@@ -22,6 +22,8 @@ interface CourseVideoRow {
   size_bytes: number | null;
   duration_seconds: number | null;
   created_at: string;
+  is_visible: boolean;
+  source_session_id: string | null;
   signedUrl?: string;
 }
 
