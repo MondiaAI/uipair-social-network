@@ -18,6 +18,7 @@ import { ROLE_CHIP, ROLE_LABEL, type ProjectRole } from "@/lib/project-meta";
 import { subjectChipClass } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 import { ProjectWorkspace } from "@/components/peerly/ProjectWorkspace";
+import { ProjectCoursesPanel, ProjectLivePanel } from "@/components/peerly/ProjectCoursesPanel";
 
 export const Route = createFileRoute("/_app/lab/$projectId")({
   component: ProjectDetailPage,
@@ -476,11 +477,13 @@ function ProjectDetailPage() {
       )}
 
       <Tabs defaultValue={isMember ? "workspace" : "members"}>
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           {isMember && <TabsTrigger value="workspace">Workspace</TabsTrigger>}
           {isMember && <TabsTrigger value="activity">Activity</TabsTrigger>}
           {isMember && <TabsTrigger value="tasks">Tasks</TabsTrigger>}
           {isMember && <TabsTrigger value="files">Files</TabsTrigger>}
+          {isMember && <TabsTrigger value="courses">Courses</TabsTrigger>}
+          {isMember && <TabsTrigger value="live">Live</TabsTrigger>}
           <TabsTrigger value="discussion">Discussion</TabsTrigger>
           <TabsTrigger value="members">Members</TabsTrigger>
         </TabsList>
