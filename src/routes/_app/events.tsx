@@ -55,7 +55,7 @@ function EventsPage() {
   const { user, profile } = useAuth();
   const dataLight = useDataLight();
   const [events, setEvents] = useState<CampusEvent[]>([]);
-  const [rsvpIds, setRsvpIds] = useState<Set<string>>(new Set());
+  const [myStatusByEvent, setMyStatusByEvent] = useState<Record<string, "yes" | "no" | "maybe">>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
@@ -77,9 +77,13 @@ function EventsPage() {
     if (user) {
       const { data: rsvps } = await supabase
         .from("event_rsvps")
-        .select("event_id")
+        .select("event_id, status")
         .eq("user_id", user.id);
-      setRsvpIds(new Set((rsvps ?? []).map((r) => r.event_id)));
+      const map: Record<string, "yes" | "no" | "maybe"> = {};
+      for (const r of rsvps ?? []) {
+        map[(r as { event_id: string }).event_id] = (r as { status: "yes" | "no" | "maybe" }).status;
+      }
+      setMyStatusByEvent(map);
     }
     setLoading(false);
   }, [profile?.university, user]);
@@ -88,29 +92,34 @@ function EventsPage() {
     load();
   }, [load]);
 
-  const toggleRsvp = async (ev: CampusEvent) => {
+  const quickYes = async (ev: CampusEvent) => {
     if (!user) return;
-    const going = rsvpIds.has(ev.id);
-    if (going) {
-      const next = new Set(rsvpIds);
-      next.delete(ev.id);
-      setRsvpIds(next);
-      setEvents((es) => es.map((e) => (e.id === ev.id ? { ...e, rsvp_count: Math.max(0, e.rsvp_count - 1) } : e)));
-      const { error } = await supabase.from("event_rsvps").delete().eq("event_id", ev.id).eq("user_id", user.id);
-      if (error) {
-        toast.error("Couldn't update RSVP");
-        load();
-      }
+    const current = myStatusByEvent[ev.id];
+    const isYes = current === "yes";
+    const next = { ...myStatusByEvent };
+    if (isYes) delete next[ev.id];
+    else next[ev.id] = "yes";
+    setMyStatusByEvent(next);
+    setEvents((es) => es.map((e) => {
+      if (e.id !== ev.id) return e;
+      const delta = isYes ? -1 : current ? (current === "yes" ? -1 : 1) : 1;
+      // simpler: recompute via current vs next
+      const wasYes = current === "yes";
+      const willYes = !isYes;
+      const d = (willYes ? 1 : 0) - (wasYes ? 1 : 0);
+      return { ...e, rsvp_count: Math.max(0, e.rsvp_count + d) };
+    }));
+    let error: any = null;
+    if (isYes) {
+      ({ error } = await supabase.from("event_rsvps").delete().eq("event_id", ev.id).eq("user_id", user.id));
     } else {
-      const next = new Set(rsvpIds);
-      next.add(ev.id);
-      setRsvpIds(next);
-      setEvents((es) => es.map((e) => (e.id === ev.id ? { ...e, rsvp_count: e.rsvp_count + 1 } : e)));
-      const { error } = await supabase.from("event_rsvps").insert({ event_id: ev.id, user_id: user.id });
-      if (error) {
-        toast.error("Couldn't RSVP");
-        load();
-      }
+      ({ error } = await supabase
+        .from("event_rsvps")
+        .upsert({ event_id: ev.id, user_id: user.id, status: "yes" }, { onConflict: "event_id,user_id" }));
+    }
+    if (error) {
+      toast.error("Couldn't update RSVP");
+      load();
     }
   };
 
