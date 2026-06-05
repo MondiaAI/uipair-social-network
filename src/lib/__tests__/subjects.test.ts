@@ -41,7 +41,7 @@ describe("normalizeSubject", () => {
   });
   it("keeps small connector words lowercase when not leading", () => {
     expect(normalizeSubject("history of art")).toBe("History of Art");
-    expect(normalizeSubject("of the people")).toBe("of the People");
+    expect(normalizeSubject("of the people")).toBe("Of the People");
   });
   it("handles slashes and hyphens by capitalizing each segment", () => {
     expect(normalizeSubject("ai/ml")).toBe("Ai/Ml");
