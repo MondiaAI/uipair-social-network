@@ -84,11 +84,31 @@ function AmbassadorPage() {
     toast.success("Application submitted!");
   };
 
+  const referralLink = app ? `${typeof window !== "undefined" ? window.location.origin : ""}/signup?ref=${app.referral_code}` : "";
+
   const copyLink = () => {
     if (!app) return;
-    const link = `${window.location.origin}/signup?ref=${app.referral_code}`;
-    navigator.clipboard.writeText(link);
+    navigator.clipboard.writeText(referralLink);
     toast.success("Referral link copied");
+  };
+
+  const shareLink = async () => {
+    if (!app) return;
+    const shareData = {
+      title: "Join me on UiPair",
+      text: "Join UiPair — the social network built for university students. Use my link to sign up:",
+      url: referralLink,
+    };
+    try {
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share(shareData);
+      } else {
+        await navigator.clipboard.writeText(referralLink);
+        toast.success("Referral link copied — share it anywhere!");
+      }
+    } catch {
+      /* user cancelled */
+    }
   };
 
   if (loading) return <div className="p-8 text-center text-muted-foreground">Loading…</div>;
