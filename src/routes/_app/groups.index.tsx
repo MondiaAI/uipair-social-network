@@ -395,7 +395,18 @@ function CreateGroupForm({
 
         <div>
           <Label>Type</Label>
-          <Select value={kind} onValueChange={(v) => { setKind(v as GroupKind); setErrors({}); setSuggestedYear(null); }}>
+          <Select value={kind} onValueChange={(v) => {
+            const next = v as GroupKind;
+            setKind(next);
+            setErrors({});
+            setSuggestedYear(null);
+            if (next === "alumni" && graduationYear) {
+              const base = name.replace(YEAR_SUFFIX_RE, "").trim();
+              setName(base ? `${base} (Class of ${graduationYear})` : `(Class of ${graduationYear})`);
+            } else if (next !== "alumni") {
+              setName(name.replace(YEAR_SUFFIX_RE, "").trim());
+            }
+          }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="study">📚 Study</SelectItem>
