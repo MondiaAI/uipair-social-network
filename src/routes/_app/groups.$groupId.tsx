@@ -25,6 +25,8 @@ type GroupMeta = {
   description: string | null;
   kind: string;
   creator_id: string;
+  university: string | null;
+  requires_approval: boolean;
 };
 
 type Member = {
@@ -65,7 +67,7 @@ function GroupChatPage() {
     (async () => {
       setLoading(true);
       const [{ data: g, error: gErr }, { data: mems }, { data: msgs }] = await Promise.all([
-        supabase.from("group_chats").select("id, name, description, kind, creator_id").eq("id", groupId).maybeSingle(),
+        supabase.from("group_chats").select("id, name, description, kind, creator_id, university, requires_approval").eq("id", groupId).maybeSingle(),
         supabase.from("group_chat_members").select("user_id, role").eq("group_id", groupId),
         supabase.from("group_chat_messages").select("id, group_id, sender_id, content, created_at").eq("group_id", groupId).order("created_at", { ascending: true }).limit(500),
       ]);
@@ -223,6 +225,32 @@ function GroupChatPage() {
           })()}
         </div>
       </div>
+
+      {group.kind === "alumni" && (
+        <div className="border-b bg-card">
+          {(() => {
+            const isAdmin = members.some((m) => m.user_id === user!.id && m.role === "admin");
+            return (
+              <>
+                {isAdmin && <AlumniJoinRequests groupId={group.id} onApproved={() => {
+                  // refresh members after approval
+                  supabase.from("group_chat_members").select("user_id, role").eq("group_id", group.id).then(async ({ data: mems }) => {
+                    const ids = (mems ?? []).map((m: any) => m.user_id);
+                    const { data: profs } = ids.length
+                      ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids)
+                      : { data: [] as any };
+                    const pm = new Map<string, any>((profs ?? []).map((p: any) => [p.id, p]));
+                    setMembers((mems ?? []).map((m: any) => ({ user_id: m.user_id, role: m.role, profile: pm.get(m.user_id) ?? null })));
+                  });
+                }} />}
+                <AlumniFeed university={group.university} />
+              </>
+            );
+          })()}
+        </div>
+      )}
+
+
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/20">
         {messages.length === 0 ? (
@@ -530,5 +558,127 @@ function EditGroupPanel({ group, onSaved }: { group: GroupMeta; onSaved: (g: Gro
         </Button>
       </div>
     </>
+  );
+}
+
+function AlumniJoinRequests({ groupId, onApproved }: { groupId: string; onApproved: () => void }) {
+  type Req = { id: string; user_id: string; message: string | null; created_at: string; profile: { full_name: string | null; username: string | null; avatar_url: string | null } | null };
+  const [reqs, setReqs] = useState<Req[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const load = async () => {
+    const { data } = await supabase
+      .from("group_chat_join_requests")
+      .select("id, user_id, message, created_at")
+      .eq("group_id", groupId)
+      .eq("status", "pending")
+      .order("created_at", { ascending: true });
+    const list = (data ?? []) as any[];
+    const ids = list.map((r) => r.user_id);
+    const { data: profs } = ids.length
+      ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids)
+      : { data: [] as any };
+    const map = new Map<string, any>((profs ?? []).map((p: any) => [p.id, p]));
+    setReqs(list.map((r) => ({ ...r, profile: map.get(r.user_id) ?? null })));
+  };
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [groupId]);
+
+  const decide = async (id: string, approve: boolean) => {
+    setBusy(id);
+    const { error } = await supabase.rpc(
+      approve ? "approve_group_join_request" : "decline_group_join_request",
+      { _request_id: id },
+    );
+    setBusy(null);
+    if (error) return toast.error(error.message);
+    toast.success(approve ? "Approved" : "Declined");
+    setReqs((prev) => prev.filter((r) => r.id !== id));
+    if (approve) onApproved();
+  };
+
+  if (reqs.length === 0) return null;
+
+  return (
+    <div className="p-3 border-b">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+        Join requests ({reqs.length})
+      </p>
+      <div className="space-y-2">
+        {reqs.map((r) => (
+          <div key={r.id} className="flex items-center gap-2 rounded-lg border bg-card p-2">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={r.profile?.avatar_url ?? undefined} />
+              <AvatarFallback>{(r.profile?.full_name ?? r.profile?.username ?? "?").slice(0, 1)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{r.profile?.full_name ?? r.profile?.username ?? "Unknown"}</p>
+              {r.message && <p className="text-xs text-muted-foreground line-clamp-1">{r.message}</p>}
+            </div>
+            <Button size="sm" disabled={busy === r.id} onClick={() => decide(r.id, true)}>Approve</Button>
+            <Button size="sm" variant="ghost" disabled={busy === r.id} onClick={() => decide(r.id, false)}>Decline</Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AlumniFeed({ university }: { university: string | null }) {
+  type Post = { id: string; user_id: string; content: string; created_at: string; profile: { full_name: string | null; username: string | null; avatar_url: string | null } | null };
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!university) { setLoading(false); return; }
+    (async () => {
+      const { data } = await supabase
+        .from("posts")
+        .select("id, user_id, content, created_at")
+        .eq("university", university)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      const list = (data ?? []) as any[];
+      const ids = Array.from(new Set(list.map((p) => p.user_id)));
+      const { data: profs } = ids.length
+        ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids)
+        : { data: [] as any };
+      const map = new Map<string, any>((profs ?? []).map((p: any) => [p.id, p]));
+      setPosts(list.map((p) => ({ ...p, profile: map.get(p.user_id) ?? null })));
+      setLoading(false);
+    })();
+  }, [university]);
+
+  if (!university) return null;
+
+  return (
+    <details className="p-3 border-b" open>
+      <summary className="text-xs font-semibold uppercase tracking-wide text-muted-foreground cursor-pointer select-none">
+        {university} alumni feed
+      </summary>
+      <div className="mt-2 space-y-2 max-h-72 overflow-y-auto">
+        {loading ? (
+          <p className="text-xs text-muted-foreground">Loading…</p>
+        ) : posts.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No alumni posts yet from {university}.</p>
+        ) : (
+          posts.map((p) => (
+            <div key={p.id} className="rounded-lg border bg-card p-2">
+              <div className="flex items-center gap-2 mb-1">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={p.profile?.avatar_url ?? undefined} />
+                  <AvatarFallback>{(p.profile?.full_name ?? "?").slice(0, 1)}</AvatarFallback>
+                </Avatar>
+                <p className="text-xs font-medium truncate">{p.profile?.full_name ?? p.profile?.username ?? "Member"}</p>
+                <p className="text-[10px] text-muted-foreground ml-auto">
+                  {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}
+                </p>
+              </div>
+              <p className="text-sm whitespace-pre-wrap line-clamp-3">{p.content}</p>
+            </div>
+          ))
+        )}
+      </div>
+    </details>
   );
 }
