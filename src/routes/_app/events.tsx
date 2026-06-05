@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Calendar, MapPin, Users as UsersIcon, Plus, Loader2, CheckCircle2, AlertCircle, RefreshCw, X } from "lucide-react";
+import { Calendar, MapPin, Users as UsersIcon, Plus, Loader2, CheckCircle2, AlertCircle, RefreshCw, X, ImageOff } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useDataLight } from "@/lib/data-light";
 import { uploadToBucketDetailed } from "@/lib/storage";
