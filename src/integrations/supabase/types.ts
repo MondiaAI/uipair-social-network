@@ -1965,6 +1965,134 @@ export type Database = {
         }
         Relationships: []
       }
+      posting_submissions: {
+        Row: {
+          ad_budget_cents: number | null
+          ad_duration_days: number | null
+          apply_email: string | null
+          apply_url: string | null
+          benefits: string | null
+          company: string
+          company_logo_url: string | null
+          company_website: string | null
+          compensation: string | null
+          contact_email: string
+          contact_phone: string | null
+          created_at: string
+          deadline: string | null
+          description: string
+          duration_months: number | null
+          experience_level: string | null
+          id: string
+          is_paid: boolean
+          is_remote: boolean
+          kind: string
+          location: string | null
+          notes: string | null
+          published_posting_id: string | null
+          requirements: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          salary_currency: string | null
+          salary_max: number | null
+          salary_min: number | null
+          salary_period: string | null
+          status: string
+          stipend_amount: number | null
+          submitter_id: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          ad_budget_cents?: number | null
+          ad_duration_days?: number | null
+          apply_email?: string | null
+          apply_url?: string | null
+          benefits?: string | null
+          company: string
+          company_logo_url?: string | null
+          company_website?: string | null
+          compensation?: string | null
+          contact_email: string
+          contact_phone?: string | null
+          created_at?: string
+          deadline?: string | null
+          description: string
+          duration_months?: number | null
+          experience_level?: string | null
+          id?: string
+          is_paid?: boolean
+          is_remote?: boolean
+          kind: string
+          location?: string | null
+          notes?: string | null
+          published_posting_id?: string | null
+          requirements?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          salary_period?: string | null
+          status?: string
+          stipend_amount?: number | null
+          submitter_id: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          ad_budget_cents?: number | null
+          ad_duration_days?: number | null
+          apply_email?: string | null
+          apply_url?: string | null
+          benefits?: string | null
+          company?: string
+          company_logo_url?: string | null
+          company_website?: string | null
+          compensation?: string | null
+          contact_email?: string
+          contact_phone?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          duration_months?: number | null
+          experience_level?: string | null
+          id?: string
+          is_paid?: boolean
+          is_remote?: boolean
+          kind?: string
+          location?: string | null
+          notes?: string | null
+          published_posting_id?: string | null
+          requirements?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          salary_period?: string | null
+          status?: string
+          stipend_amount?: number | null
+          submitter_id?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posting_submissions_published_posting_id_fkey"
+            columns: ["published_posting_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           content: string
@@ -3000,6 +3128,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -3027,6 +3176,13 @@ export type Database = {
       ensure_alumni_circle: { Args: { _tenant: string }; Returns: string }
       has_active_circle_subscription: {
         Args: { _circle_id: string; _environment?: string; _user_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
         Returns: boolean
       }
       increment_project_view: {
@@ -3064,6 +3220,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       bounty_status: "open" | "claimed" | "completed" | "cancelled"
       circle_member_role: "leader" | "moderator" | "member"
       circle_post_kind:
@@ -3252,6 +3409,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       bounty_status: ["open", "claimed", "completed", "cancelled"],
       circle_member_role: ["leader", "moderator", "member"],
       circle_post_kind: [
