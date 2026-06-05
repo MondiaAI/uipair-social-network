@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Search, Users, BookOpen, MessageSquare, FlaskConical, Briefcase, MoreHorizontal, Loader2, GraduationCap } from "lucide-react";
+import { Plus, Search, Users, BookOpen, MessageSquare, FlaskConical, Briefcase, MoreHorizontal, Loader2, GraduationCap, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
