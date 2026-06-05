@@ -276,12 +276,12 @@ function GroupChatPage() {
 
 function MembersPanel({
   groupId,
-  isCreator,
+  isAdmin,
   members,
   onChange,
 }: {
   groupId: string;
-  isCreator: boolean;
+  isAdmin: boolean;
   members: Member[];
   onChange: () => void;
 }) {
@@ -328,6 +328,13 @@ function MembersPanel({
     onChange();
   };
 
+  const setRole = async (uid: string, role: "admin" | "member") => {
+    const { error } = await supabase.from("group_chat_members").update({ role }).eq("group_id", groupId).eq("user_id", uid);
+    if (error) return toast.error(error.message);
+    toast.success(role === "admin" ? "Promoted to admin" : "Demoted to member");
+    onChange();
+  };
+
   return (
     <>
       <DialogHeader>
@@ -345,38 +352,181 @@ function MembersPanel({
                 <p className="text-sm font-medium truncate">{m.profile?.full_name ?? m.profile?.username ?? "Unknown"}</p>
                 <p className="text-xs text-muted-foreground capitalize">{m.role}</p>
               </div>
-              {isCreator && m.user_id !== user?.id && (
-                <Button size="sm" variant="ghost" onClick={() => removeMember(m.user_id)}>Remove</Button>
+              {isAdmin && m.user_id !== user?.id && (
+                <>
+                  {m.role === "admin" ? (
+                    <Button size="icon" variant="ghost" onClick={() => setRole(m.user_id, "member")} title="Demote"><ShieldOff className="h-4 w-4" /></Button>
+                  ) : (
+                    <Button size="icon" variant="ghost" onClick={() => setRole(m.user_id, "admin")} title="Make admin"><Shield className="h-4 w-4" /></Button>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => removeMember(m.user_id)}>Remove</Button>
+                </>
               )}
             </div>
           ))}
         </div>
 
-        <div className="border-t pt-3">
-          <p className="text-sm font-medium mb-2 flex items-center gap-1"><UserPlus className="h-4 w-4" /> Add from friends</p>
-          {friendIds.length === 0 ? (
-            <p className="text-xs text-muted-foreground">You have no friends yet. Connect with peers to invite them here.</p>
-          ) : friendList.length === 0 ? (
-            <p className="text-xs text-muted-foreground flex items-center gap-1"><Check className="h-3 w-3" /> All your friends are already in this group.</p>
-          ) : (
-            <div className="space-y-1">
-              {friendList.map((f: any) => (
-                <div key={f.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent/40">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={f.avatar_url ?? undefined} />
-                    <AvatarFallback>{(f.full_name ?? "?").slice(0, 1)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{f.full_name ?? f.username}</p>
+        {isAdmin && (
+          <div className="border-t pt-3">
+            <p className="text-sm font-medium mb-2 flex items-center gap-1"><UserPlus className="h-4 w-4" /> Add from friends</p>
+            {friendIds.length === 0 ? (
+              <p className="text-xs text-muted-foreground">You have no friends yet. Connect with peers to invite them here.</p>
+            ) : friendList.length === 0 ? (
+              <p className="text-xs text-muted-foreground flex items-center gap-1"><Check className="h-3 w-3" /> All your friends are already in this group.</p>
+            ) : (
+              <div className="space-y-1">
+                {friendList.map((f: any) => (
+                  <div key={f.id} className="flex items-center gap-2 p-2 rounded-lg hover:bg-accent/40">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={f.avatar_url ?? undefined} />
+                      <AvatarFallback>{(f.full_name ?? "?").slice(0, 1)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{f.full_name ?? f.username}</p>
+                    </div>
+                    <Button size="sm" onClick={() => addFriend(f.id)} disabled={adding === f.id}>
+                      {adding === f.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Add"}
+                    </Button>
                   </div>
-                  <Button size="sm" onClick={() => addFriend(f.id)} disabled={adding === f.id}>
-                    {adding === f.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Add"}
-                  </Button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {!isAdmin && (
+          <p className="text-xs text-muted-foreground border-t pt-3">Only admins can add or remove members. Ask an admin for an invite link.</p>
+        )}
+      </div>
+    </>
+  );
+}
+
+function InvitePanel({ groupId, tenantId, userId }: { groupId: string; tenantId: string | null; userId: string }) {
+  const [invites, setInvites] = useState<Array<{ id: string; token: string; is_active: boolean; use_count: number; max_uses: number | null; expires_at: string | null }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("group_chat_invites")
+      .select("id, token, is_active, use_count, max_uses, expires_at")
+      .eq("group_id", groupId)
+      .order("created_at", { ascending: false });
+    setInvites((data ?? []) as any);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [groupId]);
+
+  const createInvite = async () => {
+    if (!tenantId) return toast.error("Set your university first");
+    setCreating(true);
+    const { error } = await supabase.from("group_chat_invites").insert({ group_id: groupId, tenant_id: tenantId, created_by: userId });
+    setCreating(false);
+    if (error) return toast.error(error.message);
+    toast.success("Invite link created");
+    load();
+  };
+
+  const revoke = async (id: string) => {
+    const { error } = await supabase.from("group_chat_invites").update({ is_active: false }).eq("id", id);
+    if (error) return toast.error(error.message);
+    load();
+  };
+
+  const copy = async (token: string) => {
+    const url = `${window.location.origin}/groups/invite/${token}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Invite link copied");
+    } catch {
+      toast.error("Couldn't copy. Long-press to copy: " + url);
+    }
+  };
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Share invite links</DialogTitle>
+      </DialogHeader>
+      <div className="space-y-3">
+        <Button onClick={createInvite} disabled={creating} className="w-full">
+          {creating ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Share2 className="h-4 w-4 mr-1" />}
+          Create new invite link
+        </Button>
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : invites.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No invite links yet. Create one to share.</p>
+        ) : (
+          <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+            {invites.map((inv) => {
+              const url = `${window.location.origin}/groups/invite/${inv.token}`;
+              return (
+                <div key={inv.id} className="border rounded-lg p-2">
+                  <div className="flex items-center gap-2">
+                    <Input readOnly value={url} className="text-xs font-mono" />
+                    <Button size="icon" variant="outline" onClick={() => copy(inv.token)} disabled={!inv.is_active}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                    <span>
+                      {inv.is_active ? "Active" : "Revoked"} · used {inv.use_count}
+                      {inv.max_uses ? `/${inv.max_uses}` : ""}
+                    </span>
+                    {inv.is_active && (
+                      <Button size="sm" variant="ghost" onClick={() => revoke(inv.id)}>Revoke</Button>
+                    )}
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function EditGroupPanel({ group, onSaved }: { group: GroupMeta; onSaved: (g: GroupMeta) => void }) {
+  const [name, setName] = useState(group.name);
+  const [description, setDescription] = useState(group.description ?? "");
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    if (!name.trim()) return toast.error("Name is required");
+    setSaving(true);
+    const { data, error } = await supabase
+      .from("group_chats")
+      .update({ name: name.trim(), description: description.trim() || null })
+      .eq("id", group.id)
+      .select("id, name, description, kind, creator_id")
+      .maybeSingle();
+    setSaving(false);
+    if (error) return toast.error(error.message);
+    if (data) onSaved(data as GroupMeta);
+    toast.success("Group updated");
+  };
+
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>Group settings</DialogTitle>
+      </DialogHeader>
+      <div className="space-y-3">
+        <div>
+          <Label>Name</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} />
         </div>
+        <div>
+          <Label>Description</Label>
+          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} />
+        </div>
+        <Button onClick={save} disabled={saving} className="w-full">
+          {saving && <Loader2 className="h-4 w-4 animate-spin mr-1" />} Save changes
+        </Button>
       </div>
     </>
   );
