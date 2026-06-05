@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Megaphone, Pin, PinOff, Trash2, Loader2, Pencil, X, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Linkify } from "./Linkify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
