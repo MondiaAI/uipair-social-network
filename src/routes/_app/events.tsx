@@ -181,13 +181,13 @@ function EventsPage() {
 
 function EventCard({
   event,
-  going,
-  onToggleRsvp,
+  myStatus,
+  onQuickYes,
   dataLight,
 }: {
   event: CampusEvent;
-  going: boolean;
-  onToggleRsvp: () => void;
+  myStatus: "yes" | "no" | "maybe" | null;
+  onQuickYes: () => void;
   dataLight: boolean;
 }) {
   const start = new Date(event.starts_at);
@@ -198,17 +198,22 @@ function EventCard({
     hour: "numeric",
     minute: "2-digit",
   });
+  const isYes = myStatus === "yes";
   return (
     <article className="rounded-2xl border bg-card overflow-hidden">
       {event.cover_url && !dataLight && (
-        <img src={event.cover_url} alt="" className="h-40 w-full object-cover" loading="lazy" />
+        <Link to="/events/$eventId" params={{ eventId: event.id }} className="block">
+          <img src={event.cover_url} alt="" className="h-40 w-full object-cover" loading="lazy" />
+        </Link>
       )}
       <div className="p-4 space-y-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="rounded-full bg-muted px-2 py-0.5">{categoryLabel(event.category)}</span>
         </div>
-        <h2 className="text-lg font-semibold leading-tight">{event.title}</h2>
-        {event.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{event.description}</p>}
+        <Link to="/events/$eventId" params={{ eventId: event.id }} className="block group">
+          <h2 className="text-lg font-semibold leading-tight group-hover:underline">{event.title}</h2>
+        </Link>
+        {event.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-3">{event.description}</p>}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground pt-1">
           <span className="inline-flex items-center gap-1.5">
             <Calendar className="h-4 w-4" /> {dateStr}
@@ -222,9 +227,12 @@ function EventCard({
             <UsersIcon className="h-4 w-4" /> {event.rsvp_count} going
           </span>
         </div>
-        <div className="pt-2">
-          <Button variant={going ? "secondary" : "default"} size="sm" onClick={onToggleRsvp}>
-            {going ? "Going ✓" : "RSVP"}
+        <div className="pt-2 flex items-center gap-2">
+          <Button variant={isYes ? "secondary" : "default"} size="sm" onClick={onQuickYes}>
+            {isYes ? "Going ✓" : myStatus === "maybe" ? "Maybe · Tap to go" : myStatus === "no" ? "Not going · Tap to go" : "RSVP yes"}
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/events/$eventId" params={{ eventId: event.id }}>Details</Link>
           </Button>
         </div>
       </div>
