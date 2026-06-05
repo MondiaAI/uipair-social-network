@@ -528,7 +528,7 @@ function CommentRow({ comment, isOwner, onUpdated, onDeleted }: CommentRowProps)
             </div>
           </div>
         ) : (
-          <div className="text-sm whitespace-pre-wrap break-words">{comment.content}</div>
+          <div className="text-sm whitespace-pre-wrap break-words">{renderContentWithLinks(comment.content, navigate)}</div>
         )}
       </div>
     </div>
