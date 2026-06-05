@@ -192,7 +192,32 @@ function JobDetailsPage() {
           )}
           <span>{job.is_paid ? "Paid" : "Unpaid"}</span>
         </div>
-...
+
+        <div className="flex flex-wrap gap-2">
+          {!isPremium ? (
+            <Button onClick={() => setShowUpgrade(true)} className="gap-2">
+              <Lock className="h-4 w-4" /> Premium — Unlock Apply
+            </Button>
+          ) : (
+            <>
+              <Button onClick={() => setShowApply(true)} disabled={isApplied} className="gap-2">
+                {isApplied ? <><BookmarkCheck className="h-4 w-4" /> Applied</> : <><Send className="h-4 w-4" /> Apply</>}
+              </Button>
+              <Button variant="outline" onClick={saveJob} className="gap-2">
+                {isSaved ? <><BookmarkCheck className="h-4 w-4" /> Saved</> : <><Bookmark className="h-4 w-4" /> Save</>}
+              </Button>
+              {job.apply_url && (
+                <Button asChild variant="ghost" className="gap-2">
+                  <a href={job.apply_url} target="_blank" rel="noopener noreferrer">
+                    External link <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              )}
+            </>
+          )}
+        </div>
+      </Card>
+
       <Card className="p-6">
         <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">At a glance</h2>
         <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
