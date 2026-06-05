@@ -9,9 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard";
-import { SUBJECTS } from "@/lib/subjects";
+import { SUBJECTS, addCustomSubject, normalizeSubject, subjectLabel } from "@/lib/subjects";
 import { useAllSubjects } from "@/lib/use-all-subjects";
-import { addCustomSubject } from "@/lib/subjects";
 import { DegreeFilterBar, matchesDegree, useSharedDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
 import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { cn } from "@/lib/utils";
@@ -51,7 +50,7 @@ function DiscoverCirclesPage() {
     setLoading(true);
     const { data: rows } = await supabase
       .from("circles")
-      .select("id,name,subject,description,scope,is_premium,price_monthly,member_count,leader_id,university")
+      .select("id,name,subject,custom_subject,description,scope,is_premium,price_monthly,member_count,leader_id,university")
       .order("member_count", { ascending: false });
 
     const leaderIds = Array.from(new Set((rows ?? []).map((r) => r.leader_id)));
@@ -64,6 +63,7 @@ function DiscoverCirclesPage() {
       id: r.id,
       name: r.name,
       subject: r.subject,
+      custom_subject: r.custom_subject,
       description: r.description,
       scope: r.scope as "campus" | "global",
       is_premium: r.is_premium,
@@ -134,19 +134,25 @@ function DiscoverCirclesPage() {
   };
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = normalizeSubject(search).toLowerCase();
+    const filterNorm = normalizeSubject(subjectFilter).toLowerCase();
+    const customNorm = normalizeSubject(customSubject).toLowerCase();
     return circles.filter((c) => {
-      if (subjectFilter !== "all" && subjectFilter !== "Other" && c.subject !== subjectFilter) return false;
-      if (subjectFilter === "Other" && customSubject.trim()) {
-        if (!c.subject.toLowerCase().includes(customSubject.trim().toLowerCase())) return false;
+      const displayed = subjectLabel(c.subject, c.custom_subject);
+      const displayedNorm = normalizeSubject(displayed).toLowerCase();
+      if (subjectFilter !== "all" && subjectFilter !== "Other" && displayedNorm !== filterNorm) return false;
+      if (subjectFilter === "Other" && customNorm) {
+        if (!displayedNorm.includes(customNorm)) return false;
       }
-      if (!matchesDegree(c.subject, degree)) return false;
+      if (!matchesDegree(displayed, degree)) return false;
       if (tier === "free" && c.is_premium) return false;
       if (tier === "premium" && !c.is_premium) return false;
       if (scope !== "all" && c.scope !== scope) return false;
       if (scope === "campus" && campusOnlyMine && userUniversity && c.university && normalizeLocation(c.university) !== userUniversity) return false;
       if (!q) return true;
-      return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q) || c.subject.toLowerCase().includes(q);
+      return c.name.toLowerCase().includes(q)
+        || (c.description ?? "").toLowerCase().includes(q)
+        || displayedNorm.includes(q);
     });
   }, [circles, search, subjectFilter, customSubject, degree, tier, scope, campusOnlyMine, userUniversity]);
 

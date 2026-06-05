@@ -12,9 +12,8 @@ import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard"
 
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
 import { AlumniCommunityCard } from "@/components/peerly/AlumniCommunityCard";
-import { SUBJECTS } from "@/lib/subjects";
+import { SUBJECTS, addCustomSubject, normalizeSubject, subjectLabel } from "@/lib/subjects";
 import { useAllSubjects } from "@/lib/use-all-subjects";
-import { addCustomSubject } from "@/lib/subjects";
 import { DegreeFilterBar, matchesDegree, useSharedDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
 import { CustomSubjectFilter, useCustomSubject } from "@/components/peerly/CustomSubjectFilter";
 import { toast } from "sonner";
@@ -158,13 +157,17 @@ function CirclesPage() {
   const myCircles = useMemo(() => circles.filter((c) => memberships.has(c.id)), [circles, memberships]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = normalizeSubject(search).toLowerCase();
+    const filterNorm = normalizeSubject(subjectFilter).toLowerCase();
+    const customNorm = normalizeSubject(customSubject).toLowerCase();
     return circles.filter((c) => {
-      if (subjectFilter !== "all" && subjectFilter !== "Other" && c.subject !== subjectFilter) return false;
-      if (subjectFilter === "Other" && customSubject.trim()) {
-        if (!c.subject.toLowerCase().includes(customSubject.trim().toLowerCase())) return false;
+      const displayed = subjectLabel(c.subject, c.custom_subject);
+      const displayedNorm = normalizeSubject(displayed).toLowerCase();
+      if (subjectFilter !== "all" && subjectFilter !== "Other" && displayedNorm !== filterNorm) return false;
+      if (subjectFilter === "Other" && customNorm) {
+        if (!displayedNorm.includes(customNorm)) return false;
       }
-      if (!matchesDegree(c.subject, degree)) return false;
+      if (!matchesDegree(displayed, degree)) return false;
       if (mode === "campus") {
         if (c.scope !== "campus") return false;
         if (userUniversity && c.university && normalizeLocation(c.university) !== userUniversity) return false;
@@ -172,7 +175,9 @@ function CirclesPage() {
         if (c.scope !== "global") return false;
       }
       if (!q) return true;
-      return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q);
+      return c.name.toLowerCase().includes(q)
+        || (c.description ?? "").toLowerCase().includes(q)
+        || displayedNorm.includes(q);
     });
   }, [circles, search, subjectFilter, customSubject, degree, mode, userUniversity]);
 
