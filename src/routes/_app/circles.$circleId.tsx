@@ -16,6 +16,7 @@ import { CircleCreatorPanel } from "@/components/peerly/CircleCreatorPanel";
 import { CircleAnnouncements } from "@/components/peerly/CircleAnnouncements";
 import { LogOut } from "lucide-react";
 import { subjectChipClass } from "@/lib/subjects";
+import { Linkify } from "@/components/peerly/Linkify";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
@@ -356,7 +357,7 @@ function CircleDetailPage() {
           ) : null}
         </div>
 
-        {circle.description && <p className="text-sm text-muted-foreground mb-3">{circle.description}</p>}
+        {circle.description && <p className="text-sm text-muted-foreground mb-3 whitespace-pre-wrap"><Linkify text={circle.description} /></p>}
 
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {circle.member_count} members</div>
@@ -496,7 +497,7 @@ function CircleDetailPage() {
                   <Badge variant="outline" className={cn("text-[10px]", kind.cls)}>{kind.label}</Badge>
                   <span className="text-xs text-muted-foreground">· {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}</span>
                 </div>
-                <p className="text-sm whitespace-pre-wrap">{p.content}</p>
+                <p className="text-sm whitespace-pre-wrap"><Linkify text={p.content} /></p>
 
                 {(cmts.length > 0 || isMember) && (
                   <div className="mt-3 pt-3 border-t space-y-2">
@@ -509,7 +510,7 @@ function CircleDetailPage() {
                           <Avatar className="h-6 w-6"><AvatarImage src={ca?.avatar_url ?? undefined} /><AvatarFallback className="text-[10px]">{cinit}</AvatarFallback></Avatar>
                           <div className="flex-1 rounded-md bg-muted/50 px-2.5 py-1.5">
                             <p className="text-xs"><span className="font-medium">{cname}</span> <span className="text-muted-foreground">· {formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}</span></p>
-                            <p className="text-sm whitespace-pre-wrap">{c.content}</p>
+                            <p className="text-sm whitespace-pre-wrap"><Linkify text={c.content} /></p>
                           </div>
                         </div>
                       );
