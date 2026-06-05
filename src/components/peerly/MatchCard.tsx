@@ -141,7 +141,7 @@ export function MatchCard({ profile, score, edge, onNotAMatch }: Props) {
           )}
         </div>
         <div className="min-w-0 flex-1 pr-12">
-          <h3 className="truncate font-semibold">{name}</h3>
+          <h3 className="truncate font-semibold inline-flex items-center gap-1">{name}{profile.is_verified && <BadgeCheck className="h-4 w-4 text-emerald-500 shrink-0" aria-label="Verified student" />}</h3>
           <p className="truncate text-xs text-muted-foreground">
             {profile.university || "—"} {profile.year_of_study ? `· Year ${profile.year_of_study}` : ""}
           </p>
