@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageCircle, GraduationCap, UserPlus, Check, X, Clock, Handshake, ThumbsDown, User, Users } from "lucide-react";
+import { MessageCircle, GraduationCap, UserPlus, Check, X, Clock, Handshake, ThumbsDown, User, Users, BadgeCheck } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MatchScoreRing } from "./MatchScoreRing";
