@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "sonner";
 import { Calendar, MapPin, Users as UsersIcon, Plus } from "lucide-react";
 import { useDataLight } from "@/lib/data-light";
+import { uploadToBucketDetailed } from "@/lib/storage";
 
 export const Route = createFileRoute("/_app/events")({
   component: EventsPage,
