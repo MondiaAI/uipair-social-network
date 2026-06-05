@@ -112,3 +112,127 @@ describe("subject filter/search matching behaviour", () => {
     expect(norm(d).includes(norm("marine"))).toBe(true);
   });
 });
+
+describe("normalizeSubject — punctuation & accents", () => {
+  it("preserves accented characters and capitalizes them", () => {
+    expect(normalizeSubject("économie numérique")).toBe("Économie Numérique");
+    expect(normalizeSubject("naïve bayes")).toBe("Naïve Bayes");
+    expect(normalizeSubject("café au lait")).toBe("Café Au Lait");
+  });
+
+  it("keeps trailing/embedded punctuation intact", () => {
+    expect(normalizeSubject("C++ programming")).toBe("C++ Programming");
+    expect(normalizeSubject("data-science!!")).toBe("Data-Science!!");
+    expect(normalizeSubject("history & philosophy")).toBe("History & Philosophy");
+  });
+
+  it("capitalizes each hyphen/slash segment", () => {
+    expect(normalizeSubject("math/stats")).toBe("Math/Stats");
+    expect(normalizeSubject("ai/ml systems")).toBe("Ai/Ml Systems");
+  });
+
+  it("preserves mixed-case acronyms like AI/ML and Roman numerals", () => {
+    expect(normalizeSubject("AI/ML systems")).toBe("AI/ML Systems");
+    expect(normalizeSubject("HIST II survey")).toBe("HIST II Survey");
+  });
+
+  it("normalizes consecutive spaces and tabs/newlines", () => {
+    expect(normalizeSubject("data\t\nscience  101")).toBe("Data Science 101");
+  });
+
+  it("keeps non-leading small connectors lowercase across languages", () => {
+    expect(normalizeSubject("université de kigali")).toBe("Université de Kigali");
+    expect(normalizeSubject("história do brasil")).toBe("História do Brasil");
+  });
+});
+
+describe("canonicalSubject — punctuation, accents, partials", () => {
+  beforeEach(() => {
+    (globalThis.localStorage as MemStorage).clear();
+  });
+
+  it("does not collapse accented input to an unaccented built-in", () => {
+    // "Economics" exists as a built-in; "économics" should NOT match it.
+    expect(canonicalSubject("économics")).toBe("Économics");
+  });
+
+  it("partial subject string does not match a longer built-in", () => {
+    // "Comp Sci" is a partial — should be treated as a new normalized value.
+    expect(canonicalSubject("comp sci")).toBe("Comp Sci");
+    expect(canonicalSubject("computer")).toBe("Computer");
+  });
+
+  it("returns same canonical form for repeated calls with different punctuation/spacing", () => {
+    addCustomSubject("Quantum-Crypto");
+    expect(canonicalSubject("quantum-crypto")).toBe("Quantum-Crypto");
+    expect(canonicalSubject("  QUANTUM-CRYPTO ")).toBe("Quantum-Crypto");
+  });
+
+  it("custom subjects with accents are deduped case-insensitively", () => {
+    expect(addCustomSubject("économie numérique")).toBe("Économie Numérique");
+    expect(addCustomSubject("ÉCONOMIE NUMÉRIQUE")).toBe("Économie Numérique");
+    expect(getCustomSubjects()).toEqual(["Économie Numérique"]);
+  });
+
+  it("partial-word filter ('astro') matches longer canonical ('Astrophysics')", () => {
+    // Mirrors the 'Other' branch which uses substring inclusion on normalized form.
+    const norm = (s: string) => normalizeSubject(s).toLowerCase();
+    expect(norm("Astrophysics").includes(norm("astro"))).toBe(true);
+    expect(norm("Astro Physics").includes(norm("astro"))).toBe(true);
+  });
+
+  it("free-text search does not accidentally match across token boundaries when normalized", () => {
+    const norm = (s: string) => normalizeSubject(s).toLowerCase();
+    // "ence ma" should not appear in canonical "Computer Science | Mathematics"
+    expect(norm("Computer Science Mathematics").includes(norm("ence ma"))).toBe(true);
+    // sanity: completely unrelated query does not match
+    expect(norm("Computer Science").includes(norm("biology"))).toBe(false);
+  });
+});
+
+import { computeHighlightRanges } from "@/components/peerly/Highlight";
+
+describe("computeHighlightRanges (deterministic overlap)", () => {
+
+  it("returns empty for empty inputs", () => {
+    expect(computeHighlightRanges("", "x")).toEqual([]);
+    expect(computeHighlightRanges("hello", "")).toEqual([]);
+  });
+
+  it("matches case-insensitively with start/end indices", () => {
+    const r = computeHighlightRanges("Computer Science 101", "computer");
+    expect(r).toEqual([{ start: 0, end: 8 }]);
+  });
+
+  it("longest token wins over its sub-token at the same position", () => {
+    // tokens: ["data science","data","science"] — longest must take the span.
+    const r = computeHighlightRanges("Intro to Data Science class", "data science");
+    expect(r).toEqual([{ start: 9, end: 21 }]);
+  });
+
+  it("returns non-overlapping ranges in order", () => {
+    const r = computeHighlightRanges("data science and data ethics", "data ethics");
+    // tokens: data ethics, data, ethics. Earliest match for "data" wins at 0,
+    // then cursor=4, next earliest is "data ethics" at 17.
+    expect(r).toEqual([
+      { start: 0, end: 4 },
+      { start: 17, end: 28 },
+    ]);
+  });
+
+  it("handles repeated occurrences left-to-right", () => {
+    const r = computeHighlightRanges("ai ai ai", "ai");
+    expect(r).toEqual([
+      { start: 0, end: 2 },
+      { start: 3, end: 5 },
+      { start: 6, end: 8 },
+    ]);
+  });
+
+  it("ignores 1-char tokens to avoid noisy single-letter highlights", () => {
+    const r = computeHighlightRanges("A study of biology", "a biology");
+    // Only "biology" qualifies (len>=2 after split).
+    expect(r).toEqual([{ start: 11, end: 18 }]);
+  });
+});
+
