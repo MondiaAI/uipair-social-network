@@ -226,6 +226,32 @@ function GroupChatPage() {
         </div>
       </div>
 
+      {group.kind === "alumni" && (
+        <div className="border-b bg-card">
+          {(() => {
+            const isAdmin = members.some((m) => m.user_id === user!.id && m.role === "admin");
+            return (
+              <>
+                {isAdmin && <AlumniJoinRequests groupId={group.id} onApproved={() => {
+                  // refresh members after approval
+                  supabase.from("group_chat_members").select("user_id, role").eq("group_id", group.id).then(async ({ data: mems }) => {
+                    const ids = (mems ?? []).map((m: any) => m.user_id);
+                    const { data: profs } = ids.length
+                      ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids)
+                      : { data: [] as any };
+                    const pm = new Map<string, any>((profs ?? []).map((p: any) => [p.id, p]));
+                    setMembers((mems ?? []).map((m: any) => ({ user_id: m.user_id, role: m.role, profile: pm.get(m.user_id) ?? null })));
+                  });
+                }} />}
+                <AlumniFeed university={group.university} />
+              </>
+            );
+          })()}
+        </div>
+      )}
+
+
+
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/20">
         {messages.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-8">No messages yet. Say hi 👋</p>
