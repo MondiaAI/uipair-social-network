@@ -256,12 +256,13 @@ function CreateEventModal({
   const [location, setLocation] = useState("");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
+  const [agenda, setAgenda] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setTitle(""); setDescription(""); setCategory("other"); setLocation("");
-    setStartsAt(""); setEndsAt(""); setCoverFile(null);
+    setStartsAt(""); setEndsAt(""); setAgenda(""); setCoverFile(null);
   };
 
   const submit = async () => {
