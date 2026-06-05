@@ -1040,6 +1040,53 @@ export type Database = {
           },
         ]
       }
+      group_chat_invites: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          group_id: string
+          id: string
+          is_active: boolean
+          max_uses: number | null
+          tenant_id: string
+          token: string
+          use_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          group_id: string
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          tenant_id: string
+          token?: string
+          use_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          group_id?: string
+          id?: string
+          is_active?: boolean
+          max_uses?: number | null
+          tenant_id?: string
+          token?: string
+          use_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_chat_invites_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_chat_members: {
         Row: {
           group_id: string
@@ -2474,6 +2521,7 @@ export type Database = {
         Args: { _circle_id: string; _user_id: string }
         Returns: boolean
       }
+      is_group_admin: { Args: { _gid: string; _uid: string }; Returns: boolean }
       is_group_member: {
         Args: { _gid: string; _uid: string }
         Returns: boolean
@@ -2493,6 +2541,7 @@ export type Database = {
       join_public_project: { Args: { _project_id: string }; Returns: string }
       normalize_location: { Args: { input: string }; Returns: string }
       redeem_circle_invite: { Args: { _token: string }; Returns: string }
+      redeem_group_invite: { Args: { _token: string }; Returns: string }
       request_project_join: {
         Args: { _project_id: string }
         Returns: undefined

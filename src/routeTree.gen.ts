@@ -36,6 +36,7 @@ import { Route as AppGroupsGroupIdRouteImport } from './routes/_app/groups.$grou
 import { Route as AppCirclesNewRouteImport } from './routes/_app/circles.new'
 import { Route as AppCirclesDiscoverRouteImport } from './routes/_app/circles.discover'
 import { Route as AppCirclesCircleIdRouteImport } from './routes/_app/circles.$circleId'
+import { Route as AppGroupsInviteTokenRouteImport } from './routes/_app/groups.invite.$token'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -171,6 +172,11 @@ const AppCirclesCircleIdRoute = AppCirclesCircleIdRouteImport.update({
   path: '/circles/$circleId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppGroupsInviteTokenRoute = AppGroupsInviteTokenRouteImport.update({
+  id: '/groups/invite/$token',
+  path: '/groups/invite/$token',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/circles/': typeof AppCirclesIndexRoute
   '/groups/': typeof AppGroupsIndexRoute
   '/lab/': typeof AppLabIndexRoute
+  '/groups/invite/$token': typeof AppGroupsInviteTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByTo {
   '/circles': typeof AppCirclesIndexRoute
   '/groups': typeof AppGroupsIndexRoute
   '/lab': typeof AppLabIndexRoute
+  '/groups/invite/$token': typeof AppGroupsInviteTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -257,6 +265,7 @@ export interface FileRoutesById {
   '/_app/circles/': typeof AppCirclesIndexRoute
   '/_app/groups/': typeof AppGroupsIndexRoute
   '/_app/lab/': typeof AppLabIndexRoute
+  '/_app/groups/invite/$token': typeof AppGroupsInviteTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/circles/'
     | '/groups/'
     | '/lab/'
+    | '/groups/invite/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -315,6 +325,7 @@ export interface FileRouteTypes {
     | '/circles'
     | '/groups'
     | '/lab'
+    | '/groups/invite/$token'
   id:
     | '__root__'
     | '/'
@@ -344,6 +355,7 @@ export interface FileRouteTypes {
     | '/_app/circles/'
     | '/_app/groups/'
     | '/_app/lab/'
+    | '/_app/groups/invite/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -546,6 +558,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCirclesCircleIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/groups/invite/$token': {
+      id: '/_app/groups/invite/$token'
+      path: '/groups/invite/$token'
+      fullPath: '/groups/invite/$token'
+      preLoaderRoute: typeof AppGroupsInviteTokenRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -571,6 +590,7 @@ interface AppRouteChildren {
   AppCirclesIndexRoute: typeof AppCirclesIndexRoute
   AppGroupsIndexRoute: typeof AppGroupsIndexRoute
   AppLabIndexRoute: typeof AppLabIndexRoute
+  AppGroupsInviteTokenRoute: typeof AppGroupsInviteTokenRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -595,6 +615,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCirclesIndexRoute: AppCirclesIndexRoute,
   AppGroupsIndexRoute: AppGroupsIndexRoute,
   AppLabIndexRoute: AppLabIndexRoute,
+  AppGroupsInviteTokenRoute: AppGroupsInviteTokenRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
