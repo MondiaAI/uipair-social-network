@@ -242,7 +242,7 @@ function GroupChatPage() {
                   {!mine && (
                     <p className="text-[10px] font-medium opacity-70 mb-0.5">{p?.full_name ?? p?.username ?? "Unknown"}</p>
                   )}
-                  <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                  <p className="whitespace-pre-wrap break-words"><Linkify text={m.content} /></p>
                   <p className={`text-[10px] mt-1 ${mine ? "opacity-70" : "text-muted-foreground"}`}>
                     {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
                   </p>
