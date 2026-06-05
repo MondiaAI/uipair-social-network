@@ -39,8 +39,8 @@ const SUBJECT_CHAR = fc.oneof(
   { weight: 2, arbitrary: fc.constantFrom(..."àáâäãåéèêëíìîïóòôöõúùûüýñçÀÁÂÄÉÈÊËÍÎÏÓÔÖÚÛÜÑÇ") },
 );
 
-const SUBJECT_TEXT = fc.stringOf(SUBJECT_CHAR, { minLength: 0, maxLength: 40 });
-const NONEMPTY_SUBJECT_TEXT = SUBJECT_TEXT.filter((s) => s.replace(/\s+/g, "").length > 0);
+const SUBJECT_TEXT = fc.string({ unit: SUBJECT_CHAR, minLength: 0, maxLength: 40 });
+const NONEMPTY_SUBJECT_TEXT = SUBJECT_TEXT.filter((s: string) => s.replace(/\s+/g, "").length > 0);
 
 // ---------------- normalizeSubject invariants ----------------
 
