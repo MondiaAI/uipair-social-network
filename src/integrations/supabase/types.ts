@@ -1222,6 +1222,44 @@ export type Database = {
           },
         ]
       }
+      group_chat_join_requests: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          message: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          message?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          message?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_chat_join_requests_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "group_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_chat_members: {
         Row: {
           group_id: string
@@ -1316,7 +1354,9 @@ export type Database = {
           kind: string
           last_message_at: string
           name: string
+          requires_approval: boolean
           tenant_id: string
+          university: string | null
           updated_at: string
         }
         Insert: {
@@ -1327,7 +1367,9 @@ export type Database = {
           kind?: string
           last_message_at?: string
           name: string
+          requires_approval?: boolean
           tenant_id: string
+          university?: string | null
           updated_at?: string
         }
         Update: {
@@ -1338,7 +1380,9 @@ export type Database = {
           kind?: string
           last_message_at?: string
           name?: string
+          requires_approval?: boolean
           tenant_id?: string
+          university?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2704,6 +2748,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_group_join_request: {
+        Args: { _request_id: string }
+        Returns: undefined
+      }
       approve_project_join_request: {
         Args: { _request_id: string }
         Returns: undefined
@@ -2711,6 +2759,10 @@ export type Database = {
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       auto_verify_student: { Args: { _url: string }; Returns: undefined }
       current_tenant_id: { Args: never; Returns: string }
+      decline_group_join_request: {
+        Args: { _request_id: string }
+        Returns: undefined
+      }
       decline_project_join_request: {
         Args: { _request_id: string }
         Returns: undefined
