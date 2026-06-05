@@ -137,6 +137,7 @@ export type Database = {
       }
       campus_events: {
         Row: {
+          agenda: string | null
           category: string
           cover_url: string | null
           created_at: string
@@ -153,6 +154,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agenda?: string | null
           category?: string
           cover_url?: string | null
           created_at?: string
@@ -169,6 +171,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agenda?: string | null
           category?: string
           cover_url?: string | null
           created_at?: string
