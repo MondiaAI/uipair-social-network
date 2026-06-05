@@ -1455,6 +1455,104 @@ export type Database = {
           },
         ]
       }
+      job_applications: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          note: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          note?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          note?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_postings: {
+        Row: {
+          apply_email: string | null
+          apply_url: string | null
+          company: string
+          compensation: string | null
+          created_at: string
+          deadline: string | null
+          description: string
+          id: string
+          is_active: boolean
+          is_paid: boolean
+          is_remote: boolean
+          job_type: string
+          location: string | null
+          poster_id: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          apply_email?: string | null
+          apply_url?: string | null
+          company: string
+          compensation?: string | null
+          created_at?: string
+          deadline?: string | null
+          description: string
+          id?: string
+          is_active?: boolean
+          is_paid?: boolean
+          is_remote?: boolean
+          job_type: string
+          location?: string | null
+          poster_id: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          apply_email?: string | null
+          apply_url?: string | null
+          company?: string
+          compensation?: string | null
+          created_at?: string
+          deadline?: string | null
+          description?: string
+          id?: string
+          is_active?: boolean
+          is_paid?: boolean
+          is_remote?: boolean
+          job_type?: string
+          location?: string | null
+          poster_id?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       live_sessions: {
         Row: {
           circle_id: string | null

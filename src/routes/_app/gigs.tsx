@@ -14,6 +14,7 @@ import { BountyCard, type BountyCardData } from "@/components/peerly/BountyCard"
 import { PostGigModal } from "@/components/peerly/PostGigModal";
 import { PostBountyModal } from "@/components/peerly/PostBountyModal";
 import { GigDetailSheet } from "@/components/peerly/GigDetailSheet";
+import { JobsDashboard } from "@/components/peerly/JobsDashboard";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -156,8 +157,9 @@ function GigsPage() {
       </header>
 
       <Tabs defaultValue="find" className="space-y-6">
-        <TabsList className="grid w-full max-w-sm grid-cols-2">
+        <TabsList className="grid w-full max-w-md grid-cols-3">
           <TabsTrigger value="find">Find Gigs</TabsTrigger>
+          <TabsTrigger value="jobs">Jobs</TabsTrigger>
           <TabsTrigger value="mine">My Services</TabsTrigger>
         </TabsList>
 
@@ -228,6 +230,10 @@ function GigsPage() {
         </TabsContent>
 
         {/* ─── MY SERVICES ─── */}
+        <TabsContent value="jobs" className="space-y-6">
+          <JobsDashboard />
+        </TabsContent>
+
         <TabsContent value="mine" className="space-y-4">
           <Button onClick={() => setOpenGigModal(true)} className="gap-2">
             <Plus className="h-4 w-4" /> Create a Gig
