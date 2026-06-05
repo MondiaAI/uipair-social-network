@@ -17,14 +17,12 @@ class MemStorage {
   key(i: number) { return Array.from(this.m.keys())[i] ?? null; }
   get length() { return this.m.size; }
 }
-// @ts-expect-error inject into globalThis
-if (typeof globalThis.window === "undefined") globalThis.window = globalThis as never;
-// @ts-expect-error inject
-if (typeof globalThis.localStorage === "undefined") globalThis.localStorage = new MemStorage();
-// @ts-expect-error inject
-if (typeof globalThis.window.localStorage === "undefined") globalThis.window.localStorage = globalThis.localStorage;
-// @ts-expect-error inject
-if (typeof globalThis.window.dispatchEvent === "undefined") globalThis.window.dispatchEvent = () => true;
+const g = globalThis as unknown as { window?: unknown; localStorage?: unknown };
+if (typeof g.window === "undefined") g.window = g;
+if (typeof g.localStorage === "undefined") g.localStorage = new MemStorage();
+const w = g.window as { localStorage?: unknown; dispatchEvent?: unknown };
+if (typeof w.localStorage === "undefined") w.localStorage = g.localStorage;
+if (typeof w.dispatchEvent === "undefined") w.dispatchEvent = () => true;
 
 describe("normalizeSubject", () => {
   it("trims and collapses whitespace", () => {
