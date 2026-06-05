@@ -323,12 +323,11 @@ function CreateEventModal({
     setUploadState("idle"); setUploadProgress(0); setUploadError(null);
   };
 
-  const startUpload = useCallback(async (file: File) => {
+  const startUpload = useCallback(async (file: File, previousUrl: string | null) => {
     if (!user) return;
     setUploadState("uploading");
     setUploadProgress(8);
     setUploadError(null);
-    // Indeterminate-ish progress: tick toward 90% while the SDK upload runs.
     const tick = window.setInterval(() => {
       setUploadProgress((p) => (p < 90 ? p + Math.max(1, Math.round((90 - p) / 8)) : p));
     }, 200);
@@ -339,6 +338,9 @@ function CreateEventModal({
       setUploadState("error");
       setUploadError(error || "Upload failed");
       return;
+    }
+    if (previousUrl) {
+      await deleteCoverFile(previousUrl, "post-media");
     }
     setCoverUrl(url);
     setUploadProgress(100);
