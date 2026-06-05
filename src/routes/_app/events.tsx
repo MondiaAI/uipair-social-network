@@ -389,12 +389,67 @@ function CreateEventModal({
             <Label>Agenda (optional)</Label>
             <Textarea value={agenda} onChange={(e) => setAgenda(e.target.value)} rows={4} maxLength={5000} placeholder="6:00 PM — Doors open&#10;6:30 PM — Keynote&#10;7:30 PM — Networking" />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>Cover image (optional)</Label>
-            <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)} />
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+              disabled={uploadState === "uploading"}
+            />
+            {coverFile && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="truncate font-medium">{coverFile.name}</span>
+                  <button
+                    type="button"
+                    onClick={clearCover}
+                    className="text-muted-foreground hover:text-foreground"
+                    aria-label="Remove cover image"
+                    disabled={uploadState === "uploading"}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                {uploadState === "uploading" && (
+                  <>
+                    <Progress value={uploadProgress} className="h-1.5" />
+                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Uploading… {uploadProgress}%
+                    </p>
+                  </>
+                )}
+                {uploadState === "success" && (
+                  <p className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Upload complete
+                  </p>
+                )}
+                {uploadState === "error" && (
+                  <div className="space-y-1.5">
+                    <p className="flex items-start gap-1.5 text-xs text-destructive">
+                      <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                      <span>{uploadError ?? "Upload failed"}</span>
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => coverFile && startUpload(coverFile)}
+                      className="h-7 text-xs"
+                    >
+                      <RefreshCw className="h-3 w-3" /> Retry upload
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          <Button onClick={submit} disabled={submitting || !title.trim() || !startsAt} className="w-full">
-            {submitting ? "Posting…" : "Post event"}
+          <Button
+            onClick={submit}
+            disabled={submitting || !title.trim() || !startsAt || uploadState === "uploading"}
+            className="w-full"
+          >
+            {submitting ? "Posting…" : uploadState === "uploading" ? "Uploading cover…" : "Post event"}
           </Button>
         </div>
       </DialogContent>
