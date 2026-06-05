@@ -106,9 +106,11 @@ export function AppNav() {
   const moreItems: Tab[] = [
     { to: "/events", label: "Events", icon: CalendarDays },
     { to: "/match", label: "Match", icon: Zap },
+    { to: "/deep-work", label: "Deep Work", icon: Flame },
     { to: "/groups", label: "Groups", icon: Users },
     { to: "/lab", label: "The Lab", icon: FlaskConical },
     { to: "/gigs", label: "StudyGigs", icon: DollarSign },
+    { to: "/verify", label: "Get Verified", icon: ShieldCheck },
     { to: "/settings", label: "Settings", icon: SettingsIcon },
     { to: "/ambassador", label: "Earn as Ambassador", icon: Sparkles },
   ];
