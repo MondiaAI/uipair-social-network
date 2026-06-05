@@ -498,7 +498,7 @@ function CreateEventModal({
                       type="button"
                       size="sm"
                       variant="outline"
-                      onClick={() => coverFile && startUpload(coverFile)}
+                      onClick={() => coverFile && startUpload(coverFile, null)}
                       className="h-7 text-xs"
                     >
                       <RefreshCw className="h-3 w-3" /> Retry upload
