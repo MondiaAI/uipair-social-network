@@ -294,6 +294,7 @@ function CreateEventModal({
       location: location.trim() || null,
       starts_at: new Date(startsAt).toISOString(),
       ends_at: endsAt ? new Date(endsAt).toISOString() : null,
+      agenda: agenda.trim() || null,
       cover_url,
     });
     setSubmitting(false);
