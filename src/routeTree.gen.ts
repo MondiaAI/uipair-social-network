@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppVerifyRouteImport } from './routes/_app/verify'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppRequestsRouteImport } from './routes/_app/requests'
 import { Route as AppMessagesRouteImport } from './routes/_app/messages'
@@ -23,6 +24,7 @@ import { Route as AppJoinRouteImport } from './routes/_app/join'
 import { Route as AppGigsRouteImport } from './routes/_app/gigs'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
 import { Route as AppEventsRouteImport } from './routes/_app/events'
+import { Route as AppDeepWorkRouteImport } from './routes/_app/deep-work'
 import { Route as AppAmbassadorRouteImport } from './routes/_app/ambassador'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
 import { Route as AppLabIndexRouteImport } from './routes/_app/lab.index'
@@ -69,6 +71,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppVerifyRoute = AppVerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -107,6 +114,11 @@ const AppFeedRoute = AppFeedRouteImport.update({
 const AppEventsRoute = AppEventsRouteImport.update({
   id: '/events',
   path: '/events',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppDeepWorkRoute = AppDeepWorkRouteImport.update({
+  id: '/deep-work',
+  path: '/deep-work',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAmbassadorRoute = AppAmbassadorRouteImport.update({
@@ -198,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/admin': typeof AppAdminRoute
   '/ambassador': typeof AppAmbassadorRoute
+  '/deep-work': typeof AppDeepWorkRoute
   '/events': typeof AppEventsRouteWithChildren
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
@@ -206,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof AppMessagesRoute
   '/requests': typeof AppRequestsRoute
   '/settings': typeof AppSettingsRoute
+  '/verify': typeof AppVerifyRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
@@ -229,6 +243,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/admin': typeof AppAdminRoute
   '/ambassador': typeof AppAmbassadorRoute
+  '/deep-work': typeof AppDeepWorkRoute
   '/events': typeof AppEventsRouteWithChildren
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
@@ -237,6 +252,7 @@ export interface FileRoutesByTo {
   '/messages': typeof AppMessagesRoute
   '/requests': typeof AppRequestsRoute
   '/settings': typeof AppSettingsRoute
+  '/verify': typeof AppVerifyRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
@@ -262,6 +278,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_app/admin': typeof AppAdminRoute
   '/_app/ambassador': typeof AppAmbassadorRoute
+  '/_app/deep-work': typeof AppDeepWorkRoute
   '/_app/events': typeof AppEventsRouteWithChildren
   '/_app/feed': typeof AppFeedRoute
   '/_app/gigs': typeof AppGigsRoute
@@ -270,6 +287,7 @@ export interface FileRoutesById {
   '/_app/messages': typeof AppMessagesRoute
   '/_app/requests': typeof AppRequestsRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/verify': typeof AppVerifyRoute
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/_app/circles/discover': typeof AppCirclesDiscoverRoute
   '/_app/circles/new': typeof AppCirclesNewRoute
@@ -295,6 +313,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin'
     | '/ambassador'
+    | '/deep-work'
     | '/events'
     | '/feed'
     | '/gigs'
@@ -303,6 +322,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/requests'
     | '/settings'
+    | '/verify'
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
@@ -326,6 +346,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin'
     | '/ambassador'
+    | '/deep-work'
     | '/events'
     | '/feed'
     | '/gigs'
@@ -334,6 +355,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/requests'
     | '/settings'
+    | '/verify'
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
@@ -358,6 +380,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_app/admin'
     | '/_app/ambassador'
+    | '/_app/deep-work'
     | '/_app/events'
     | '/_app/feed'
     | '/_app/gigs'
@@ -366,6 +389,7 @@ export interface FileRouteTypes {
     | '/_app/messages'
     | '/_app/requests'
     | '/_app/settings'
+    | '/_app/verify'
     | '/_app/circles/$circleId'
     | '/_app/circles/discover'
     | '/_app/circles/new'
@@ -435,6 +459,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/verify': {
+      id: '/_app/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof AppVerifyRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
@@ -489,6 +520,13 @@ declare module '@tanstack/react-router' {
       path: '/events'
       fullPath: '/events'
       preLoaderRoute: typeof AppEventsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/deep-work': {
+      id: '/_app/deep-work'
+      path: '/deep-work'
+      fullPath: '/deep-work'
+      preLoaderRoute: typeof AppDeepWorkRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/ambassador': {
@@ -621,6 +659,7 @@ const AppEventsRouteWithChildren = AppEventsRoute._addFileChildren(
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppAmbassadorRoute: typeof AppAmbassadorRoute
+  AppDeepWorkRoute: typeof AppDeepWorkRoute
   AppEventsRoute: typeof AppEventsRouteWithChildren
   AppFeedRoute: typeof AppFeedRoute
   AppGigsRoute: typeof AppGigsRoute
@@ -629,6 +668,7 @@ interface AppRouteChildren {
   AppMessagesRoute: typeof AppMessagesRoute
   AppRequestsRoute: typeof AppRequestsRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppVerifyRoute: typeof AppVerifyRoute
   AppCirclesCircleIdRoute: typeof AppCirclesCircleIdRoute
   AppCirclesDiscoverRoute: typeof AppCirclesDiscoverRoute
   AppCirclesNewRoute: typeof AppCirclesNewRoute
@@ -647,6 +687,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppAmbassadorRoute: AppAmbassadorRoute,
+  AppDeepWorkRoute: AppDeepWorkRoute,
   AppEventsRoute: AppEventsRouteWithChildren,
   AppFeedRoute: AppFeedRoute,
   AppGigsRoute: AppGigsRoute,
@@ -655,6 +696,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMessagesRoute: AppMessagesRoute,
   AppRequestsRoute: AppRequestsRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppVerifyRoute: AppVerifyRoute,
   AppCirclesCircleIdRoute: AppCirclesCircleIdRoute,
   AppCirclesDiscoverRoute: AppCirclesDiscoverRoute,
   AppCirclesNewRoute: AppCirclesNewRoute,
@@ -683,12 +725,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

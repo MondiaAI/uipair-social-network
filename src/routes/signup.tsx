@@ -55,6 +55,16 @@ function SignupPage() {
   const [dobMonth, setDobMonth] = useState<string>("");
   const [dobYear, setDobYear] = useState<string>("");
 
+  // Capture ?ref=CODE referral once on mount; persist until signup completes.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref && /^[a-z0-9]{4,32}$/i.test(ref)) {
+      try { window.localStorage.setItem("uipair:ref", ref.toLowerCase()); } catch { /* ignore */ }
+    }
+  }, []);
+
   // Refs for jump-to-field on validation errors
   const universityRef = useRef<HTMLDivElement>(null);
   const countryRef = useRef<HTMLDivElement>(null);
@@ -244,6 +254,27 @@ function SignupPage() {
     const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
     setLoading(false);
     if (error) return toast.error(error.message);
+
+    // Record referral, if any
+    try {
+      const refCode = typeof window !== "undefined" ? window.localStorage.getItem("uipair:ref") : null;
+      if (refCode) {
+        const { data: app } = await supabase
+          .from("ambassador_applications")
+          .select("user_id")
+          .eq("referral_code", refCode)
+          .maybeSingle();
+        if (app && app.user_id && app.user_id !== user.id) {
+          await supabase.from("referrals").insert({
+            referrer_user_id: app.user_id,
+            referred_user_id: user.id,
+            referral_code: refCode,
+          });
+        }
+        window.localStorage.removeItem("uipair:ref");
+      }
+    } catch { /* best-effort */ }
+
     await refreshProfile();
     toast.success("Welcome to UiPair!");
     navigate({ to: "/feed" });
