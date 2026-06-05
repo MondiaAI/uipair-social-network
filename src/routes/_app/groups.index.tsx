@@ -277,9 +277,29 @@ function CreateGroupForm({
   const handleYearChange = (value: string) => {
     const cleaned = value.replace(/[^0-9]/g, "").slice(0, 4);
     setGraduationYear(cleaned);
+    setYearTouched(true);
+    setSuggestedYear(null);
     setErrors((prev) => ({ ...prev, graduationYear: undefined, name: undefined, general: undefined }));
     if (nameDebounce.current) clearTimeout(nameDebounce.current);
     nameDebounce.current = setTimeout(() => checkNameUnique(name), 400);
+  };
+
+  const yearOptions = (() => {
+    const opts: number[] = [];
+    for (let y = currentYear + 1; y >= 1950; y--) opts.push(y);
+    return opts;
+  })();
+
+  const applySuggestedYear = () => {
+    if (suggestedYear === null) return;
+    setGraduationYear(String(suggestedYear));
+    setYearTouched(true);
+    if (kind === "alumni" && university.trim() && !name.toLowerCase().includes("alumni")) {
+      setName(`${university.trim()} Alumni — ${name.trim()} (Class of ${suggestedYear})`);
+    }
+    setErrors((p) => ({ ...p, name: undefined, graduationYear: undefined, general: undefined }));
+    setSuggestedYear(null);
+    if (nameDebounce.current) clearTimeout(nameDebounce.current);
   };
 
   const submit = async () => {
@@ -409,24 +429,33 @@ function CreateGroupForm({
 
             <div>
               <Label htmlFor="alumni-year">Class of (year) <span className="text-destructive">*</span></Label>
-              <Input
-                id="alumni-year"
-                value={graduationYear}
-                onChange={(e) => handleYearChange(e.target.value)}
-                onBlur={() => setYearTouched(true)}
-                inputMode="numeric"
-                maxLength={4}
-                placeholder={`e.g. ${currentYear - 4}`}
-                aria-invalid={showYearError ? "true" : "false"}
-                className={showYearError ? "border-destructive focus-visible:ring-destructive/30" : ""}
-              />
+              <Select
+                value={graduationYear || undefined}
+                onValueChange={(v) => handleYearChange(v)}
+              >
+                <SelectTrigger
+                  id="alumni-year"
+                  aria-invalid={showYearError ? "true" : "false"}
+                  className={showYearError ? "border-destructive focus-visible:ring-destructive/30" : ""}
+                  onBlur={() => setYearTouched(true)}
+                >
+                  <SelectValue placeholder={`Select a year (e.g. ${currentYear - 4})`} />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                  {yearOptions.map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      Class of {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {showYearError ? (
                 <p className="text-xs text-destructive mt-1 flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" /> {errors.graduationYear}
                 </p>
               ) : (
                 <p className="text-xs text-muted-foreground mt-1">
-                  The graduating cohort. Different years can safely share the same name.
+                  Pick the graduating cohort (1950–{currentYear + 1}). Different years can safely share the same name.
                 </p>
               )}
             </div>
@@ -453,7 +482,7 @@ function CreateGroupForm({
               {kind === "alumni" && suggestedYear !== null && (
                 <button
                   type="button"
-                  onClick={() => { setGraduationYear(String(suggestedYear)); setErrors((p) => ({ ...p, name: undefined })); setSuggestedYear(null); }}
+                  onClick={applySuggestedYear}
                   className="underline text-destructive hover:text-destructive/80"
                 >
                   Use Class of {suggestedYear} instead
