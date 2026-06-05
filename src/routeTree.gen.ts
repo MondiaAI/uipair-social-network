@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppVerifyRouteImport } from './routes/_app/verify'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppRequestsRouteImport } from './routes/_app/requests'
 import { Route as AppMessagesRouteImport } from './routes/_app/messages'
@@ -68,6 +69,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppVerifyRoute = AppVerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof AppMessagesRoute
   '/requests': typeof AppRequestsRoute
   '/settings': typeof AppSettingsRoute
+  '/verify': typeof AppVerifyRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/messages': typeof AppMessagesRoute
   '/requests': typeof AppRequestsRoute
   '/settings': typeof AppSettingsRoute
+  '/verify': typeof AppVerifyRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
@@ -270,6 +278,7 @@ export interface FileRoutesById {
   '/_app/messages': typeof AppMessagesRoute
   '/_app/requests': typeof AppRequestsRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/_app/verify': typeof AppVerifyRoute
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/_app/circles/discover': typeof AppCirclesDiscoverRoute
   '/_app/circles/new': typeof AppCirclesNewRoute
@@ -303,6 +312,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/requests'
     | '/settings'
+    | '/verify'
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/requests'
     | '/settings'
+    | '/verify'
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/_app/messages'
     | '/_app/requests'
     | '/_app/settings'
+    | '/_app/verify'
     | '/_app/circles/$circleId'
     | '/_app/circles/discover'
     | '/_app/circles/new'
@@ -434,6 +446,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/verify': {
+      id: '/_app/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof AppVerifyRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/settings': {
       id: '/_app/settings'
@@ -629,6 +648,7 @@ interface AppRouteChildren {
   AppMessagesRoute: typeof AppMessagesRoute
   AppRequestsRoute: typeof AppRequestsRoute
   AppSettingsRoute: typeof AppSettingsRoute
+  AppVerifyRoute: typeof AppVerifyRoute
   AppCirclesCircleIdRoute: typeof AppCirclesCircleIdRoute
   AppCirclesDiscoverRoute: typeof AppCirclesDiscoverRoute
   AppCirclesNewRoute: typeof AppCirclesNewRoute
@@ -655,6 +675,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMessagesRoute: AppMessagesRoute,
   AppRequestsRoute: AppRequestsRoute,
   AppSettingsRoute: AppSettingsRoute,
+  AppVerifyRoute: AppVerifyRoute,
   AppCirclesCircleIdRoute: AppCirclesCircleIdRoute,
   AppCirclesDiscoverRoute: AppCirclesDiscoverRoute,
   AppCirclesNewRoute: AppCirclesNewRoute,
