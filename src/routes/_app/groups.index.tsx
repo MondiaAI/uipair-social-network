@@ -498,6 +498,7 @@ type AlumniRow = {
   name: string;
   description: string | null;
   university: string | null;
+  graduation_year: number | null;
   requires_approval: boolean;
   creator_id: string;
 };
@@ -512,7 +513,7 @@ function AlumniDiscover({ myGroupIds, userId }: { myGroupIds: Set<string>; userI
     setLoading(true);
     const { data } = await supabase
       .from("group_chats")
-      .select("id, name, description, university, requires_approval, creator_id")
+      .select("id, name, description, university, graduation_year, requires_approval, creator_id")
       .eq("kind", "alumni")
       .order("created_at", { ascending: false })
       .limit(50);
@@ -562,9 +563,9 @@ function AlumniDiscover({ myGroupIds, userId }: { myGroupIds: Set<string>; userI
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{r.name}</p>
-                {r.university && (
-                  <p className="text-xs text-muted-foreground">{r.university}</p>
-                )}
+                <p className="text-xs text-muted-foreground">
+                  {[r.university, r.graduation_year ? `Class of ${r.graduation_year}` : null].filter(Boolean).join(" · ")}
+                </p>
                 {r.description && (
                   <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{r.description}</p>
                 )}
