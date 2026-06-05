@@ -119,7 +119,7 @@ function MatchPage() {
       const [{ data }, { data: matches }] = await Promise.all([
         supabase
           .from("profiles")
-          .select("id, full_name, username, avatar_url, university, university_id, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at, created_at")
+          .select("id, full_name, username, avatar_url, university, university_id, country, field_of_study, year_of_study, skills, availability, goals, last_seen_at, created_at, is_verified")
           .neq("id", user.id)
           .limit(100),
         supabase
