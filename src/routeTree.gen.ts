@@ -30,10 +30,12 @@ import { Route as AppAdminRouteImport } from './routes/_app/admin'
 import { Route as AppLabIndexRouteImport } from './routes/_app/lab.index'
 import { Route as AppGroupsIndexRouteImport } from './routes/_app/groups.index'
 import { Route as AppCirclesIndexRouteImport } from './routes/_app/circles.index'
+import { Route as ApiPublicFlutterwaveWebhookRouteImport } from './routes/api/public/flutterwave-webhook'
 import { Route as AppProfileUserIdRouteImport } from './routes/_app/profile.$userId'
 import { Route as AppOnboardingTenantRouteImport } from './routes/_app/onboarding.tenant'
 import { Route as AppLiveSessionIdRouteImport } from './routes/_app/live.$sessionId'
 import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
+import { Route as AppJobsJobIdRouteImport } from './routes/_app/jobs.$jobId'
 import { Route as AppInviteTokenRouteImport } from './routes/_app/invite.$token'
 import { Route as AppGroupsGroupIdRouteImport } from './routes/_app/groups.$groupId'
 import { Route as AppEventsEventIdRouteImport } from './routes/_app/events.$eventId'
@@ -146,6 +148,12 @@ const AppCirclesIndexRoute = AppCirclesIndexRouteImport.update({
   path: '/circles/',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiPublicFlutterwaveWebhookRoute =
+  ApiPublicFlutterwaveWebhookRouteImport.update({
+    id: '/api/public/flutterwave-webhook',
+    path: '/api/public/flutterwave-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AppProfileUserIdRoute = AppProfileUserIdRouteImport.update({
   id: '/profile/$userId',
   path: '/profile/$userId',
@@ -164,6 +172,11 @@ const AppLiveSessionIdRoute = AppLiveSessionIdRouteImport.update({
 const AppLabProjectIdRoute = AppLabProjectIdRouteImport.update({
   id: '/lab/$projectId',
   path: '/lab/$projectId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppJobsJobIdRoute = AppJobsJobIdRouteImport.update({
+  id: '/jobs/$jobId',
+  path: '/jobs/$jobId',
   getParentRoute: () => AppRoute,
 } as any)
 const AppInviteTokenRoute = AppInviteTokenRouteImport.update({
@@ -226,10 +239,12 @@ export interface FileRoutesByFullPath {
   '/events/$eventId': typeof AppEventsEventIdRoute
   '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/invite/$token': typeof AppInviteTokenRoute
+  '/jobs/$jobId': typeof AppJobsJobIdRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/live/$sessionId': typeof AppLiveSessionIdRoute
   '/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
+  '/api/public/flutterwave-webhook': typeof ApiPublicFlutterwaveWebhookRoute
   '/circles/': typeof AppCirclesIndexRoute
   '/groups/': typeof AppGroupsIndexRoute
   '/lab/': typeof AppLabIndexRoute
@@ -259,10 +274,12 @@ export interface FileRoutesByTo {
   '/events/$eventId': typeof AppEventsEventIdRoute
   '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/invite/$token': typeof AppInviteTokenRoute
+  '/jobs/$jobId': typeof AppJobsJobIdRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
   '/live/$sessionId': typeof AppLiveSessionIdRoute
   '/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/profile/$userId': typeof AppProfileUserIdRoute
+  '/api/public/flutterwave-webhook': typeof ApiPublicFlutterwaveWebhookRoute
   '/circles': typeof AppCirclesIndexRoute
   '/groups': typeof AppGroupsIndexRoute
   '/lab': typeof AppLabIndexRoute
@@ -294,10 +311,12 @@ export interface FileRoutesById {
   '/_app/events/$eventId': typeof AppEventsEventIdRoute
   '/_app/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/_app/invite/$token': typeof AppInviteTokenRoute
+  '/_app/jobs/$jobId': typeof AppJobsJobIdRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
   '/_app/live/$sessionId': typeof AppLiveSessionIdRoute
   '/_app/onboarding/tenant': typeof AppOnboardingTenantRoute
   '/_app/profile/$userId': typeof AppProfileUserIdRoute
+  '/api/public/flutterwave-webhook': typeof ApiPublicFlutterwaveWebhookRoute
   '/_app/circles/': typeof AppCirclesIndexRoute
   '/_app/groups/': typeof AppGroupsIndexRoute
   '/_app/lab/': typeof AppLabIndexRoute
@@ -329,10 +348,12 @@ export interface FileRouteTypes {
     | '/events/$eventId'
     | '/groups/$groupId'
     | '/invite/$token'
+    | '/jobs/$jobId'
     | '/lab/$projectId'
     | '/live/$sessionId'
     | '/onboarding/tenant'
     | '/profile/$userId'
+    | '/api/public/flutterwave-webhook'
     | '/circles/'
     | '/groups/'
     | '/lab/'
@@ -362,10 +383,12 @@ export interface FileRouteTypes {
     | '/events/$eventId'
     | '/groups/$groupId'
     | '/invite/$token'
+    | '/jobs/$jobId'
     | '/lab/$projectId'
     | '/live/$sessionId'
     | '/onboarding/tenant'
     | '/profile/$userId'
+    | '/api/public/flutterwave-webhook'
     | '/circles'
     | '/groups'
     | '/lab'
@@ -396,10 +419,12 @@ export interface FileRouteTypes {
     | '/_app/events/$eventId'
     | '/_app/groups/$groupId'
     | '/_app/invite/$token'
+    | '/_app/jobs/$jobId'
     | '/_app/lab/$projectId'
     | '/_app/live/$sessionId'
     | '/_app/onboarding/tenant'
     | '/_app/profile/$userId'
+    | '/api/public/flutterwave-webhook'
     | '/_app/circles/'
     | '/_app/groups/'
     | '/_app/lab/'
@@ -413,6 +438,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   SignupRoute: typeof SignupRoute
   TermsRoute: typeof TermsRoute
+  ApiPublicFlutterwaveWebhookRoute: typeof ApiPublicFlutterwaveWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -564,6 +590,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCirclesIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/public/flutterwave-webhook': {
+      id: '/api/public/flutterwave-webhook'
+      path: '/api/public/flutterwave-webhook'
+      fullPath: '/api/public/flutterwave-webhook'
+      preLoaderRoute: typeof ApiPublicFlutterwaveWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/profile/$userId': {
       id: '/_app/profile/$userId'
       path: '/profile/$userId'
@@ -590,6 +623,13 @@ declare module '@tanstack/react-router' {
       path: '/lab/$projectId'
       fullPath: '/lab/$projectId'
       preLoaderRoute: typeof AppLabProjectIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/jobs/$jobId': {
+      id: '/_app/jobs/$jobId'
+      path: '/jobs/$jobId'
+      fullPath: '/jobs/$jobId'
+      preLoaderRoute: typeof AppJobsJobIdRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/invite/$token': {
@@ -674,6 +714,7 @@ interface AppRouteChildren {
   AppCirclesNewRoute: typeof AppCirclesNewRoute
   AppGroupsGroupIdRoute: typeof AppGroupsGroupIdRoute
   AppInviteTokenRoute: typeof AppInviteTokenRoute
+  AppJobsJobIdRoute: typeof AppJobsJobIdRoute
   AppLabProjectIdRoute: typeof AppLabProjectIdRoute
   AppLiveSessionIdRoute: typeof AppLiveSessionIdRoute
   AppOnboardingTenantRoute: typeof AppOnboardingTenantRoute
@@ -702,6 +743,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppCirclesNewRoute: AppCirclesNewRoute,
   AppGroupsGroupIdRoute: AppGroupsGroupIdRoute,
   AppInviteTokenRoute: AppInviteTokenRoute,
+  AppJobsJobIdRoute: AppJobsJobIdRoute,
   AppLabProjectIdRoute: AppLabProjectIdRoute,
   AppLiveSessionIdRoute: AppLiveSessionIdRoute,
   AppOnboardingTenantRoute: AppOnboardingTenantRoute,
@@ -721,7 +763,17 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   SignupRoute: SignupRoute,
   TermsRoute: TermsRoute,
+  ApiPublicFlutterwaveWebhookRoute: ApiPublicFlutterwaveWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
