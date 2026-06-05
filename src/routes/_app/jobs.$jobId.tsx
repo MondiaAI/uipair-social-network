@@ -379,3 +379,29 @@ function ApplyDialog({
     </Dialog>
   );
 }
+
+function Stat({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="flex items-start gap-2">
+      <span className="mt-0.5 text-muted-foreground">{icon}</span>
+      <div className="min-w-0">
+        <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+        <dd className={cn("font-medium truncate", accent && "text-emerald-700")}>{value}</dd>
+      </div>
+    </div>
+  );
+}
+
+function BulletedOrPara({ text }: { text: string }) {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const looksBulleted = lines.length > 1 && lines.every((l) => /^([-•*]|\d+[.)])\s+/.test(l));
+  if (looksBulleted) {
+    return (
+      <ul className="ml-5 list-disc space-y-1 text-sm leading-relaxed text-foreground/90">
+        {lines.map((l, i) => <li key={i}>{l.replace(/^([-•*]|\d+[.)])\s+/, "")}</li>)}
+      </ul>
+    );
+  }
+  return <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">{text}</p>;
+}
+
