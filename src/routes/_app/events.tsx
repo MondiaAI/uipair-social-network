@@ -347,6 +347,10 @@ function CreateEventModal({
             </div>
           </div>
           <div>
+            <Label>Agenda (optional)</Label>
+            <Textarea value={agenda} onChange={(e) => setAgenda(e.target.value)} rows={4} maxLength={5000} placeholder="6:00 PM — Doors open&#10;6:30 PM — Keynote&#10;7:30 PM — Networking" />
+          </div>
+          <div>
             <Label>Cover image (optional)</Label>
             <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)} />
           </div>
