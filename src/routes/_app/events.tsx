@@ -260,11 +260,56 @@ function CreateEventModal({
   const [endsAt, setEndsAt] = useState("");
   const [agenda, setAgenda] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setTitle(""); setDescription(""); setCategory("other"); setLocation("");
-    setStartsAt(""); setEndsAt(""); setAgenda(""); setCoverFile(null);
+    setStartsAt(""); setEndsAt(""); setAgenda("");
+    setCoverFile(null); setCoverUrl(null);
+    setUploadState("idle"); setUploadProgress(0); setUploadError(null);
+  };
+
+  const startUpload = useCallback(async (file: File) => {
+    if (!user) return;
+    setUploadState("uploading");
+    setUploadProgress(8);
+    setUploadError(null);
+    // Indeterminate-ish progress: tick toward 90% while the SDK upload runs.
+    const tick = window.setInterval(() => {
+      setUploadProgress((p) => (p < 90 ? p + Math.max(1, Math.round((90 - p) / 8)) : p));
+    }, 200);
+    const { url, error } = await uploadToBucketDetailed("post-media", user.id, file);
+    window.clearInterval(tick);
+    if (error || !url) {
+      setUploadProgress(0);
+      setUploadState("error");
+      setUploadError(error || "Upload failed");
+      return;
+    }
+    setCoverUrl(url);
+    setUploadProgress(100);
+    setUploadState("success");
+  }, [user]);
+
+  const onPickFile = (file: File | null) => {
+    setCoverFile(file);
+    setCoverUrl(null);
+    setUploadError(null);
+    setUploadProgress(0);
+    setUploadState("idle");
+    if (file) void startUpload(file);
+  };
+
+  const clearCover = () => {
+    setCoverFile(null);
+    setCoverUrl(null);
+    setUploadError(null);
+    setUploadProgress(0);
+    setUploadState("idle");
   };
 
   const submit = async () => {
@@ -273,17 +318,11 @@ function CreateEventModal({
       toast.error("Title and start time are required");
       return;
     }
-    setSubmitting(true);
-    let cover_url: string | null = null;
-    if (coverFile) {
-      const { url, error: upErr } = await uploadToBucketDetailed("post-media", user.id, coverFile);
-      if (upErr || !url) {
-        toast.error(upErr || "Couldn't upload cover image");
-        setSubmitting(false);
-        return;
-      }
-      cover_url = url;
+    if (coverFile && uploadState !== "success") {
+      toast.error(uploadState === "uploading" ? "Wait for the cover image upload to finish" : "Retry the cover image upload or remove it");
+      return;
     }
+    setSubmitting(true);
     const { error } = await supabase.from("campus_events").insert({
       creator_id: user.id,
       university: profile.university,
@@ -295,7 +334,7 @@ function CreateEventModal({
       starts_at: new Date(startsAt).toISOString(),
       ends_at: endsAt ? new Date(endsAt).toISOString() : null,
       agenda: agenda.trim() || null,
-      cover_url,
+      cover_url: coverUrl,
     });
     setSubmitting(false);
     if (error) {
