@@ -230,6 +230,10 @@ function GigsPage() {
         </TabsContent>
 
         {/* ─── MY SERVICES ─── */}
+        <TabsContent value="jobs" className="space-y-6">
+          <JobsDashboard />
+        </TabsContent>
+
         <TabsContent value="mine" className="space-y-4">
           <Button onClick={() => setOpenGigModal(true)} className="gap-2">
             <Plus className="h-4 w-4" /> Create a Gig
