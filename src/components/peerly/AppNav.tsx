@@ -55,6 +55,7 @@ type Tab = { to: string; label: string; icon: LucideIcon; params?: Record<string
 const allTabs: Tab[] = [
   { to: "/feed", label: "Feed", icon: Home },
   { to: "/circles", label: "Circles", icon: Users },
+  { to: "/events", label: "Events", icon: CalendarDays },
   { to: "/match", label: "Match", icon: Zap },
   { to: "/messages", label: "Chat", icon: MessageSquare },
   { to: "/groups", label: "Groups", icon: Users },
