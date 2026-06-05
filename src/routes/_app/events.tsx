@@ -242,6 +242,56 @@ function EventCard({
   );
 }
 
+const ALLOWED_COVER_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const MAX_COVER_BYTES = 5 * 1024 * 1024; // 5 MB
+const MIN_COVER_DIM = 200;
+const MAX_COVER_DIM = 4096;
+
+function validateCoverFile(file: File): Promise<string | null> {
+  return new Promise((resolve) => {
+    if (!ALLOWED_COVER_TYPES.includes(file.type)) {
+      return resolve(`Unsupported file type. Please use JPEG, PNG, WebP, or GIF.`);
+    }
+    if (file.size > MAX_COVER_BYTES) {
+      return resolve(`Image is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Please choose one under 5 MB.`);
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      if (img.width < MIN_COVER_DIM || img.height < MIN_COVER_DIM) {
+        return resolve(`Image is too small (${img.width}×${img.height}px). Minimum size is ${MIN_COVER_DIM}×${MIN_COVER_DIM}px.`);
+      }
+      if (img.width > MAX_COVER_DIM || img.height > MAX_COVER_DIM) {
+        return resolve(`Image is too large (${img.width}×${img.height}px). Maximum size is ${MAX_COVER_DIM}×${MAX_COVER_DIM}px.`);
+      }
+      resolve(null);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve("Could not read image. Please try a different file.");
+    };
+    img.src = url;
+  });
+}
+
+function extractStoragePath(publicUrl: string, bucket: string): string | null {
+  const marker = `/object/public/${bucket}/`;
+  const idx = publicUrl.indexOf(marker);
+  if (idx === -1) return null;
+  return publicUrl.slice(idx + marker.length);
+}
+
+async function deleteCoverFile(publicUrl: string, bucket: string) {
+  const path = extractStoragePath(publicUrl, bucket);
+  if (!path) return;
+  try {
+    await supabase.storage.from(bucket).remove([path]);
+  } catch {
+    // best-effort cleanup; don't block user flow
+  }
+}
+
 function CreateEventModal({
   open,
   onOpenChange,
