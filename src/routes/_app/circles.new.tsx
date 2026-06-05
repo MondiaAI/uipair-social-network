@@ -123,23 +123,31 @@ setSubmitting(true);
         </div>
         <div>
           <Label>Subject</Label>
-          <Select value={subject} onValueChange={setSubject}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <DegreeQuickPicks value={subject} onSelect={setSubject} />
+          <Input
+            list="subject-suggestions"
+            value={subject === "Other" ? customSubject : subject}
+            onChange={(e) => {
+              const val = e.target.value.trimStart();
+              const known = allSubjects.some((s) => s.toLowerCase() === val.toLowerCase());
+              if (known) {
+                const matched = allSubjects.find((s) => s.toLowerCase() === val.toLowerCase())!;
+                setSubject(matched);
+                setCustomSubject("");
+              } else {
+                setSubject("Other");
+                setCustomSubject(val);
+              }
+            }}
+            placeholder="Type or pick a subject…"
+            maxLength={80}
+          />
+          <datalist id="subject-suggestions">
+            {allSubjects.map((s) => (
+              <option key={s} value={s} />
+            ))}
+          </datalist>
+          <DegreeQuickPicks value={subject} onSelect={(s) => { setSubject(s); setCustomSubject(""); }} />
           <DegreePicker value={degree} onChange={setDegree} />
-          {subject === "Other" && (
-            <Input
-              className="mt-2"
-              value={customSubject}
-              onChange={(e) => setCustomSubject(e.target.value)}
-              placeholder="Enter subject"
-              maxLength={50}
-            />
-          )}
         </div>
         <div>
           <Label>Description</Label>
