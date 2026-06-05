@@ -168,30 +168,58 @@ function GroupChatPage() {
           </div>
         </div>
         <div className="flex items-center gap-1">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Members"><UsersIcon className="h-4 w-4" /></Button>
-            </DialogTrigger>
-            <DialogContent>
-              <MembersPanel
-                groupId={group.id}
-                isCreator={group.creator_id === user!.id}
-                members={members}
-                onChange={async () => {
-                  const { data: mems } = await supabase.from("group_chat_members").select("user_id, role").eq("group_id", group.id);
-                  const userIds = (mems ?? []).map((m: any) => m.user_id);
-                  const { data: profs } = userIds.length
-                    ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", userIds)
-                    : { data: [] as any };
-                  const pm = new Map<string, any>((profs ?? []).map((p: any) => [p.id, p]));
-                  setMembers((mems ?? []).map((m: any) => ({ user_id: m.user_id, role: m.role, profile: pm.get(m.user_id) ?? null })));
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-          {group.creator_id !== user!.id && (
-            <Button variant="ghost" size="icon" onClick={leave} aria-label="Leave"><LogOut className="h-4 w-4" /></Button>
-          )}
+          {(() => {
+            const isAdmin = members.some((m) => m.user_id === user!.id && m.role === "admin");
+            const reloadMembers = async () => {
+              const { data: mems } = await supabase.from("group_chat_members").select("user_id, role").eq("group_id", group.id);
+              const userIds = (mems ?? []).map((m: any) => m.user_id);
+              const { data: profs } = userIds.length
+                ? await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", userIds)
+                : { data: [] as any };
+              const pm = new Map<string, any>((profs ?? []).map((p: any) => [p.id, p]));
+              setMembers((mems ?? []).map((m: any) => ({ user_id: m.user_id, role: m.role, profile: pm.get(m.user_id) ?? null })));
+            };
+            return (
+              <>
+                {isAdmin && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon" aria-label="Share invite"><Share2 className="h-4 w-4" /></Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <InvitePanel groupId={group.id} tenantId={profile?.tenant_id ?? null} userId={user!.id} />
+                    </DialogContent>
+                  </Dialog>
+                )}
+                {isAdmin && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon" aria-label="Group settings"><Settings className="h-4 w-4" /></Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <EditGroupPanel group={group} onSaved={(g) => setGroup(g)} />
+                    </DialogContent>
+                  </Dialog>
+                )}
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="Members"><UsersIcon className="h-4 w-4" /></Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <MembersPanel
+                      groupId={group.id}
+                      isAdmin={isAdmin}
+                      members={members}
+                      onChange={reloadMembers}
+                    />
+                  </DialogContent>
+                </Dialog>
+                {group.creator_id !== user!.id && (
+                  <Button variant="ghost" size="icon" onClick={leave} aria-label="Leave"><LogOut className="h-4 w-4" /></Button>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 
