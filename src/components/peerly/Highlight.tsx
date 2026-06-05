@@ -31,13 +31,14 @@ export function Highlight({
   if (tokens.length === 0) return <>{src}</>;
 
   const escaped = tokens.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  const re = new RegExp(`(${escaped.join("|")})`, "gi");
-  const parts = src.split(re);
+  const splitRe = new RegExp(`(${escaped.join("|")})`, "gi");
+  const matchRe = new RegExp(`^(?:${escaped.join("|")})$`, "i");
+  const parts = src.split(splitRe);
 
   return (
     <>
       {parts.map((part, i) =>
-        re.test(part) ? (
+        matchRe.test(part) ? (
           <mark key={i} className={className}>{part}</mark>
         ) : (
           <Fragment key={i}>{part}</Fragment>
