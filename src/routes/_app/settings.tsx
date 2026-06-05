@@ -9,6 +9,8 @@ import { normalizeLocation } from "@/lib/normalize-location";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { broadcastProfileUpdate } from "@/lib/profile-broadcast";
+import { Switch } from "@/components/ui/switch";
+import { useDataLight, setDataLight } from "@/lib/data-light";
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsPage,
