@@ -203,13 +203,25 @@ function CreateGroupForm({
       kind === "alumni" && !value.toLowerCase().includes("alumni")
         ? `${university.trim()} Alumni — ${value.trim()}`
         : value.trim();
-    const { data } = await supabase
-      .from("group_chats")
-      .select("id")
-      .eq("name", finalName)
-      .maybeSingle();
+    let query = supabase.from("group_chats").select("id");
+    if (kind === "alumni") {
+      if (!university.trim()) return;
+      query = query
+        .eq("kind", "alumni")
+        .eq("university", university.trim())
+        .ilike("name", finalName);
+    } else {
+      query = query.eq("name", finalName);
+    }
+    const { data } = await query.maybeSingle();
     if (data) {
-      setErrors((prev) => ({ ...prev, name: "A group with this name already exists. Try a different name." }));
+      setErrors((prev) => ({
+        ...prev,
+        name:
+          kind === "alumni"
+            ? `An alumni community with this name already exists for ${university.trim()}. Add a year (e.g. "Class of 2024") to make it unique.`
+            : "A group with this name already exists. Try a different name.",
+      }));
     }
   };
 
@@ -262,10 +274,20 @@ function CreateGroupForm({
     } as any);
     setSubmitting(false);
     if (error) {
-      if (error.message?.toLowerCase().includes("duplicate") || error.code === "23505") {
-        setErrors({ name: "A group with this name already exists. Try a different name." });
+      const msg = error.message ?? "";
+      const isDup =
+        error.code === "23505" ||
+        msg.toLowerCase().includes("duplicate") ||
+        msg.toLowerCase().includes("already exists");
+      if (isDup) {
+        setErrors({
+          name:
+            kind === "alumni"
+              ? `An alumni community with this name already exists for ${university.trim()}. Add a year (e.g. "Class of 2024") to make it unique.`
+              : "A group with this name already exists. Try a different name.",
+        });
       } else {
-        setErrors({ general: error.message });
+        setErrors({ general: msg });
       }
       return;
     }
