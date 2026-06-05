@@ -274,15 +274,13 @@ function CreateEventModal({
     setSubmitting(true);
     let cover_url: string | null = null;
     if (coverFile) {
-      const ext = coverFile.name.split(".").pop() || "jpg";
-      const path = `events/${user.id}/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("post-media").upload(path, coverFile, { upsert: false });
-      if (upErr) {
-        toast.error("Couldn't upload cover image");
+      const { url, error: upErr } = await uploadToBucketDetailed("post-media", user.id, coverFile);
+      if (upErr || !url) {
+        toast.error(upErr || "Couldn't upload cover image");
         setSubmitting(false);
         return;
       }
-      cover_url = supabase.storage.from("post-media").getPublicUrl(path).data.publicUrl;
+      cover_url = url;
     }
     const { error } = await supabase.from("campus_events").insert({
       creator_id: user.id,
