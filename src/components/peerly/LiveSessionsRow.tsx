@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Eye, Radio } from "lucide-react";
+import { useDataLight } from "@/lib/data-light";
 
 interface LiveSession {
   id: string;
