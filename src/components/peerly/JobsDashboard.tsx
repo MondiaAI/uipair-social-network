@@ -114,6 +114,12 @@ export function JobsDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPremium, profile?.id]);
 
+  useEffect(() => {
+    if (!profile?.id) { setGradYear(null); return; }
+    supabase.from("profiles").select("graduation_year").eq("id", profile.id).maybeSingle()
+      .then(({ data }) => setGradYear((data as { graduation_year: number | null } | null)?.graduation_year ?? null));
+  }, [profile?.id]);
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return jobs.filter((j) => {
