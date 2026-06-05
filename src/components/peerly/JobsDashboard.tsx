@@ -76,7 +76,8 @@ export function JobsDashboard() {
   const { profile } = useAuth();
   const isPremium = !!profile?.is_pro;
   const currentYear = new Date().getFullYear();
-  const isVerifiedAlum = !!profile?.is_verified && !!profile?.graduation_year && profile.graduation_year <= currentYear;
+  const [gradYear, setGradYear] = useState<number | null>(null);
+  const isVerifiedAlum = !!profile?.is_verified && !!gradYear && gradYear <= currentYear;
   const canPost = isPremium && isVerifiedAlum;
 
   const [showUpgrade, setShowUpgrade] = useState(false);
