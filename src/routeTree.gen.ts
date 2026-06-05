@@ -22,6 +22,7 @@ import { Route as AppMatchRouteImport } from './routes/_app/match'
 import { Route as AppJoinRouteImport } from './routes/_app/join'
 import { Route as AppGigsRouteImport } from './routes/_app/gigs'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
+import { Route as AppEventsRouteImport } from './routes/_app/events'
 import { Route as AppAmbassadorRouteImport } from './routes/_app/ambassador'
 import { Route as AppAdminRouteImport } from './routes/_app/admin'
 import { Route as AppLabIndexRouteImport } from './routes/_app/lab.index'
@@ -100,6 +101,11 @@ const AppGigsRoute = AppGigsRouteImport.update({
 const AppFeedRoute = AppFeedRouteImport.update({
   id: '/feed',
   path: '/feed',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppEventsRoute = AppEventsRouteImport.update({
+  id: '/events',
+  path: '/events',
   getParentRoute: () => AppRoute,
 } as any)
 const AppAmbassadorRoute = AppAmbassadorRouteImport.update({
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/admin': typeof AppAdminRoute
   '/ambassador': typeof AppAmbassadorRoute
+  '/events': typeof AppEventsRoute
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
   '/join': typeof AppJoinRoute
@@ -215,6 +222,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/admin': typeof AppAdminRoute
   '/ambassador': typeof AppAmbassadorRoute
+  '/events': typeof AppEventsRoute
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
   '/join': typeof AppJoinRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_app/admin': typeof AppAdminRoute
   '/_app/ambassador': typeof AppAmbassadorRoute
+  '/_app/events': typeof AppEventsRoute
   '/_app/feed': typeof AppFeedRoute
   '/_app/gigs': typeof AppGigsRoute
   '/_app/join': typeof AppJoinRoute
@@ -277,6 +286,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin'
     | '/ambassador'
+    | '/events'
     | '/feed'
     | '/gigs'
     | '/join'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/admin'
     | '/ambassador'
+    | '/events'
     | '/feed'
     | '/gigs'
     | '/join'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/_app/admin'
     | '/_app/ambassador'
+    | '/_app/events'
     | '/_app/feed'
     | '/_app/gigs'
     | '/_app/join'
@@ -460,6 +472,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFeedRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/events': {
+      id: '/_app/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof AppEventsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/ambassador': {
       id: '/_app/ambassador'
       path: '/ambassador'
@@ -571,6 +590,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppAmbassadorRoute: typeof AppAmbassadorRoute
+  AppEventsRoute: typeof AppEventsRoute
   AppFeedRoute: typeof AppFeedRoute
   AppGigsRoute: typeof AppGigsRoute
   AppJoinRoute: typeof AppJoinRoute
@@ -596,6 +616,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppAmbassadorRoute: AppAmbassadorRoute,
+  AppEventsRoute: AppEventsRoute,
   AppFeedRoute: AppFeedRoute,
   AppGigsRoute: AppGigsRoute,
   AppJoinRoute: AppJoinRoute,

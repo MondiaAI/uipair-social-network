@@ -10,6 +10,7 @@ import {
   Menu,
   Settings as SettingsIcon,
   Sparkles,
+  CalendarDays,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
