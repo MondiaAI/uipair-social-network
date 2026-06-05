@@ -1333,7 +1333,7 @@ function MessagesPage() {
                                     }
                                     return (
                                       <p key={i} className="whitespace-pre-wrap break-words leading-snug">
-                                        {q ? renderHighlighted(line, q) : line}
+                                        {q ? renderHighlighted(line, q) : <Linkify text={line} />}
                                       </p>
                                     );
                                   })}
