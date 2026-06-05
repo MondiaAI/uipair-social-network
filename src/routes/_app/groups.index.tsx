@@ -106,6 +106,10 @@ function GroupsPage() {
         <Input placeholder="Search your groups" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
       </div>
 
+      <AlumniDiscover myGroupIds={new Set(groups.map((g) => g.id))} userId={user.id} />
+
+
+
       {loading ? (
         <p className="text-sm text-muted-foreground">Loading groups…</p>
       ) : filtered.length === 0 ? (
