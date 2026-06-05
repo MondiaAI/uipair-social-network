@@ -102,6 +102,7 @@ export function AppNav() {
 
   // Mobile overflow shown inside the More sheet
   const moreItems: Tab[] = [
+    { to: "/events", label: "Events", icon: CalendarDays },
     { to: "/match", label: "Match", icon: Zap },
     { to: "/groups", label: "Groups", icon: Users },
     { to: "/lab", label: "The Lab", icon: FlaskConical },
