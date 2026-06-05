@@ -192,12 +192,19 @@ function AmbassadorPage() {
       {app ? (
         <>
           <Card className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <p className="text-xs uppercase text-muted-foreground">Your referral link</p>
-                <p className="mt-1 font-mono text-sm break-all">{`${window.location.origin}/signup?ref=${app.referral_code}`}</p>
+                <p className="mt-1 font-mono text-sm break-all">{referralLink}</p>
               </div>
-              <Button size="sm" variant="outline" onClick={copyLink}><Copy className="h-4 w-4 mr-1" />Copy</Button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Button size="icon" variant="outline" onClick={copyLink} aria-label="Copy referral link" title="Copy link">
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button size="icon" onClick={shareLink} aria-label="Share referral link" title="Share link">
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <Badge variant={app.status === "approved" ? "default" : "outline"} className="mt-3">
               Status: {app.status}
@@ -209,6 +216,44 @@ function AmbassadorPage() {
             <DashCard icon={DollarSign} label="Earnings" value={`$${(app.earnings_cents / 100).toFixed(2)}`} />
             <DashCard icon={Sparkles} label="Payout status" value="Pending" />
           </div>
+
+          {/* Rewards */}
+          <Card className="p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Gift className="h-5 w-5 text-primary" />
+              <h2 className="font-semibold">Invite rewards</h2>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Invite 3 friends, unlock <span className="font-medium text-foreground">1 month of Premium Circle access free</span>. Stack it — every 3 invites adds another free month.
+            </p>
+            {(() => {
+              const count = app.referrals_count ?? 0;
+              const credits = app.premium_circle_credits_months ?? Math.floor(count / 3);
+              const towardNext = count % 3;
+              const need = 3 - towardNext;
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Progress to next free month</span>
+                    <span className="font-medium">{towardNext} / 3</span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div className="h-full bg-primary transition-all" style={{ width: `${(towardNext / 3) * 100}%` }} />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {credits > 0 ? (
+                      <>You've unlocked <span className="font-semibold text-foreground">{credits}</span> free month{credits === 1 ? "" : "s"} of Premium Circle.</>
+                    ) : (
+                      <>Invite {need} more {need === 1 ? "friend" : "friends"} to unlock your first free month.</>
+                    )}
+                  </p>
+                  <Button variant="outline" size="sm" onClick={shareLink} className="mt-1">
+                    <Share2 className="h-4 w-4 mr-2" /> Share your link
+                  </Button>
+                </div>
+              );
+            })()}
+          </Card>
         </>
       ) : (
         <Card className="p-5 space-y-4">
