@@ -189,6 +189,8 @@ function CreateGroupForm({
   const [suggestedYear, setSuggestedYear] = useState<number | null>(null);
   const nameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const YEAR_SUFFIX_RE = /\s*\(Class of \d{4}\)$/i;
+
   const parsedYear = (() => {
     const n = parseInt(graduationYear, 10);
     return Number.isFinite(n) ? n : NaN;
