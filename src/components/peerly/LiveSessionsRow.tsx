@@ -24,10 +24,12 @@ interface LiveSession {
 }
 
 export function LiveSessionsRow() {
+  const dataLight = useDataLight();
   const [sessions, setSessions] = useState<LiveSession[]>([]);
   const [active, setActive] = useState<LiveSession | null>(null);
 
   useEffect(() => {
+    if (dataLight) return;
     (async () => {
       const { data } = await supabase
         .from("posts")
