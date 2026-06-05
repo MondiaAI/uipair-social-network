@@ -135,6 +135,65 @@ export type Database = {
           },
         ]
       }
+      campus_events: {
+        Row: {
+          category: string
+          cover_url: string | null
+          created_at: string
+          creator_id: string
+          description: string | null
+          ends_at: string | null
+          id: string
+          location: string | null
+          rsvp_count: number
+          starts_at: string
+          tenant_id: string | null
+          title: string
+          university: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          location?: string | null
+          rsvp_count?: number
+          starts_at: string
+          tenant_id?: string | null
+          title: string
+          university: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          ends_at?: string | null
+          id?: string
+          location?: string | null
+          rsvp_count?: number
+          starts_at?: string
+          tenant_id?: string | null
+          title?: string
+          university?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campus_events_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       circle_announcements: {
         Row: {
           circle_id: string
@@ -807,6 +866,38 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      event_rsvps: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "campus_events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       follows: {
         Row: {

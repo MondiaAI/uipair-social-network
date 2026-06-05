@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Eye, Radio } from "lucide-react";
+import { useDataLight } from "@/lib/data-light";
 
 interface LiveSession {
   id: string;
@@ -23,10 +24,12 @@ interface LiveSession {
 }
 
 export function LiveSessionsRow() {
+  const dataLight = useDataLight();
   const [sessions, setSessions] = useState<LiveSession[]>([]);
   const [active, setActive] = useState<LiveSession | null>(null);
 
   useEffect(() => {
+    if (dataLight) return;
     (async () => {
       const { data } = await supabase
         .from("posts")
@@ -36,9 +39,9 @@ export function LiveSessionsRow() {
         .limit(10);
       setSessions((data ?? []) as unknown as LiveSession[]);
     })();
-  }, []);
+  }, [dataLight]);
 
-  if (sessions.length === 0) return null;
+  if (dataLight || sessions.length === 0) return null;
 
   return (
     <>

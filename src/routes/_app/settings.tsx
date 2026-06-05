@@ -9,6 +9,8 @@ import { normalizeLocation } from "@/lib/normalize-location";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { broadcastProfileUpdate } from "@/lib/profile-broadcast";
+import { Switch } from "@/components/ui/switch";
+import { useDataLight, setDataLight } from "@/lib/data-light";
 
 export const Route = createFileRoute("/_app/settings")({
   component: SettingsPage,
@@ -20,6 +22,7 @@ export const Route = createFileRoute("/_app/settings")({
 function SettingsPage() {
   const { user, profile, refreshProfile } = useAuth();
   const router = useRouter();
+  const dataLight = useDataLight();
   const [universityId, setUniversityId] = useState<string | null>(null);
   const [universityName, setUniversityName] = useState<string | null>(null);
   const [country, setCountry] = useState<string | null>(null);
@@ -143,6 +146,18 @@ function SettingsPage() {
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Save changes
           </Button>
+        </div>
+      </Card>
+
+      <Card className="p-5 space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="font-semibold">Data-Light Mode</h2>
+            <p className="text-sm text-muted-foreground">
+              Stops live session previews and autoplaying video from loading in the background. Great for slow or expensive connections.
+            </p>
+          </div>
+          <Switch checked={dataLight} onCheckedChange={setDataLight} aria-label="Data-Light Mode" />
         </div>
       </Card>
     </div>
