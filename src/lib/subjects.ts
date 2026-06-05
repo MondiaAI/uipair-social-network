@@ -115,6 +115,40 @@ export function subjectLabel(subject: string, customSubject?: string | null) {
 const CUSTOM_SUBJECTS_KEY = "peerly.subjects.custom";
 export const CUSTOM_SUBJECTS_EVT = "peerly:custom-subjects-changed";
 
+const SMALL_WORDS = new Set(["of", "the", "and", "or", "for", "in", "on", "at", "to", "a", "an", "de", "da", "do"]);
+
+/** Normalize a free-text subject: trim, collapse whitespace, smart title-case, preserve acronyms. */
+export function normalizeSubject(input: string): string {
+  if (!input) return "";
+  const cleaned = input.replace(/\s+/g, " ").trim();
+  if (!cleaned) return "";
+  return cleaned
+    .split(" ")
+    .map((word, i) => {
+      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
+      if (/[A-Z].*[A-Z]/.test(word) && !/^[A-Z][a-z]+$/.test(word)) return word;
+      const lower = word.toLowerCase();
+      if (i > 0 && SMALL_WORDS.has(lower)) return lower;
+      return lower
+        .split(/([-/])/)
+        .map((p) => (p === "-" || p === "/" ? p : p ? p[0].toUpperCase() + p.slice(1) : p))
+        .join("");
+    })
+    .join(" ");
+}
+
+/** Resolve a user-typed subject to its canonical form (built-in match, existing custom match, or normalized new value). */
+export function canonicalSubject(input: string): string {
+  const norm = normalizeSubject(input);
+  if (!norm) return "";
+  const lower = norm.toLowerCase();
+  const builtin = (SUBJECTS as readonly string[]).find((s) => s.toLowerCase() === lower);
+  if (builtin) return builtin;
+  const custom = readCustomSubjects().find((s) => s.toLowerCase() === lower);
+  if (custom) return custom;
+  return norm;
+}
+
 function readCustomSubjects(): string[] {
   if (typeof window === "undefined") return [];
   try {
@@ -136,15 +170,18 @@ function writeCustomSubjects(list: string[]) {
   }
 }
 
-/** Add a manually typed subject to the global list (deduped, case-insensitive). */
-export function addCustomSubject(value: string) {
-  const v = value.trim();
-  if (!v) return;
+/** Add a manually typed subject to the global list (normalized + deduped, case-insensitive). Returns the canonical stored form. */
+export function addCustomSubject(value: string): string {
+  const v = normalizeSubject(value);
+  if (!v) return "";
   const lower = v.toLowerCase();
-  if ((SUBJECTS as readonly string[]).some((s) => s.toLowerCase() === lower)) return;
+  const builtin = (SUBJECTS as readonly string[]).find((s) => s.toLowerCase() === lower);
+  if (builtin) return builtin;
   const current = readCustomSubjects();
-  if (current.some((s) => s.toLowerCase() === lower)) return;
+  const existing = current.find((s) => s.toLowerCase() === lower);
+  if (existing) return existing;
   writeCustomSubjects([...current, v]);
+  return v;
 }
 
 export function getCustomSubjects(): string[] {
