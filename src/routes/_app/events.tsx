@@ -102,8 +102,6 @@ function EventsPage() {
     setMyStatusByEvent(next);
     setEvents((es) => es.map((e) => {
       if (e.id !== ev.id) return e;
-      const delta = isYes ? -1 : current ? (current === "yes" ? -1 : 1) : 1;
-      // simpler: recompute via current vs next
       const wasYes = current === "yes";
       const willYes = !isYes;
       const d = (willYes ? 1 : 0) - (wasYes ? 1 : 0);
