@@ -271,3 +271,104 @@ function CreateGroupForm({
     </>
   );
 }
+
+type AlumniRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  university: string | null;
+  requires_approval: boolean;
+  creator_id: string;
+};
+
+function AlumniDiscover({ myGroupIds, userId }: { myGroupIds: Set<string>; userId: string }) {
+  const [rows, setRows] = useState<AlumniRow[]>([]);
+  const [reqStatus, setReqStatus] = useState<Record<string, "pending" | "approved" | "declined">>({});
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from("group_chats")
+      .select("id, name, description, university, requires_approval, creator_id")
+      .eq("kind", "alumni")
+      .order("created_at", { ascending: false })
+      .limit(50);
+    const list = (data ?? []) as AlumniRow[];
+    setRows(list);
+    if (list.length) {
+      const { data: reqs } = await supabase
+        .from("group_chat_join_requests")
+        .select("group_id, status")
+        .eq("user_id", userId)
+        .in("group_id", list.map((r) => r.id));
+      const map: Record<string, "pending" | "approved" | "declined"> = {};
+      (reqs ?? []).forEach((r: any) => { map[r.group_id] = r.status; });
+      setReqStatus(map);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [userId]);
+
+  const discoverable = rows.filter((r) => !myGroupIds.has(r.id));
+  if (loading || discoverable.length === 0) return null;
+
+  const requestJoin = async (row: AlumniRow, message: string) => {
+    setBusy(row.id);
+    const { error } = await supabase
+      .from("group_chat_join_requests")
+      .insert({ group_id: row.id, user_id: userId, message: message || null });
+    setBusy(null);
+    if (error) return toast.error(error.message);
+    toast.success("Request sent — an admin will review it");
+    setReqStatus((s) => ({ ...s, [row.id]: "pending" }));
+  };
+
+  return (
+    <section className="mb-6">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2 flex items-center gap-1">
+        <GraduationCap className="h-4 w-4" /> Alumni Communities
+      </h2>
+      <div className="space-y-2">
+        {discoverable.map((r) => {
+          const status = reqStatus[r.id];
+          return (
+            <div key={r.id} className="rounded-xl border bg-card p-4 flex items-start gap-3">
+              <div className="h-10 w-10 rounded-lg flex items-center justify-center shrink-0 bg-primary/10 text-primary">
+                <GraduationCap className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">{r.name}</p>
+                {r.university && (
+                  <p className="text-xs text-muted-foreground">{r.university}</p>
+                )}
+                {r.description && (
+                  <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{r.description}</p>
+                )}
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  {r.requires_approval ? "Membership requires admin approval" : "Open community"}
+                </p>
+              </div>
+              <div className="shrink-0">
+                {status === "pending" ? (
+                  <span className="text-xs rounded-full bg-amber-500/15 text-amber-700 px-2 py-1">Request pending</span>
+                ) : status === "declined" ? (
+                  <span className="text-xs rounded-full bg-muted text-muted-foreground px-2 py-1">Declined</span>
+                ) : status === "approved" ? (
+                  <span className="text-xs rounded-full bg-emerald-500/15 text-emerald-700 px-2 py-1">Approved</span>
+                ) : (
+                  <Button size="sm" disabled={busy === r.id} onClick={() => requestJoin(r, "")}>
+                    {busy === r.id && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
+                    Request to join
+                  </Button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
