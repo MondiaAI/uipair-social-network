@@ -347,13 +347,25 @@ function CreateEventModal({
     setUploadState("success");
   }, [user]);
 
-  const onPickFile = (file: File | null) => {
+  const onPickFile = async (file: File | null) => {
+    const previousUrl = coverUrl;
+    if (!file) {
+      if (previousUrl) await deleteCoverFile(previousUrl, "post-media");
+      clearCover();
+      return;
+    }
     setCoverFile(file);
     setCoverUrl(null);
     setUploadError(null);
     setUploadProgress(0);
     setUploadState("idle");
-    if (file) void startUpload(file);
+    const err = await validateCoverFile(file);
+    if (err) {
+      setUploadState("error");
+      setUploadError(err);
+      return;
+    }
+    await startUpload(file, previousUrl);
   };
 
   const clearCover = () => {
