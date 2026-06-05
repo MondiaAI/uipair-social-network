@@ -42,6 +42,7 @@ import { Route as AppEventsEventIdRouteImport } from './routes/_app/events.$even
 import { Route as AppCirclesNewRouteImport } from './routes/_app/circles.new'
 import { Route as AppCirclesDiscoverRouteImport } from './routes/_app/circles.discover'
 import { Route as AppCirclesCircleIdRouteImport } from './routes/_app/circles.$circleId'
+import { Route as AppAdminSubmissionsRouteImport } from './routes/_app/admin.submissions'
 import { Route as AppGroupsInviteTokenRouteImport } from './routes/_app/groups.invite.$token'
 
 const TermsRoute = TermsRouteImport.update({
@@ -209,6 +210,11 @@ const AppCirclesCircleIdRoute = AppCirclesCircleIdRouteImport.update({
   path: '/circles/$circleId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminSubmissionsRoute = AppAdminSubmissionsRouteImport.update({
+  id: '/submissions',
+  path: '/submissions',
+  getParentRoute: () => AppAdminRoute,
+} as any)
 const AppGroupsInviteTokenRoute = AppGroupsInviteTokenRouteImport.update({
   id: '/groups/invite/$token',
   path: '/groups/invite/$token',
@@ -221,7 +227,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
-  '/admin': typeof AppAdminRoute
+  '/admin': typeof AppAdminRouteWithChildren
   '/ambassador': typeof AppAmbassadorRoute
   '/deep-work': typeof AppDeepWorkRoute
   '/events': typeof AppEventsRouteWithChildren
@@ -233,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/requests': typeof AppRequestsRoute
   '/settings': typeof AppSettingsRoute
   '/verify': typeof AppVerifyRoute
+  '/admin/submissions': typeof AppAdminSubmissionsRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
@@ -256,7 +263,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
-  '/admin': typeof AppAdminRoute
+  '/admin': typeof AppAdminRouteWithChildren
   '/ambassador': typeof AppAmbassadorRoute
   '/deep-work': typeof AppDeepWorkRoute
   '/events': typeof AppEventsRouteWithChildren
@@ -268,6 +275,7 @@ export interface FileRoutesByTo {
   '/requests': typeof AppRequestsRoute
   '/settings': typeof AppSettingsRoute
   '/verify': typeof AppVerifyRoute
+  '/admin/submissions': typeof AppAdminSubmissionsRoute
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
@@ -293,7 +301,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/signup': typeof SignupRoute
   '/terms': typeof TermsRoute
-  '/_app/admin': typeof AppAdminRoute
+  '/_app/admin': typeof AppAdminRouteWithChildren
   '/_app/ambassador': typeof AppAmbassadorRoute
   '/_app/deep-work': typeof AppDeepWorkRoute
   '/_app/events': typeof AppEventsRouteWithChildren
@@ -305,6 +313,7 @@ export interface FileRoutesById {
   '/_app/requests': typeof AppRequestsRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/verify': typeof AppVerifyRoute
+  '/_app/admin/submissions': typeof AppAdminSubmissionsRoute
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/_app/circles/discover': typeof AppCirclesDiscoverRoute
   '/_app/circles/new': typeof AppCirclesNewRoute
@@ -342,6 +351,7 @@ export interface FileRouteTypes {
     | '/requests'
     | '/settings'
     | '/verify'
+    | '/admin/submissions'
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
@@ -377,6 +387,7 @@ export interface FileRouteTypes {
     | '/requests'
     | '/settings'
     | '/verify'
+    | '/admin/submissions'
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
@@ -413,6 +424,7 @@ export interface FileRouteTypes {
     | '/_app/requests'
     | '/_app/settings'
     | '/_app/verify'
+    | '/_app/admin/submissions'
     | '/_app/circles/$circleId'
     | '/_app/circles/discover'
     | '/_app/circles/new'
@@ -674,6 +686,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCirclesCircleIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin/submissions': {
+      id: '/_app/admin/submissions'
+      path: '/submissions'
+      fullPath: '/admin/submissions'
+      preLoaderRoute: typeof AppAdminSubmissionsRouteImport
+      parentRoute: typeof AppAdminRoute
+    }
     '/_app/groups/invite/$token': {
       id: '/_app/groups/invite/$token'
       path: '/groups/invite/$token'
@@ -683,6 +702,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AppAdminRouteChildren {
+  AppAdminSubmissionsRoute: typeof AppAdminSubmissionsRoute
+}
+
+const AppAdminRouteChildren: AppAdminRouteChildren = {
+  AppAdminSubmissionsRoute: AppAdminSubmissionsRoute,
+}
+
+const AppAdminRouteWithChildren = AppAdminRoute._addFileChildren(
+  AppAdminRouteChildren,
+)
 
 interface AppEventsRouteChildren {
   AppEventsEventIdRoute: typeof AppEventsEventIdRoute
@@ -697,7 +728,7 @@ const AppEventsRouteWithChildren = AppEventsRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
-  AppAdminRoute: typeof AppAdminRoute
+  AppAdminRoute: typeof AppAdminRouteWithChildren
   AppAmbassadorRoute: typeof AppAmbassadorRoute
   AppDeepWorkRoute: typeof AppDeepWorkRoute
   AppEventsRoute: typeof AppEventsRouteWithChildren
@@ -726,7 +757,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAdminRoute: AppAdminRoute,
+  AppAdminRoute: AppAdminRouteWithChildren,
   AppAmbassadorRoute: AppAmbassadorRoute,
   AppDeepWorkRoute: AppDeepWorkRoute,
   AppEventsRoute: AppEventsRouteWithChildren,
@@ -768,3 +799,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
