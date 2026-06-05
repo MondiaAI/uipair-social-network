@@ -11,6 +11,8 @@ import {
   Settings as SettingsIcon,
   Sparkles,
   CalendarDays,
+  Flame,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
