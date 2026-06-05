@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Megaphone, Pin, PinOff, Trash2, Loader2, Pencil, X, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Linkify } from "./Linkify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -236,7 +237,7 @@ export function CircleAnnouncements({
                   {a.is_pinned ? <Pin className="h-3 w-3 text-primary" /> : <PinOff className="h-3 w-3 text-muted-foreground" />}
                   <p className="font-semibold text-sm">{a.title}</p>
                 </div>
-                <p className="text-sm whitespace-pre-wrap">{a.content}</p>
+                <p className="text-sm whitespace-pre-wrap"><Linkify text={a.content} /></p>
                 <p className="text-xs text-muted-foreground mt-1.5">
                   {formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}
                 </p>

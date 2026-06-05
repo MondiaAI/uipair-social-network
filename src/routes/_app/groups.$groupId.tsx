@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Send, UserPlus, LogOut, Loader2, Users as UsersIcon, Check, Share2, Settings, Copy, Shield, ShieldOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
+import { Linkify } from "@/components/peerly/Linkify";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -242,7 +243,7 @@ function GroupChatPage() {
                   {!mine && (
                     <p className="text-[10px] font-medium opacity-70 mb-0.5">{p?.full_name ?? p?.username ?? "Unknown"}</p>
                   )}
-                  <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                  <p className="whitespace-pre-wrap break-words"><Linkify text={m.content} /></p>
                   <p className={`text-[10px] mt-1 ${mine ? "opacity-70" : "text-muted-foreground"}`}>
                     {formatDistanceToNow(new Date(m.created_at), { addSuffix: true })}
                   </p>

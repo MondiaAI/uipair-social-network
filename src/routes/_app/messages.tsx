@@ -34,6 +34,7 @@ import { logClientError } from "@/lib/client-logger";
 import { submitCrashReport } from "@/lib/crash-report";
 import { uniqueRealtimeChannelName } from "@/lib/realtime-channel";
 import { uploadPrivateFileForSignedUrl } from "@/lib/storage";
+import { Linkify } from "@/components/peerly/Linkify";
 
 const search = z.object({ c: z.string().uuid().optional(), m: z.string().optional() });
 
@@ -1333,7 +1334,7 @@ function MessagesPage() {
                                     }
                                     return (
                                       <p key={i} className="whitespace-pre-wrap break-words leading-snug">
-                                        {q ? renderHighlighted(line, q) : line}
+                                        {q ? renderHighlighted(line, q) : <Linkify text={line} />}
                                       </p>
                                     );
                                   })}

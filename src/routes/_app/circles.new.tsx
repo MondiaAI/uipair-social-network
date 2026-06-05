@@ -8,9 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { SUBJECTS } from "@/lib/subjects";
+import { SUBJECTS, addCustomSubject, canonicalSubject, normalizeSubject } from "@/lib/subjects";
 import { useAllSubjects } from "@/lib/use-all-subjects";
-import { addCustomSubject } from "@/lib/subjects";
 import { DegreeQuickPicks } from "@/components/peerly/DegreeQuickPicks";
 import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,18 +56,32 @@ function CreateCirclePage() {
       toast.error("Please enter a name for your circle");
       return;
     }
-    if (subject === "Other" && !customSubject.trim()) {
+    const isOther = subject === "Other";
+    const customNorm = isOther ? normalizeSubject(customSubject) : "";
+    if (isOther && !customNorm) {
       toast.error("Please enter a custom subject");
       return;
     }
-    
-    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
-setSubmitting(true);
+
+    // Persist canonical custom subject (dedup + normalize) and reuse if it matches a known one.
+    let finalSubject = subject;
+    let finalCustom: string | null = null;
+    if (isOther) {
+      const canonical = canonicalSubject(customNorm);
+      const builtin = (SUBJECTS as readonly string[]).find((s) => s.toLowerCase() === canonical.toLowerCase());
+      if (builtin) {
+        finalSubject = builtin;
+      } else {
+        addCustomSubject(canonical);
+        finalCustom = canonical;
+      }
+    }
+    setSubmitting(true);
     try {
       const payload = {
         name: name.trim(),
-        subject,
-        custom_subject: subject === "Other" ? customSubject.trim() : null,
+        subject: finalSubject,
+        custom_subject: finalCustom,
         degree,
         description: description.trim() || null,
         leader_id: user.id,

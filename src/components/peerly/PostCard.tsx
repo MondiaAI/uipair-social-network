@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { POST_TYPE_META, type PostType } from "@/lib/post-types";
 import { useNavigate } from "@tanstack/react-router";
 import { ProjectFeedCard } from "@/components/peerly/ProjectFeedCard";
+import { Linkify } from "@/components/peerly/Linkify";
 
 export interface FeedPost {
   id: string;
@@ -528,7 +529,7 @@ function CommentRow({ comment, isOwner, onUpdated, onDeleted }: CommentRowProps)
             </div>
           </div>
         ) : (
-          <div className="text-sm whitespace-pre-wrap break-words">{comment.content}</div>
+          <div className="text-sm whitespace-pre-wrap break-words"><Linkify text={comment.content} /></div>
         )}
       </div>
     </div>
