@@ -162,6 +162,7 @@ function GroupsPage() {
 type FieldErrors = {
   name?: string;
   university?: string;
+  graduationYear?: string;
   general?: string;
 };
 
@@ -174,27 +175,53 @@ function CreateGroupForm({
   userId: string;
   onCreated: () => void;
 }) {
+  const currentYear = new Date().getFullYear();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [kind, setKind] = useState<GroupKind>("chat");
   const [university, setUniversity] = useState("");
+  const [graduationYear, setGraduationYear] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [nameTouched, setNameTouched] = useState(false);
   const [uniTouched, setUniTouched] = useState(false);
+  const [yearTouched, setYearTouched] = useState(false);
+  const [suggestedYear, setSuggestedYear] = useState<number | null>(null);
   const nameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const validate = (opts?: { checkNameUnique: boolean }): FieldErrors => {
+  const parsedYear = (() => {
+    const n = parseInt(graduationYear, 10);
+    return Number.isFinite(n) ? n : NaN;
+  })();
+  const yearValid =
+    !Number.isNaN(parsedYear) && parsedYear >= 1900 && parsedYear <= currentYear + 1;
+
+  const validate = (): FieldErrors => {
     const next: FieldErrors = {};
-    if (!name.trim()) {
-      next.name = "Group name is required";
-    } else if (name.trim().length < 3) {
-      next.name = "Group name must be at least 3 characters";
-    }
-    if (kind === "alumni" && !university.trim()) {
-      next.university = "University is required for alumni communities";
+    if (!name.trim()) next.name = "Group name is required";
+    else if (name.trim().length < 3) next.name = "Group name must be at least 3 characters";
+    if (kind === "alumni") {
+      if (!university.trim()) next.university = "University is required for alumni communities";
+      if (!graduationYear.trim()) next.graduationYear = "Class year is required (e.g. 2020)";
+      else if (!yearValid) next.graduationYear = `Enter a year between 1900 and ${currentYear + 1}`;
     }
     return next;
+  };
+
+  const findNearestAvailableYear = async (uni: string, baseName: string, conflictYear: number): Promise<number | null> => {
+    const { data } = await supabase
+      .from("group_chats")
+      .select("graduation_year")
+      .eq("kind", "alumni")
+      .eq("university", uni)
+      .ilike("name", baseName);
+    const taken = new Set<number>(((data ?? []) as any[]).map((r) => r.graduation_year).filter((y) => typeof y === "number"));
+    for (let delta = 1; delta <= 50; delta++) {
+      for (const y of [conflictYear - delta, conflictYear + delta]) {
+        if (y >= 1900 && y <= currentYear + 1 && !taken.has(y)) return y;
+      }
+    }
+    return null;
   };
 
   const checkNameUnique = async (value: string) => {
@@ -203,53 +230,69 @@ function CreateGroupForm({
       kind === "alumni" && !value.toLowerCase().includes("alumni")
         ? `${university.trim()} Alumni — ${value.trim()}`
         : value.trim();
-    let query = supabase.from("group_chats").select("id");
     if (kind === "alumni") {
-      if (!university.trim()) return;
-      query = query
+      if (!university.trim() || !yearValid) return;
+      const { data } = await supabase
+        .from("group_chats")
+        .select("id, graduation_year")
         .eq("kind", "alumni")
         .eq("university", university.trim())
-        .ilike("name", finalName);
+        .ilike("name", finalName)
+        .eq("graduation_year", parsedYear)
+        .maybeSingle();
+      if (data) {
+        const nearest = await findNearestAvailableYear(university.trim(), finalName, parsedYear);
+        setSuggestedYear(nearest);
+        setErrors((prev) => ({
+          ...prev,
+          name: `"${finalName}" already exists for ${university.trim()} — Class of ${parsedYear}.${
+            nearest ? ` Closest available year: ${nearest}.` : ""
+          } Edit the cohort year or rename it.`,
+        }));
+      } else {
+        setSuggestedYear(null);
+      }
     } else {
-      query = query.eq("name", finalName);
-    }
-    const { data } = await query.maybeSingle();
-    if (data) {
-      setErrors((prev) => ({
-        ...prev,
-        name:
-          kind === "alumni"
-            ? `An alumni community with this name already exists for ${university.trim()}. Add a year (e.g. "Class of 2024") to make it unique.`
-            : "A group with this name already exists. Try a different name.",
-      }));
+      const { data } = await supabase.from("group_chats").select("id").eq("name", finalName).maybeSingle();
+      if (data) {
+        setErrors((prev) => ({ ...prev, name: "A group with this name already exists. Try a different name." }));
+      }
     }
   };
 
   const handleNameChange = (value: string) => {
     setName(value);
-    const base = validate();
-    setErrors((prev) => ({ ...prev, name: base.name, general: undefined }));
+    setErrors((prev) => ({ ...prev, name: undefined, general: undefined }));
     if (nameDebounce.current) clearTimeout(nameDebounce.current);
     nameDebounce.current = setTimeout(() => checkNameUnique(value), 400);
   };
 
   const handleUniChange = (value: string) => {
     setUniversity(value);
-    const base = validate();
-    setErrors((prev) => ({ ...prev, university: base.university, general: undefined }));
+    setErrors((prev) => ({ ...prev, university: undefined, name: undefined, general: undefined }));
+    if (nameDebounce.current) clearTimeout(nameDebounce.current);
+    nameDebounce.current = setTimeout(() => checkNameUnique(name), 400);
+  };
+
+  const handleYearChange = (value: string) => {
+    const cleaned = value.replace(/[^0-9]/g, "").slice(0, 4);
+    setGraduationYear(cleaned);
+    setErrors((prev) => ({ ...prev, graduationYear: undefined, name: undefined, general: undefined }));
+    if (nameDebounce.current) clearTimeout(nameDebounce.current);
+    nameDebounce.current = setTimeout(() => checkNameUnique(name), 400);
   };
 
   const submit = async () => {
     setNameTouched(true);
-    if (kind === "alumni") setUniTouched(true);
+    if (kind === "alumni") { setUniTouched(true); setYearTouched(true); }
 
     if (!tenantId) {
       setErrors({ general: "Set your university in onboarding before creating a group." });
       return;
     }
 
-    const validation = validate({ checkNameUnique: true });
-    if (validation.name || validation.university) {
+    const validation = validate();
+    if (validation.name || validation.university || validation.graduationYear) {
       setErrors(validation);
       return;
     }
@@ -261,7 +304,7 @@ function CreateGroupForm({
         : name.trim();
     const finalDesc =
       kind === "alumni"
-        ? `${university.trim()} alumni community. ${description.trim()}`.trim()
+        ? `${university.trim()} alumni community — Class of ${parsedYear}. ${description.trim()}`.trim()
         : description.trim() || null;
     const { error } = await supabase.from("group_chats").insert({
       name: finalName,
@@ -270,6 +313,7 @@ function CreateGroupForm({
       creator_id: userId,
       tenant_id: tenantId,
       university: kind === "alumni" ? university.trim() : null,
+      graduation_year: kind === "alumni" ? parsedYear : null,
       requires_approval: kind === "alumni",
     } as any);
     setSubmitting(false);
@@ -280,12 +324,17 @@ function CreateGroupForm({
         msg.toLowerCase().includes("duplicate") ||
         msg.toLowerCase().includes("already exists");
       if (isDup) {
-        setErrors({
-          name:
-            kind === "alumni"
-              ? `An alumni community with this name already exists for ${university.trim()}. Add a year (e.g. "Class of 2024") to make it unique.`
-              : "A group with this name already exists. Try a different name.",
-        });
+        if (kind === "alumni") {
+          const nearest = await findNearestAvailableYear(university.trim(), finalName, parsedYear);
+          setSuggestedYear(nearest);
+          setErrors({
+            name: `"${finalName}" already exists for ${university.trim()} — Class of ${parsedYear}.${
+              nearest ? ` Closest available year: ${nearest}.` : ""
+            } Edit the cohort year or rename it.`,
+          });
+        } else {
+          setErrors({ name: "A group with this name already exists. Try a different name." });
+        }
       } else {
         setErrors({ general: msg });
       }
@@ -297,7 +346,13 @@ function CreateGroupForm({
 
   const showNameError = (nameTouched || errors.name) && errors.name;
   const showUniError = (uniTouched || errors.university) && errors.university;
-  const canSubmit = name.trim().length >= 3 && !(kind === "alumni" && !university.trim()) && !submitting && !errors.name;
+  const showYearError = (yearTouched || errors.graduationYear) && errors.graduationYear;
+  const canSubmit =
+    name.trim().length >= 3 &&
+    !(kind === "alumni" && (!university.trim() || !yearValid)) &&
+    !submitting &&
+    !errors.name &&
+    !errors.graduationYear;
 
   return (
     <>
@@ -314,7 +369,7 @@ function CreateGroupForm({
 
         <div>
           <Label>Type</Label>
-          <Select value={kind} onValueChange={(v) => { setKind(v as GroupKind); setErrors((prev) => ({ ...prev, university: undefined })); }}>
+          <Select value={kind} onValueChange={(v) => { setKind(v as GroupKind); setErrors({}); setSuggestedYear(null); }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="study">📚 Study</SelectItem>
@@ -328,28 +383,54 @@ function CreateGroupForm({
         </div>
 
         {kind === "alumni" && (
-          <div>
-            <Label htmlFor="alumni-uni">University <span className="text-destructive">*</span></Label>
-            <Input
-              id="alumni-uni"
-              value={university}
-              onChange={(e) => handleUniChange(e.target.value)}
-              onBlur={() => setUniTouched(true)}
-              maxLength={120}
-              placeholder="e.g. University of Rwanda"
-              aria-invalid={showUniError ? "true" : "false"}
-              className={showUniError ? "border-destructive focus-visible:ring-destructive/30" : ""}
-            />
-            {showUniError ? (
-              <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" /> {errors.university}
-              </p>
-            ) : (
-              <p className="text-xs text-muted-foreground mt-1">
-                Required — name the university this alumni community belongs to. Graduates from any year can join.
-              </p>
-            )}
-          </div>
+          <>
+            <div>
+              <Label htmlFor="alumni-uni">University <span className="text-destructive">*</span></Label>
+              <Input
+                id="alumni-uni"
+                value={university}
+                onChange={(e) => handleUniChange(e.target.value)}
+                onBlur={() => setUniTouched(true)}
+                maxLength={120}
+                placeholder="e.g. University of Rwanda"
+                aria-invalid={showUniError ? "true" : "false"}
+                className={showUniError ? "border-destructive focus-visible:ring-destructive/30" : ""}
+              />
+              {showUniError ? (
+                <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.university}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Required — name the university this alumni community belongs to.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="alumni-year">Class of (year) <span className="text-destructive">*</span></Label>
+              <Input
+                id="alumni-year"
+                value={graduationYear}
+                onChange={(e) => handleYearChange(e.target.value)}
+                onBlur={() => setYearTouched(true)}
+                inputMode="numeric"
+                maxLength={4}
+                placeholder={`e.g. ${currentYear - 4}`}
+                aria-invalid={showYearError ? "true" : "false"}
+                className={showYearError ? "border-destructive focus-visible:ring-destructive/30" : ""}
+              />
+              {showYearError ? (
+                <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.graduationYear}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground mt-1">
+                  The graduating cohort. Different years can safely share the same name.
+                </p>
+              )}
+            </div>
+          </>
         )}
 
         <div>
@@ -360,18 +441,29 @@ function CreateGroupForm({
             onChange={(e) => handleNameChange(e.target.value)}
             onBlur={() => setNameTouched(true)}
             maxLength={120}
-            placeholder={kind === "alumni" ? "e.g. Class of 2020, Engineering Alumni" : "e.g. CS101 Study Squad"}
+            placeholder={kind === "alumni" ? "e.g. Engineering Alumni" : "e.g. CS101 Study Squad"}
             aria-invalid={showNameError ? "true" : "false"}
             className={showNameError ? "border-destructive focus-visible:ring-destructive/30" : ""}
           />
           {showNameError ? (
-            <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-              <AlertCircle className="h-3 w-3" /> {errors.name}
-            </p>
+            <div className="text-xs text-destructive mt-1 space-y-1">
+              <p className="flex items-start gap-1">
+                <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" /> <span>{errors.name}</span>
+              </p>
+              {kind === "alumni" && suggestedYear !== null && (
+                <button
+                  type="button"
+                  onClick={() => { setGraduationYear(String(suggestedYear)); setErrors((p) => ({ ...p, name: undefined })); setSuggestedYear(null); }}
+                  className="underline text-destructive hover:text-destructive/80"
+                >
+                  Use Class of {suggestedYear} instead
+                </button>
+              )}
+            </div>
           ) : (
             <p className="text-xs text-muted-foreground mt-1">
               {kind === "alumni"
-                ? "Pick a clear, unique name. If it doesn't include 'Alumni', we'll prefix it with the university name."
+                ? "Pick a clear name. If it doesn't include 'Alumni', we'll prefix it with the university. Cohort year keeps it unique."
                 : "Pick a clear, unique name so others can find it."}
             </p>
           )}
@@ -385,7 +477,7 @@ function CreateGroupForm({
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             maxLength={500}
-            placeholder={kind === "alumni" ? "What makes this community special? e.g. networking, mentorship, reunions…" : "What is this group about?"}
+            placeholder={kind === "alumni" ? "What makes this cohort special? e.g. networking, mentorship, reunions…" : "What is this group about?"}
           />
           <p className="text-xs text-muted-foreground mt-1">{description.length}/500</p>
         </div>
@@ -406,6 +498,7 @@ type AlumniRow = {
   name: string;
   description: string | null;
   university: string | null;
+  graduation_year: number | null;
   requires_approval: boolean;
   creator_id: string;
 };
@@ -420,7 +513,7 @@ function AlumniDiscover({ myGroupIds, userId }: { myGroupIds: Set<string>; userI
     setLoading(true);
     const { data } = await supabase
       .from("group_chats")
-      .select("id, name, description, university, requires_approval, creator_id")
+      .select("id, name, description, university, graduation_year, requires_approval, creator_id")
       .eq("kind", "alumni")
       .order("created_at", { ascending: false })
       .limit(50);
@@ -470,9 +563,9 @@ function AlumniDiscover({ myGroupIds, userId }: { myGroupIds: Set<string>; userI
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{r.name}</p>
-                {r.university && (
-                  <p className="text-xs text-muted-foreground">{r.university}</p>
-                )}
+                <p className="text-xs text-muted-foreground">
+                  {[r.university, r.graduation_year ? `Class of ${r.graduation_year}` : null].filter(Boolean).join(" · ")}
+                </p>
                 {r.description && (
                   <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{r.description}</p>
                 )}
