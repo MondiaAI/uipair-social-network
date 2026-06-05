@@ -300,7 +300,7 @@ function DiscoverCirclesPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {filtered.map((c) => (
-            <CircleCard key={c.id} circle={c} joined={memberships.has(c.id)} joining={joiningIds.has(c.id)} onJoin={handleJoin} />
+            <CircleCard key={c.id} circle={c} joined={memberships.has(c.id)} joining={joiningIds.has(c.id)} onJoin={handleJoin} searchQuery={search || (subjectFilter !== "all" && subjectFilter !== "Other" ? subjectFilter : "") || (subjectFilter === "Other" ? customSubject : "")} />
           ))}
         </div>
       )}
