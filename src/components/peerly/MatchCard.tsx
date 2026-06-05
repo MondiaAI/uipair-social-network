@@ -26,6 +26,7 @@ export interface MatchProfile {
   skills: string[] | null;
   goals: string | null;
   last_seen_at: string | null;
+  is_verified?: boolean | null;
 }
 
 interface Props {
