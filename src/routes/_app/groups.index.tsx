@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Search, Users, BookOpen, MessageSquare, FlaskConical, Briefcase, MoreHorizontal, Loader2, GraduationCap } from "lucide-react";
+import { Plus, Search, Users, BookOpen, MessageSquare, FlaskConical, Briefcase, MoreHorizontal, Loader2, GraduationCap, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -159,6 +159,12 @@ function GroupsPage() {
   );
 }
 
+type FieldErrors = {
+  name?: string;
+  university?: string;
+  general?: string;
+};
+
 function CreateGroupForm({
   tenantId,
   userId,
@@ -173,20 +179,69 @@ function CreateGroupForm({
   const [kind, setKind] = useState<GroupKind>("chat");
   const [university, setUniversity] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [nameTouched, setNameTouched] = useState(false);
+  const [uniTouched, setUniTouched] = useState(false);
+  const nameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const submit = async () => {
-    if (!tenantId) {
-      toast.error("Set your university in onboarding before creating a group.");
-      return;
-    }
+  const validate = (opts?: { checkNameUnique: boolean }): FieldErrors => {
+    const next: FieldErrors = {};
     if (!name.trim()) {
-      toast.error("Group name is required");
-      return;
+      next.name = "Group name is required";
+    } else if (name.trim().length < 3) {
+      next.name = "Group name must be at least 3 characters";
     }
     if (kind === "alumni" && !university.trim()) {
-      toast.error("Pick the university this alumni group is for");
+      next.university = "University is required for alumni communities";
+    }
+    return next;
+  };
+
+  const checkNameUnique = async (value: string) => {
+    if (!value.trim() || value.trim().length < 3) return;
+    const finalName =
+      kind === "alumni" && !value.toLowerCase().includes("alumni")
+        ? `${university.trim()} Alumni — ${value.trim()}`
+        : value.trim();
+    const { data } = await supabase
+      .from("group_chats")
+      .select("id")
+      .eq("name", finalName)
+      .maybeSingle();
+    if (data) {
+      setErrors((prev) => ({ ...prev, name: "A group with this name already exists. Try a different name." }));
+    }
+  };
+
+  const handleNameChange = (value: string) => {
+    setName(value);
+    const base = validate();
+    setErrors((prev) => ({ ...prev, name: base.name, general: undefined }));
+    if (nameDebounce.current) clearTimeout(nameDebounce.current);
+    nameDebounce.current = setTimeout(() => checkNameUnique(value), 400);
+  };
+
+  const handleUniChange = (value: string) => {
+    setUniversity(value);
+    const base = validate();
+    setErrors((prev) => ({ ...prev, university: base.university, general: undefined }));
+  };
+
+  const submit = async () => {
+    setNameTouched(true);
+    if (kind === "alumni") setUniTouched(true);
+
+    if (!tenantId) {
+      setErrors({ general: "Set your university in onboarding before creating a group." });
       return;
     }
+
+    const validation = validate({ checkNameUnique: true });
+    if (validation.name || validation.university) {
+      setErrors(validation);
+      return;
+    }
+
     setSubmitting(true);
     const finalName =
       kind === "alumni" && !name.toLowerCase().includes("alumni")
@@ -207,12 +262,20 @@ function CreateGroupForm({
     } as any);
     setSubmitting(false);
     if (error) {
-      toast.error(error.message);
+      if (error.message?.toLowerCase().includes("duplicate") || error.code === "23505") {
+        setErrors({ name: "A group with this name already exists. Try a different name." });
+      } else {
+        setErrors({ general: error.message });
+      }
       return;
     }
     toast.success("Group created");
     onCreated();
   };
+
+  const showNameError = (nameTouched || errors.name) && errors.name;
+  const showUniError = (uniTouched || errors.university) && errors.university;
+  const canSubmit = name.trim().length >= 3 && !(kind === "alumni" && !university.trim()) && !submitting && !errors.name;
 
   return (
     <>
@@ -220,9 +283,16 @@ function CreateGroupForm({
         <DialogTitle>New group</DialogTitle>
       </DialogHeader>
       <div className="space-y-4">
+        {errors.general && (
+          <div className="flex items-start gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+            <span>{errors.general}</span>
+          </div>
+        )}
+
         <div>
           <Label>Type</Label>
-          <Select value={kind} onValueChange={(v) => setKind(v as GroupKind)}>
+          <Select value={kind} onValueChange={(v) => { setKind(v as GroupKind); setErrors((prev) => ({ ...prev, university: undefined })); }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="study">📚 Study</SelectItem>
@@ -234,34 +304,71 @@ function CreateGroupForm({
             </SelectContent>
           </Select>
         </div>
+
         {kind === "alumni" && (
           <div>
-            <Label>University</Label>
+            <Label htmlFor="alumni-uni">University <span className="text-destructive">*</span></Label>
             <Input
+              id="alumni-uni"
               value={university}
-              onChange={(e) => setUniversity(e.target.value)}
+              onChange={(e) => handleUniChange(e.target.value)}
+              onBlur={() => setUniTouched(true)}
               maxLength={120}
               placeholder="e.g. University of Rwanda"
+              aria-invalid={showUniError ? "true" : "false"}
+              className={showUniError ? "border-destructive focus-visible:ring-destructive/30" : ""}
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              Open to graduates of any university — pick the one this community is for.
-            </p>
+            {showUniError ? (
+              <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" /> {errors.university}
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-1">
+                Required — name the university this alumni community belongs to. Graduates from any year can join.
+              </p>
+            )}
           </div>
         )}
+
         <div>
-          <Label>Name</Label>
+          <Label htmlFor="group-name">Name <span className="text-destructive">*</span></Label>
           <Input
+            id="group-name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => handleNameChange(e.target.value)}
+            onBlur={() => setNameTouched(true)}
             maxLength={120}
             placeholder={kind === "alumni" ? "e.g. Class of 2020, Engineering Alumni" : "e.g. CS101 Study Squad"}
+            aria-invalid={showNameError ? "true" : "false"}
+            className={showNameError ? "border-destructive focus-visible:ring-destructive/30" : ""}
           />
+          {showNameError ? (
+            <p className="text-xs text-destructive mt-1 flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" /> {errors.name}
+            </p>
+          ) : (
+            <p className="text-xs text-muted-foreground mt-1">
+              {kind === "alumni"
+                ? "Pick a clear, unique name. If it doesn't include 'Alumni', we'll prefix it with the university name."
+                : "Pick a clear, unique name so others can find it."}
+            </p>
+          )}
         </div>
+
         <div>
-          <Label>Description (optional)</Label>
-          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={500} />
+          <Label htmlFor="group-desc">Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
+          <Textarea
+            id="group-desc"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            maxLength={500}
+            placeholder={kind === "alumni" ? "What makes this community special? e.g. networking, mentorship, reunions…" : "What is this group about?"}
+          />
+          <p className="text-xs text-muted-foreground mt-1">{description.length}/500</p>
         </div>
-        <Button onClick={submit} disabled={submitting || !name.trim()} className="w-full">
+
+        <Button onClick={submit} disabled={!canSubmit} className="w-full">
           {submitting && <Loader2 className="h-4 w-4 animate-spin mr-1" />} Create group
         </Button>
         <p className="text-xs text-muted-foreground">
