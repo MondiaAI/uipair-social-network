@@ -148,6 +148,18 @@ function SettingsPage() {
           </Button>
         </div>
       </Card>
+
+      <Card className="p-5 space-y-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="font-semibold">Data-Light Mode</h2>
+            <p className="text-sm text-muted-foreground">
+              Stops live session previews and autoplaying video from loading in the background. Great for slow or expensive connections.
+            </p>
+          </div>
+          <Switch checked={dataLight} onCheckedChange={setDataLight} aria-label="Data-Light Mode" />
+        </div>
+      </Card>
     </div>
   );
 }
