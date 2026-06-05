@@ -282,6 +282,10 @@ function CreateGroupForm({
     setYearTouched(true);
     setSuggestedYear(null);
     setErrors((prev) => ({ ...prev, graduationYear: undefined, name: undefined, general: undefined }));
+    if (kind === "alumni" && cleaned) {
+      const base = name.replace(YEAR_SUFFIX_RE, "").trim();
+      setName(base ? `${base} (Class of ${cleaned})` : `(Class of ${cleaned})`);
+    }
     if (nameDebounce.current) clearTimeout(nameDebounce.current);
     nameDebounce.current = setTimeout(() => checkNameUnique(name), 400);
   };
