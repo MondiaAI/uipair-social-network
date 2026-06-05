@@ -429,24 +429,33 @@ function CreateGroupForm({
 
             <div>
               <Label htmlFor="alumni-year">Class of (year) <span className="text-destructive">*</span></Label>
-              <Input
-                id="alumni-year"
-                value={graduationYear}
-                onChange={(e) => handleYearChange(e.target.value)}
-                onBlur={() => setYearTouched(true)}
-                inputMode="numeric"
-                maxLength={4}
-                placeholder={`e.g. ${currentYear - 4}`}
-                aria-invalid={showYearError ? "true" : "false"}
-                className={showYearError ? "border-destructive focus-visible:ring-destructive/30" : ""}
-              />
+              <Select
+                value={graduationYear || undefined}
+                onValueChange={(v) => handleYearChange(v)}
+              >
+                <SelectTrigger
+                  id="alumni-year"
+                  aria-invalid={showYearError ? "true" : "false"}
+                  className={showYearError ? "border-destructive focus-visible:ring-destructive/30" : ""}
+                  onBlur={() => setYearTouched(true)}
+                >
+                  <SelectValue placeholder={`Select a year (e.g. ${currentYear - 4})`} />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                  {yearOptions.map((y) => (
+                    <SelectItem key={y} value={String(y)}>
+                      Class of {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {showYearError ? (
                 <p className="text-xs text-destructive mt-1 flex items-center gap-1">
                   <AlertCircle className="h-3 w-3" /> {errors.graduationYear}
                 </p>
               ) : (
                 <p className="text-xs text-muted-foreground mt-1">
-                  The graduating cohort. Different years can safely share the same name.
+                  Pick the graduating cohort (1950–{currentYear + 1}). Different years can safely share the same name.
                 </p>
               )}
             </div>
