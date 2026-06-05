@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Calendar, MapPin, Users as UsersIcon, Plus, Loader2, CheckCircle2, AlertCircle, RefreshCw, X } from "lucide-react";
+import { Calendar, MapPin, Users as UsersIcon, Plus, Loader2, CheckCircle2, AlertCircle, RefreshCw, X, ImageOff } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useDataLight } from "@/lib/data-light";
 import { uploadToBucketDetailed } from "@/lib/storage";
@@ -242,6 +242,56 @@ function EventCard({
   );
 }
 
+const ALLOWED_COVER_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const MAX_COVER_BYTES = 5 * 1024 * 1024; // 5 MB
+const MIN_COVER_DIM = 200;
+const MAX_COVER_DIM = 4096;
+
+function validateCoverFile(file: File): Promise<string | null> {
+  return new Promise((resolve) => {
+    if (!ALLOWED_COVER_TYPES.includes(file.type)) {
+      return resolve(`Unsupported file type. Please use JPEG, PNG, WebP, or GIF.`);
+    }
+    if (file.size > MAX_COVER_BYTES) {
+      return resolve(`Image is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Please choose one under 5 MB.`);
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      if (img.width < MIN_COVER_DIM || img.height < MIN_COVER_DIM) {
+        return resolve(`Image is too small (${img.width}×${img.height}px). Minimum size is ${MIN_COVER_DIM}×${MIN_COVER_DIM}px.`);
+      }
+      if (img.width > MAX_COVER_DIM || img.height > MAX_COVER_DIM) {
+        return resolve(`Image is too large (${img.width}×${img.height}px). Maximum size is ${MAX_COVER_DIM}×${MAX_COVER_DIM}px.`);
+      }
+      resolve(null);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve("Could not read image. Please try a different file.");
+    };
+    img.src = url;
+  });
+}
+
+function extractStoragePath(publicUrl: string, bucket: string): string | null {
+  const marker = `/object/public/${bucket}/`;
+  const idx = publicUrl.indexOf(marker);
+  if (idx === -1) return null;
+  return publicUrl.slice(idx + marker.length);
+}
+
+async function deleteCoverFile(publicUrl: string, bucket: string) {
+  const path = extractStoragePath(publicUrl, bucket);
+  if (!path) return;
+  try {
+    await supabase.storage.from(bucket).remove([path]);
+  } catch {
+    // best-effort cleanup; don't block user flow
+  }
+}
+
 function CreateEventModal({
   open,
   onOpenChange,
@@ -273,12 +323,11 @@ function CreateEventModal({
     setUploadState("idle"); setUploadProgress(0); setUploadError(null);
   };
 
-  const startUpload = useCallback(async (file: File) => {
+  const startUpload = useCallback(async (file: File, previousUrl: string | null) => {
     if (!user) return;
     setUploadState("uploading");
     setUploadProgress(8);
     setUploadError(null);
-    // Indeterminate-ish progress: tick toward 90% while the SDK upload runs.
     const tick = window.setInterval(() => {
       setUploadProgress((p) => (p < 90 ? p + Math.max(1, Math.round((90 - p) / 8)) : p));
     }, 200);
@@ -290,18 +339,33 @@ function CreateEventModal({
       setUploadError(error || "Upload failed");
       return;
     }
+    if (previousUrl) {
+      await deleteCoverFile(previousUrl, "post-media");
+    }
     setCoverUrl(url);
     setUploadProgress(100);
     setUploadState("success");
   }, [user]);
 
-  const onPickFile = (file: File | null) => {
+  const onPickFile = async (file: File | null) => {
+    const previousUrl = coverUrl;
+    if (!file) {
+      if (previousUrl) await deleteCoverFile(previousUrl, "post-media");
+      clearCover();
+      return;
+    }
     setCoverFile(file);
     setCoverUrl(null);
     setUploadError(null);
     setUploadProgress(0);
     setUploadState("idle");
-    if (file) void startUpload(file);
+    const err = await validateCoverFile(file);
+    if (err) {
+      setUploadState("error");
+      setUploadError(err);
+      return;
+    }
+    await startUpload(file, previousUrl);
   };
 
   const clearCover = () => {
@@ -434,7 +498,7 @@ function CreateEventModal({
                       type="button"
                       size="sm"
                       variant="outline"
-                      onClick={() => coverFile && startUpload(coverFile)}
+                      onClick={() => coverFile && startUpload(coverFile, null)}
                       className="h-7 text-xs"
                     >
                       <RefreshCw className="h-3 w-3" /> Retry upload
