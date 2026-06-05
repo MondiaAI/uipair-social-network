@@ -482,7 +482,7 @@ function CreateGroupForm({
               {kind === "alumni" && suggestedYear !== null && (
                 <button
                   type="button"
-                  onClick={() => { setGraduationYear(String(suggestedYear)); setErrors((p) => ({ ...p, name: undefined })); setSuggestedYear(null); }}
+                  onClick={applySuggestedYear}
                   className="underline text-destructive hover:text-destructive/80"
                 >
                   Use Class of {suggestedYear} instead
