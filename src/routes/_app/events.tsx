@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -55,7 +55,7 @@ function EventsPage() {
   const { user, profile } = useAuth();
   const dataLight = useDataLight();
   const [events, setEvents] = useState<CampusEvent[]>([]);
-  const [rsvpIds, setRsvpIds] = useState<Set<string>>(new Set());
+  const [myStatusByEvent, setMyStatusByEvent] = useState<Record<string, "yes" | "no" | "maybe">>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
@@ -77,9 +77,13 @@ function EventsPage() {
     if (user) {
       const { data: rsvps } = await supabase
         .from("event_rsvps")
-        .select("event_id")
+        .select("event_id, status")
         .eq("user_id", user.id);
-      setRsvpIds(new Set((rsvps ?? []).map((r) => r.event_id)));
+      const map: Record<string, "yes" | "no" | "maybe"> = {};
+      for (const r of rsvps ?? []) {
+        map[(r as { event_id: string }).event_id] = (r as { status: "yes" | "no" | "maybe" }).status;
+      }
+      setMyStatusByEvent(map);
     }
     setLoading(false);
   }, [profile?.university, user]);
@@ -88,29 +92,32 @@ function EventsPage() {
     load();
   }, [load]);
 
-  const toggleRsvp = async (ev: CampusEvent) => {
+  const quickYes = async (ev: CampusEvent) => {
     if (!user) return;
-    const going = rsvpIds.has(ev.id);
-    if (going) {
-      const next = new Set(rsvpIds);
-      next.delete(ev.id);
-      setRsvpIds(next);
-      setEvents((es) => es.map((e) => (e.id === ev.id ? { ...e, rsvp_count: Math.max(0, e.rsvp_count - 1) } : e)));
-      const { error } = await supabase.from("event_rsvps").delete().eq("event_id", ev.id).eq("user_id", user.id);
-      if (error) {
-        toast.error("Couldn't update RSVP");
-        load();
-      }
+    const current = myStatusByEvent[ev.id];
+    const isYes = current === "yes";
+    const next = { ...myStatusByEvent };
+    if (isYes) delete next[ev.id];
+    else next[ev.id] = "yes";
+    setMyStatusByEvent(next);
+    setEvents((es) => es.map((e) => {
+      if (e.id !== ev.id) return e;
+      const wasYes = current === "yes";
+      const willYes = !isYes;
+      const d = (willYes ? 1 : 0) - (wasYes ? 1 : 0);
+      return { ...e, rsvp_count: Math.max(0, e.rsvp_count + d) };
+    }));
+    let error: any = null;
+    if (isYes) {
+      ({ error } = await supabase.from("event_rsvps").delete().eq("event_id", ev.id).eq("user_id", user.id));
     } else {
-      const next = new Set(rsvpIds);
-      next.add(ev.id);
-      setRsvpIds(next);
-      setEvents((es) => es.map((e) => (e.id === ev.id ? { ...e, rsvp_count: e.rsvp_count + 1 } : e)));
-      const { error } = await supabase.from("event_rsvps").insert({ event_id: ev.id, user_id: user.id });
-      if (error) {
-        toast.error("Couldn't RSVP");
-        load();
-      }
+      ({ error } = await supabase
+        .from("event_rsvps")
+        .upsert({ event_id: ev.id, user_id: user.id, status: "yes" }, { onConflict: "event_id,user_id" }));
+    }
+    if (error) {
+      toast.error("Couldn't update RSVP");
+      load();
     }
   };
 
@@ -159,8 +166,8 @@ function EventsPage() {
             <EventCard
               key={ev.id}
               event={ev}
-              going={rsvpIds.has(ev.id)}
-              onToggleRsvp={() => toggleRsvp(ev)}
+              myStatus={myStatusByEvent[ev.id] ?? null}
+              onQuickYes={() => quickYes(ev)}
               dataLight={dataLight}
             />
           ))}
@@ -174,13 +181,13 @@ function EventsPage() {
 
 function EventCard({
   event,
-  going,
-  onToggleRsvp,
+  myStatus,
+  onQuickYes,
   dataLight,
 }: {
   event: CampusEvent;
-  going: boolean;
-  onToggleRsvp: () => void;
+  myStatus: "yes" | "no" | "maybe" | null;
+  onQuickYes: () => void;
   dataLight: boolean;
 }) {
   const start = new Date(event.starts_at);
@@ -191,17 +198,22 @@ function EventCard({
     hour: "numeric",
     minute: "2-digit",
   });
+  const isYes = myStatus === "yes";
   return (
     <article className="rounded-2xl border bg-card overflow-hidden">
       {event.cover_url && !dataLight && (
-        <img src={event.cover_url} alt="" className="h-40 w-full object-cover" loading="lazy" />
+        <Link to="/events/$eventId" params={{ eventId: event.id }} className="block">
+          <img src={event.cover_url} alt="" className="h-40 w-full object-cover" loading="lazy" />
+        </Link>
       )}
       <div className="p-4 space-y-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="rounded-full bg-muted px-2 py-0.5">{categoryLabel(event.category)}</span>
         </div>
-        <h2 className="text-lg font-semibold leading-tight">{event.title}</h2>
-        {event.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap">{event.description}</p>}
+        <Link to="/events/$eventId" params={{ eventId: event.id }} className="block group">
+          <h2 className="text-lg font-semibold leading-tight group-hover:underline">{event.title}</h2>
+        </Link>
+        {event.description && <p className="text-sm text-muted-foreground whitespace-pre-wrap line-clamp-3">{event.description}</p>}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground pt-1">
           <span className="inline-flex items-center gap-1.5">
             <Calendar className="h-4 w-4" /> {dateStr}
@@ -215,9 +227,12 @@ function EventCard({
             <UsersIcon className="h-4 w-4" /> {event.rsvp_count} going
           </span>
         </div>
-        <div className="pt-2">
-          <Button variant={going ? "secondary" : "default"} size="sm" onClick={onToggleRsvp}>
-            {going ? "Going ✓" : "RSVP"}
+        <div className="pt-2 flex items-center gap-2">
+          <Button variant={isYes ? "secondary" : "default"} size="sm" onClick={onQuickYes}>
+            {isYes ? "Going ✓" : myStatus === "maybe" ? "Maybe · Tap to go" : myStatus === "no" ? "Not going · Tap to go" : "RSVP yes"}
+          </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/events/$eventId" params={{ eventId: event.id }}>Details</Link>
           </Button>
         </div>
       </div>
@@ -241,12 +256,13 @@ function CreateEventModal({
   const [location, setLocation] = useState("");
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
+  const [agenda, setAgenda] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setTitle(""); setDescription(""); setCategory("other"); setLocation("");
-    setStartsAt(""); setEndsAt(""); setCoverFile(null);
+    setStartsAt(""); setEndsAt(""); setAgenda(""); setCoverFile(null);
   };
 
   const submit = async () => {
@@ -278,6 +294,7 @@ function CreateEventModal({
       location: location.trim() || null,
       starts_at: new Date(startsAt).toISOString(),
       ends_at: endsAt ? new Date(endsAt).toISOString() : null,
+      agenda: agenda.trim() || null,
       cover_url,
     });
     setSubmitting(false);
@@ -328,6 +345,10 @@ function CreateEventModal({
               <Label>Ends (optional)</Label>
               <Input type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
             </div>
+          </div>
+          <div>
+            <Label>Agenda (optional)</Label>
+            <Textarea value={agenda} onChange={(e) => setAgenda(e.target.value)} rows={4} maxLength={5000} placeholder="6:00 PM — Doors open&#10;6:30 PM — Keynote&#10;7:30 PM — Networking" />
           </div>
           <div>
             <Label>Cover image (optional)</Label>

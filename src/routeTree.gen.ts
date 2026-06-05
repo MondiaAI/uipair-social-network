@@ -34,6 +34,7 @@ import { Route as AppLiveSessionIdRouteImport } from './routes/_app/live.$sessio
 import { Route as AppLabProjectIdRouteImport } from './routes/_app/lab.$projectId'
 import { Route as AppInviteTokenRouteImport } from './routes/_app/invite.$token'
 import { Route as AppGroupsGroupIdRouteImport } from './routes/_app/groups.$groupId'
+import { Route as AppEventsEventIdRouteImport } from './routes/_app/events.$eventId'
 import { Route as AppCirclesNewRouteImport } from './routes/_app/circles.new'
 import { Route as AppCirclesDiscoverRouteImport } from './routes/_app/circles.discover'
 import { Route as AppCirclesCircleIdRouteImport } from './routes/_app/circles.$circleId'
@@ -163,6 +164,11 @@ const AppGroupsGroupIdRoute = AppGroupsGroupIdRouteImport.update({
   path: '/groups/$groupId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppEventsEventIdRoute = AppEventsEventIdRouteImport.update({
+  id: '/$eventId',
+  path: '/$eventId',
+  getParentRoute: () => AppEventsRoute,
+} as any)
 const AppCirclesNewRoute = AppCirclesNewRouteImport.update({
   id: '/circles/new',
   path: '/circles/new',
@@ -192,7 +198,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/admin': typeof AppAdminRoute
   '/ambassador': typeof AppAmbassadorRoute
-  '/events': typeof AppEventsRoute
+  '/events': typeof AppEventsRouteWithChildren
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
   '/join': typeof AppJoinRoute
@@ -203,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
+  '/events/$eventId': typeof AppEventsEventIdRoute
   '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
@@ -222,7 +229,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/admin': typeof AppAdminRoute
   '/ambassador': typeof AppAmbassadorRoute
-  '/events': typeof AppEventsRoute
+  '/events': typeof AppEventsRouteWithChildren
   '/feed': typeof AppFeedRoute
   '/gigs': typeof AppGigsRoute
   '/join': typeof AppJoinRoute
@@ -233,6 +240,7 @@ export interface FileRoutesByTo {
   '/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/circles/discover': typeof AppCirclesDiscoverRoute
   '/circles/new': typeof AppCirclesNewRoute
+  '/events/$eventId': typeof AppEventsEventIdRoute
   '/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/invite/$token': typeof AppInviteTokenRoute
   '/lab/$projectId': typeof AppLabProjectIdRoute
@@ -254,7 +262,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/_app/admin': typeof AppAdminRoute
   '/_app/ambassador': typeof AppAmbassadorRoute
-  '/_app/events': typeof AppEventsRoute
+  '/_app/events': typeof AppEventsRouteWithChildren
   '/_app/feed': typeof AppFeedRoute
   '/_app/gigs': typeof AppGigsRoute
   '/_app/join': typeof AppJoinRoute
@@ -265,6 +273,7 @@ export interface FileRoutesById {
   '/_app/circles/$circleId': typeof AppCirclesCircleIdRoute
   '/_app/circles/discover': typeof AppCirclesDiscoverRoute
   '/_app/circles/new': typeof AppCirclesNewRoute
+  '/_app/events/$eventId': typeof AppEventsEventIdRoute
   '/_app/groups/$groupId': typeof AppGroupsGroupIdRoute
   '/_app/invite/$token': typeof AppInviteTokenRoute
   '/_app/lab/$projectId': typeof AppLabProjectIdRoute
@@ -297,6 +306,7 @@ export interface FileRouteTypes {
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
+    | '/events/$eventId'
     | '/groups/$groupId'
     | '/invite/$token'
     | '/lab/$projectId'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/circles/$circleId'
     | '/circles/discover'
     | '/circles/new'
+    | '/events/$eventId'
     | '/groups/$groupId'
     | '/invite/$token'
     | '/lab/$projectId'
@@ -358,6 +369,7 @@ export interface FileRouteTypes {
     | '/_app/circles/$circleId'
     | '/_app/circles/discover'
     | '/_app/circles/new'
+    | '/_app/events/$eventId'
     | '/_app/groups/$groupId'
     | '/_app/invite/$token'
     | '/_app/lab/$projectId'
@@ -556,6 +568,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGroupsGroupIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/events/$eventId': {
+      id: '/_app/events/$eventId'
+      path: '/$eventId'
+      fullPath: '/events/$eventId'
+      preLoaderRoute: typeof AppEventsEventIdRouteImport
+      parentRoute: typeof AppEventsRoute
+    }
     '/_app/circles/new': {
       id: '/_app/circles/new'
       path: '/circles/new'
@@ -587,10 +606,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AppEventsRouteChildren {
+  AppEventsEventIdRoute: typeof AppEventsEventIdRoute
+}
+
+const AppEventsRouteChildren: AppEventsRouteChildren = {
+  AppEventsEventIdRoute: AppEventsEventIdRoute,
+}
+
+const AppEventsRouteWithChildren = AppEventsRoute._addFileChildren(
+  AppEventsRouteChildren,
+)
+
 interface AppRouteChildren {
   AppAdminRoute: typeof AppAdminRoute
   AppAmbassadorRoute: typeof AppAmbassadorRoute
-  AppEventsRoute: typeof AppEventsRoute
+  AppEventsRoute: typeof AppEventsRouteWithChildren
   AppFeedRoute: typeof AppFeedRoute
   AppGigsRoute: typeof AppGigsRoute
   AppJoinRoute: typeof AppJoinRoute
@@ -616,7 +647,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppAdminRoute: AppAdminRoute,
   AppAmbassadorRoute: AppAmbassadorRoute,
-  AppEventsRoute: AppEventsRoute,
+  AppEventsRoute: AppEventsRouteWithChildren,
   AppFeedRoute: AppFeedRoute,
   AppGigsRoute: AppGigsRoute,
   AppJoinRoute: AppJoinRoute,
