@@ -4,10 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Calendar, MapPin, ArrowLeft, Check, X, HelpCircle } from "lucide-react";
+import {
+  Calendar, MapPin, ArrowLeft, Check, X, HelpCircle,
+  Link as LinkIcon, Megaphone, Trash2, Newspaper,
+} from "lucide-react";
 import { useDataLight } from "@/lib/data-light";
 import { Linkify } from "@/components/peerly/Linkify";
+import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/_app/events/$eventId")({
   component: EventDetailsPage,
@@ -31,6 +36,7 @@ interface EventDetails {
   rsvp_count: number;
   creator_id: string;
   university: string;
+  event_url: string | null;
 }
 
 interface Organizer {
@@ -39,6 +45,22 @@ interface Organizer {
   username: string | null;
   avatar_url: string | null;
   university: string | null;
+}
+
+interface Announcement {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
+}
+
+interface CampusPost {
+  id: string;
+  content: string;
+  post_type: string;
+  created_at: string;
+  user_id: string;
+  author: { full_name: string | null; username: string | null; avatar_url: string | null } | null;
 }
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -52,9 +74,14 @@ const CATEGORY_LABEL: Record<string, string> = {
   other: "✨ Other",
 };
 
+function normalizeUrl(u: string) {
+  if (!u) return u;
+  return /^https?:\/\//i.test(u) ? u : `https://${u}`;
+}
+
 function EventDetailsPage() {
   const { eventId } = Route.useParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth() as any;
   const dataLight = useDataLight();
   const [event, setEvent] = useState<EventDetails | null>(null);
   const [organizer, setOrganizer] = useState<Organizer | null>(null);
@@ -62,6 +89,10 @@ function EventDetailsPage() {
   const [counts, setCounts] = useState({ yes: 0, no: 0, maybe: 0 });
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [newAnnouncement, setNewAnnouncement] = useState("");
+  const [postingAnn, setPostingAnn] = useState(false);
+  const [campusPosts, setCampusPosts] = useState<CampusPost[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -77,7 +108,7 @@ function EventDetailsPage() {
     }
     setEvent(ev as EventDetails);
 
-    const [{ data: org }, { data: rsvps }, { data: myRsvp }] = await Promise.all([
+    const [{ data: org }, { data: rsvps }, { data: myRsvp }, { data: anns }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, full_name, username, avatar_url, university")
@@ -92,6 +123,11 @@ function EventDetailsPage() {
             .eq("user_id", user.id)
             .maybeSingle()
         : Promise.resolve({ data: null } as any),
+      supabase
+        .from("event_announcements")
+        .select("id, content, created_at, user_id")
+        .eq("event_id", eventId)
+        .order("created_at", { ascending: false }),
     ]);
     setOrganizer((org ?? null) as Organizer | null);
     const c = { yes: 0, no: 0, maybe: 0 };
@@ -101,12 +137,32 @@ function EventDetailsPage() {
     }
     setCounts(c);
     setMyStatus(((myRsvp as { status?: RsvpStatus } | null)?.status as RsvpStatus | null) ?? null);
+    setAnnouncements((anns ?? []) as Announcement[]);
     setLoading(false);
   }, [eventId, user]);
+
+  // Local-campus feed: only show when viewer is at the same campus as the event
+  const loadCampusFeed = useCallback(async (university: string) => {
+    const { data } = await supabase
+      .from("posts")
+      .select("id, content, post_type, created_at, user_id, author:profiles!posts_user_id_fkey(full_name, username, avatar_url)")
+      .eq("university", university)
+      .order("created_at", { ascending: false })
+      .limit(6);
+    setCampusPosts((data ?? []) as unknown as CampusPost[]);
+  }, []);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (event && profile?.university && event.university === profile.university) {
+      loadCampusFeed(event.university);
+    } else {
+      setCampusPosts([]);
+    }
+  }, [event, profile?.university, loadCampusFeed]);
 
   const setStatus = async (status: RsvpStatus | null) => {
     if (!user) {
@@ -116,7 +172,6 @@ function EventDetailsPage() {
     setUpdating(true);
     const prev = myStatus;
     const prevCounts = counts;
-    // optimistic
     const nextCounts = { ...counts };
     if (prev) nextCounts[prev] = Math.max(0, nextCounts[prev] - 1);
     if (status) nextCounts[status] += 1;
@@ -138,6 +193,38 @@ function EventDetailsPage() {
       setMyStatus(prev);
       setCounts(prevCounts);
       if (event) setEvent({ ...event, rsvp_count: prevCounts.yes });
+    }
+  };
+
+  const isOrganizer = !!user && !!event && event.creator_id === user.id;
+
+  const postAnnouncement = async () => {
+    if (!user || !event) return;
+    const content = newAnnouncement.trim();
+    if (!content) return;
+    setPostingAnn(true);
+    const { data, error } = await supabase
+      .from("event_announcements")
+      .insert({ event_id: event.id, user_id: user.id, content })
+      .select("id, content, created_at, user_id")
+      .single();
+    setPostingAnn(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setAnnouncements((prev) => [data as Announcement, ...prev]);
+    setNewAnnouncement("");
+    toast.success("Announcement posted");
+  };
+
+  const deleteAnnouncement = async (id: string) => {
+    const prev = announcements;
+    setAnnouncements((a) => a.filter((x) => x.id !== id));
+    const { error } = await supabase.from("event_announcements").delete().eq("id", id);
+    if (error) {
+      toast.error("Couldn't delete");
+      setAnnouncements(prev);
     }
   };
 
@@ -163,6 +250,7 @@ function EventDetailsPage() {
   const endStr = end ? end.toLocaleString(undefined, { hour: "numeric", minute: "2-digit" }) : null;
   const orgName = organizer?.full_name || organizer?.username || "Organizer";
   const orgInitials = orgName.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
+  const sameCampus = !!profile?.university && profile.university === event.university;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-3 sm:px-4 py-3 sm:py-6 space-y-4">
@@ -189,6 +277,16 @@ function EventDetailsPage() {
               </span>
             )}
           </div>
+          {event.event_url && (
+            <a
+              href={normalizeUrl(event.event_url)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline break-all"
+            >
+              <LinkIcon className="h-4 w-4" /> {event.event_url}
+            </a>
+          )}
           {event.description && (
             <p className="text-sm whitespace-pre-wrap leading-relaxed">
               <Linkify text={event.description} />
@@ -211,6 +309,58 @@ function EventDetailsPage() {
           <p className="text-xs text-muted-foreground">
             You're marked as <strong>{myStatus}</strong>. Tap again to clear.
           </p>
+        )}
+      </section>
+
+      <section className="rounded-2xl border bg-card p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Megaphone className="h-4 w-4 text-primary" />
+          <h2 className="font-semibold">Announcements</h2>
+          <span className="text-xs text-muted-foreground">({announcements.length})</span>
+        </div>
+        {isOrganizer && (
+          <div className="space-y-2">
+            <Textarea
+              value={newAnnouncement}
+              onChange={(e) => setNewAnnouncement(e.target.value)}
+              placeholder="Post an update for attendees…"
+              maxLength={2000}
+              rows={3}
+            />
+            <div className="flex justify-end">
+              <Button size="sm" onClick={postAnnouncement} disabled={postingAnn || !newAnnouncement.trim()}>
+                {postingAnn ? "Posting…" : "Post announcement"}
+              </Button>
+            </div>
+          </div>
+        )}
+        {announcements.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No announcements yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {announcements.map((a) => (
+              <li key={a.id} className="rounded-lg border bg-muted/30 p-3 text-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="whitespace-pre-wrap leading-relaxed flex-1">
+                    <Linkify text={a.content} />
+                  </p>
+                  {isOrganizer && (
+                    <button
+                      type="button"
+                      onClick={() => deleteAnnouncement(a.id)}
+                      className="text-muted-foreground hover:text-destructive"
+                      aria-label="Delete announcement"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}
+                </p>
+              </li>
+            ))}
+          </ul>
         )}
       </section>
 
@@ -245,6 +395,46 @@ function EventDetailsPage() {
           <p className="text-sm text-muted-foreground">Unknown organizer</p>
         )}
       </section>
+
+      {sameCampus && (
+        <section className="rounded-2xl border bg-card p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Newspaper className="h-4 w-4 text-primary" />
+            <h2 className="font-semibold">From your campus</h2>
+            <span className="text-xs text-muted-foreground">{event.university}</span>
+          </div>
+          {campusPosts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No recent posts from your campus.</p>
+          ) : (
+            <ul className="space-y-2">
+              {campusPosts.map((p) => {
+                const name = p.author?.full_name || p.author?.username || "Student";
+                const initials = name.split(" ").map((x) => x[0]).join("").slice(0, 2).toUpperCase();
+                return (
+                  <li key={p.id} className="rounded-lg border p-3">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <Avatar className="h-7 w-7">
+                        <AvatarImage src={p.author?.avatar_url ?? undefined} />
+                        <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium truncate">{name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        · {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                    <p className="text-sm whitespace-pre-wrap line-clamp-4 leading-relaxed">{p.content}</p>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <div className="pt-1">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/feed">Open campus feed</Link>
+            </Button>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

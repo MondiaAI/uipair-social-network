@@ -147,6 +147,7 @@ export type Database = {
           creator_id: string
           description: string | null
           ends_at: string | null
+          event_url: string | null
           id: string
           location: string | null
           rsvp_count: number
@@ -164,6 +165,7 @@ export type Database = {
           creator_id: string
           description?: string | null
           ends_at?: string | null
+          event_url?: string | null
           id?: string
           location?: string | null
           rsvp_count?: number
@@ -181,6 +183,7 @@ export type Database = {
           creator_id?: string
           description?: string | null
           ends_at?: string | null
+          event_url?: string | null
           id?: string
           location?: string | null
           rsvp_count?: number
@@ -872,6 +875,41 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      event_announcements: {
+        Row: {
+          content: string
+          created_at: string
+          event_id: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          event_id: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_announcements_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "campus_events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       event_rsvps: {
         Row: {

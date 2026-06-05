@@ -309,6 +309,7 @@ function CreateEventModal({
   const [startsAt, setStartsAt] = useState("");
   const [endsAt, setEndsAt] = useState("");
   const [agenda, setAgenda] = useState("");
+  const [eventUrl, setEventUrl] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [uploadState, setUploadState] = useState<"idle" | "uploading" | "success" | "error">("idle");
@@ -318,7 +319,7 @@ function CreateEventModal({
 
   const reset = () => {
     setTitle(""); setDescription(""); setCategory("other"); setLocation("");
-    setStartsAt(""); setEndsAt(""); setAgenda("");
+    setStartsAt(""); setEndsAt(""); setAgenda(""); setEventUrl("");
     setCoverFile(null); setCoverUrl(null);
     setUploadState("idle"); setUploadProgress(0); setUploadError(null);
   };
@@ -399,6 +400,7 @@ function CreateEventModal({
       ends_at: endsAt ? new Date(endsAt).toISOString() : null,
       agenda: agenda.trim() || null,
       cover_url: coverUrl,
+      event_url: eventUrl.trim() || null,
     });
     setSubmitting(false);
     if (error) {
@@ -452,6 +454,16 @@ function CreateEventModal({
           <div>
             <Label>Agenda (optional)</Label>
             <Textarea value={agenda} onChange={(e) => setAgenda(e.target.value)} rows={4} maxLength={5000} placeholder="6:00 PM — Doors open&#10;6:30 PM — Keynote&#10;7:30 PM — Networking" />
+          </div>
+          <div>
+            <Label>Event link (optional)</Label>
+            <Input
+              type="url"
+              value={eventUrl}
+              onChange={(e) => setEventUrl(e.target.value)}
+              maxLength={500}
+              placeholder="https://… registration, livestream, RSVP form"
+            />
           </div>
           <div className="space-y-2">
             <Label>Cover image (optional)</Label>
