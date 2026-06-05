@@ -22,6 +22,7 @@ export type Database = {
           id: string
           motivation: string
           passport_photo_url: string | null
+          premium_circle_credits_months: number
           referral_code: string
           referrals_count: number
           social_handles: string | null
@@ -39,6 +40,7 @@ export type Database = {
           id?: string
           motivation: string
           passport_photo_url?: string | null
+          premium_circle_credits_months?: number
           referral_code?: string
           referrals_count?: number
           social_handles?: string | null
@@ -56,6 +58,7 @@ export type Database = {
           id?: string
           motivation?: string
           passport_photo_url?: string | null
+          premium_circle_credits_months?: number
           referral_code?: string
           referrals_count?: number
           social_handles?: string | null
@@ -1706,6 +1709,7 @@ export type Database = {
           reputation_score: number
           skills: string[]
           stripe_account_id: string | null
+          student_id_url: string | null
           tenant_id: string | null
           terms_accepted_at: string | null
           university: string | null
@@ -1736,6 +1740,7 @@ export type Database = {
           reputation_score?: number
           skills?: string[]
           stripe_account_id?: string | null
+          student_id_url?: string | null
           tenant_id?: string | null
           terms_accepted_at?: string | null
           university?: string | null
@@ -1766,6 +1771,7 @@ export type Database = {
           reputation_score?: number
           skills?: string[]
           stripe_account_id?: string | null
+          student_id_url?: string | null
           tenant_id?: string | null
           terms_accepted_at?: string | null
           university?: string | null
@@ -2307,6 +2313,30 @@ export type Database = {
           },
         ]
       }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_user_id: string
+          referrer_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_user_id: string
+          referrer_user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+        }
+        Relationships: []
+      }
       resource_purchases: {
         Row: {
           amount_cents: number
@@ -2447,6 +2477,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "study_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_sessions: {
+        Row: {
+          created_at: string
+          duration_seconds: number
+          ended_at: string | null
+          id: string
+          started_at: string
+          subject: string | null
+          tenant_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          subject?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          subject?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
@@ -2597,6 +2671,7 @@ export type Database = {
         Returns: undefined
       }
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
+      auto_verify_student: { Args: { _url: string }; Returns: undefined }
       current_tenant_id: { Args: never; Returns: string }
       decline_project_join_request: {
         Args: { _request_id: string }
