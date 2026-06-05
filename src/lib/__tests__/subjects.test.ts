@@ -190,10 +190,9 @@ describe("canonicalSubject — punctuation, accents, partials", () => {
   });
 });
 
+import { computeHighlightRanges } from "@/components/peerly/Highlight";
+
 describe("computeHighlightRanges (deterministic overlap)", () => {
-  // Imported lazily to keep this describe self-contained.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { computeHighlightRanges } = require("@/components/peerly/Highlight") as typeof import("@/components/peerly/Highlight");
 
   it("returns empty for empty inputs", () => {
     expect(computeHighlightRanges("", "x")).toEqual([]);
