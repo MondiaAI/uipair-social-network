@@ -47,7 +47,7 @@ const NONEMPTY_SUBJECT_TEXT = SUBJECT_TEXT.filter((s: string) => s.replace(/\s+/
 describe("property: normalizeSubject invariants", () => {
   it("never throws and is idempotent for any input", () => {
     fc.assert(
-      fc.property(SUBJECT_TEXT, (raw) => {
+      fc.property(SUBJECT_TEXT, (raw: string) => {
         const a = normalizeSubject(raw);
         const b = normalizeSubject(a);
         expect(b).toBe(a);
@@ -58,7 +58,7 @@ describe("property: normalizeSubject invariants", () => {
 
   it("collapses whitespace: no leading, trailing, or double spaces", () => {
     fc.assert(
-      fc.property(SUBJECT_TEXT, (raw) => {
+      fc.property(SUBJECT_TEXT, (raw: string) => {
         const n = normalizeSubject(raw);
         expect(n.startsWith(" ")).toBe(false);
         expect(n.endsWith(" ")).toBe(false);
@@ -72,7 +72,7 @@ describe("property: normalizeSubject invariants", () => {
 
   it("is whitespace-invariant: extra surrounding/internal spaces don't change canonical form", () => {
     fc.assert(
-      fc.property(NONEMPTY_SUBJECT_TEXT, fc.nat({ max: 5 }), fc.nat({ max: 5 }), (raw, pad, gaps) => {
+      fc.property(NONEMPTY_SUBJECT_TEXT, fc.nat({ max: 5 }), fc.nat({ max: 5 }), (raw: string, pad: number, gaps: number) => {
         const padding = " ".repeat(pad);
         const inflated = padding + raw.replace(/\s/g, " ".repeat(gaps + 1)) + padding;
         expect(normalizeSubject(inflated)).toBe(normalizeSubject(raw));
@@ -85,7 +85,7 @@ describe("property: normalizeSubject invariants", () => {
     // Compare canonical-of-input vs canonical-of-lowercased-input. They must
     // resolve to the same canonical subject because matching is case-insensitive.
     fc.assert(
-      fc.property(NONEMPTY_SUBJECT_TEXT, (raw) => {
+      fc.property(NONEMPTY_SUBJECT_TEXT, (raw: string) => {
         const c1 = canonicalSubject(raw);
         const c2 = canonicalSubject(raw.toLowerCase());
         expect(c1.toLowerCase()).toBe(c2.toLowerCase());
@@ -105,7 +105,7 @@ describe("property: canonicalSubject matching", () => {
         fc.nat({ max: 4 }),
         fc.nat({ max: 4 }),
         fc.boolean(),
-        (subject, padL, padR, upper) => {
+        (subject: string, padL: number, padR: number, upper: boolean) => {
           const padded = " ".repeat(padL) + (upper ? subject.toUpperCase() : subject.toLowerCase()) + " ".repeat(padR);
           expect(canonicalSubject(padded)).toBe(subject);
         },
@@ -116,7 +116,7 @@ describe("property: canonicalSubject matching", () => {
 
   it("addCustomSubject is idempotent and case-insensitive", () => {
     fc.assert(
-      fc.property(NONEMPTY_SUBJECT_TEXT, (raw) => {
+      fc.property(NONEMPTY_SUBJECT_TEXT, (raw: string) => {
         const a = addCustomSubject(raw);
         const b = addCustomSubject(raw.toUpperCase());
         const c = addCustomSubject(raw.toLowerCase());
@@ -133,7 +133,7 @@ describe("property: canonicalSubject matching", () => {
 describe("property: highlighting ranges", () => {
   it("ranges are within bounds, non-overlapping, and in order", () => {
     fc.assert(
-      fc.property(SUBJECT_TEXT, SUBJECT_TEXT, (text, query) => {
+      fc.property(SUBJECT_TEXT, SUBJECT_TEXT, (text: string, query: string) => {
         const ranges = computeHighlightRanges(text, query);
         let prevEnd = -1;
         for (const r of ranges) {
@@ -150,7 +150,7 @@ describe("property: highlighting ranges", () => {
 
   it("highlighted slices match the query (or one of its tokens) case-insensitively", () => {
     fc.assert(
-      fc.property(SUBJECT_TEXT, NONEMPTY_SUBJECT_TEXT, (text, query) => {
+      fc.property(SUBJECT_TEXT, NONEMPTY_SUBJECT_TEXT, (text: string, query: string) => {
         const ranges = computeHighlightRanges(text, query);
         if (ranges.length === 0) return;
         const norm = normalizeSubject(query);
@@ -168,7 +168,7 @@ describe("property: highlighting ranges", () => {
 
   it("is deterministic: same input always yields the same ranges", () => {
     fc.assert(
-      fc.property(SUBJECT_TEXT, SUBJECT_TEXT, (text, query) => {
+      fc.property(SUBJECT_TEXT, SUBJECT_TEXT, (text: string, query: string) => {
         expect(computeHighlightRanges(text, query)).toEqual(computeHighlightRanges(text, query));
       }),
       { numRuns: 200 },
