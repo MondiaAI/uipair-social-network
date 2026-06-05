@@ -95,19 +95,30 @@ export function CircleCreatorPanel({
   }, [circle.id]);
 
   const save = async () => {
-    if (subject === "Other" && !customSubject.trim()) {
-      toast.error("Please enter a custom subject");
+    const norm = normalizeSubject(subjectInput);
+    if (!norm) {
+      toast.error("Please enter a subject");
       return;
     }
-    
-    if (subject === "Other" && customSubject.trim()) addCustomSubject(customSubject);
-setSaving(true);
+    const canonical = canonicalSubject(norm);
+    const builtin = (SUBJECTS as readonly string[]).find((s) => s.toLowerCase() === canonical.toLowerCase());
+    let finalSubject: string;
+    let finalCustom: string | null;
+    if (builtin) {
+      finalSubject = builtin;
+      finalCustom = null;
+    } else {
+      addCustomSubject(canonical);
+      finalSubject = "Other";
+      finalCustom = canonical;
+    }
+    setSaving(true);
     const { error } = await supabase
       .from("circles")
       .update({
         name: name.trim(),
-        subject,
-        custom_subject: subject === "Other" ? customSubject.trim() : null,
+        subject: finalSubject,
+        custom_subject: finalCustom,
         degree,
         description: description.trim() || null,
         scope,
@@ -119,6 +130,8 @@ setSaving(true);
       .eq("id", circle.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
+    // Reflect canonical display locally so the input stays in sync after save.
+    setSubjectInput(finalCustom ?? finalSubject);
     toast.success("Circle updated");
     onUpdated();
   };
@@ -164,23 +177,19 @@ setSaving(true);
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Subject</Label>
-              <Select value={subject} onValueChange={setSubject}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {allSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <DegreeQuickPicks value={subject} onSelect={setSubject} />
+              <Input
+                list="creator-subject-suggestions"
+                value={subjectInput}
+                onChange={(e) => setSubjectInput(e.target.value.trimStart())}
+                onBlur={(e) => setSubjectInput(normalizeSubject(e.target.value))}
+                placeholder="Type or pick a subject…"
+                maxLength={80}
+              />
+              <datalist id="creator-subject-suggestions">
+                {allSubjects.map((s) => <option key={s} value={s} />)}
+              </datalist>
+              <DegreeQuickPicks value={subjectInput} onSelect={setSubjectInput} />
               <DegreePicker value={degree} onChange={setDegree} />
-              {subject === "Other" && (
-                <Input
-                  className="mt-2"
-                  value={customSubject}
-                  onChange={(e) => setCustomSubject(e.target.value)}
-                  placeholder="Enter subject"
-                  maxLength={50}
-                />
-              )}
             </div>
             <div>
               <Label>Scope</Label>
