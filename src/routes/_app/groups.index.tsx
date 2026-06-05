@@ -189,6 +189,8 @@ function CreateGroupForm({
   const [suggestedYear, setSuggestedYear] = useState<number | null>(null);
   const nameDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const YEAR_SUFFIX_RE = /\s*\(Class of \d{4}\)$/i;
+
   const parsedYear = (() => {
     const n = parseInt(graduationYear, 10);
     return Number.isFinite(n) ? n : NaN;
@@ -280,6 +282,10 @@ function CreateGroupForm({
     setYearTouched(true);
     setSuggestedYear(null);
     setErrors((prev) => ({ ...prev, graduationYear: undefined, name: undefined, general: undefined }));
+    if (kind === "alumni" && cleaned) {
+      const base = name.replace(YEAR_SUFFIX_RE, "").trim();
+      setName(base ? `${base} (Class of ${cleaned})` : `(Class of ${cleaned})`);
+    }
     if (nameDebounce.current) clearTimeout(nameDebounce.current);
     nameDebounce.current = setTimeout(() => checkNameUnique(name), 400);
   };
@@ -389,7 +395,18 @@ function CreateGroupForm({
 
         <div>
           <Label>Type</Label>
-          <Select value={kind} onValueChange={(v) => { setKind(v as GroupKind); setErrors({}); setSuggestedYear(null); }}>
+          <Select value={kind} onValueChange={(v) => {
+            const next = v as GroupKind;
+            setKind(next);
+            setErrors({});
+            setSuggestedYear(null);
+            if (next === "alumni" && graduationYear) {
+              const base = name.replace(YEAR_SUFFIX_RE, "").trim();
+              setName(base ? `${base} (Class of ${graduationYear})` : `(Class of ${graduationYear})`);
+            } else if (next !== "alumni") {
+              setName(name.replace(YEAR_SUFFIX_RE, "").trim());
+            }
+          }}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="study">📚 Study</SelectItem>
