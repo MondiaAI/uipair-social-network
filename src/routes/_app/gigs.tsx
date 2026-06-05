@@ -157,8 +157,9 @@ function GigsPage() {
       </header>
 
       <Tabs defaultValue="find" className="space-y-6">
-        <TabsList className="grid w-full max-w-sm grid-cols-2">
+        <TabsList className="grid w-full max-w-md grid-cols-3">
           <TabsTrigger value="find">Find Gigs</TabsTrigger>
+          <TabsTrigger value="jobs">Jobs</TabsTrigger>
           <TabsTrigger value="mine">My Services</TabsTrigger>
         </TabsList>
 
