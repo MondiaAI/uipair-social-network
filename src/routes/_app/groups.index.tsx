@@ -277,9 +277,29 @@ function CreateGroupForm({
   const handleYearChange = (value: string) => {
     const cleaned = value.replace(/[^0-9]/g, "").slice(0, 4);
     setGraduationYear(cleaned);
+    setYearTouched(true);
+    setSuggestedYear(null);
     setErrors((prev) => ({ ...prev, graduationYear: undefined, name: undefined, general: undefined }));
     if (nameDebounce.current) clearTimeout(nameDebounce.current);
     nameDebounce.current = setTimeout(() => checkNameUnique(name), 400);
+  };
+
+  const yearOptions = (() => {
+    const opts: number[] = [];
+    for (let y = currentYear + 1; y >= 1950; y--) opts.push(y);
+    return opts;
+  })();
+
+  const applySuggestedYear = () => {
+    if (suggestedYear === null) return;
+    setGraduationYear(String(suggestedYear));
+    setYearTouched(true);
+    if (kind === "alumni" && university.trim() && !name.toLowerCase().includes("alumni")) {
+      setName(`${university.trim()} Alumni — ${name.trim()} (Class of ${suggestedYear})`);
+    }
+    setErrors((p) => ({ ...p, name: undefined, graduationYear: undefined, general: undefined }));
+    setSuggestedYear(null);
+    if (nameDebounce.current) clearTimeout(nameDebounce.current);
   };
 
   const submit = async () => {
