@@ -166,8 +166,8 @@ function EventsPage() {
             <EventCard
               key={ev.id}
               event={ev}
-              going={rsvpIds.has(ev.id)}
-              onToggleRsvp={() => toggleRsvp(ev)}
+              myStatus={myStatusByEvent[ev.id] ?? null}
+              onQuickYes={() => quickYes(ev)}
               dataLight={dataLight}
             />
           ))}
