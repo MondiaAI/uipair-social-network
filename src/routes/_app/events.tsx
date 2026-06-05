@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Calendar, MapPin, Users as UsersIcon, Plus } from "lucide-react";
+import { Calendar, MapPin, Users as UsersIcon, Plus, Loader2, CheckCircle2, AlertCircle, RefreshCw, X } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { useDataLight } from "@/lib/data-light";
 import { uploadToBucketDetailed } from "@/lib/storage";
 
@@ -259,11 +260,56 @@ function CreateEventModal({
   const [endsAt, setEndsAt] = useState("");
   const [agenda, setAgenda] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [uploadState, setUploadState] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const reset = () => {
     setTitle(""); setDescription(""); setCategory("other"); setLocation("");
-    setStartsAt(""); setEndsAt(""); setAgenda(""); setCoverFile(null);
+    setStartsAt(""); setEndsAt(""); setAgenda("");
+    setCoverFile(null); setCoverUrl(null);
+    setUploadState("idle"); setUploadProgress(0); setUploadError(null);
+  };
+
+  const startUpload = useCallback(async (file: File) => {
+    if (!user) return;
+    setUploadState("uploading");
+    setUploadProgress(8);
+    setUploadError(null);
+    // Indeterminate-ish progress: tick toward 90% while the SDK upload runs.
+    const tick = window.setInterval(() => {
+      setUploadProgress((p) => (p < 90 ? p + Math.max(1, Math.round((90 - p) / 8)) : p));
+    }, 200);
+    const { url, error } = await uploadToBucketDetailed("post-media", user.id, file);
+    window.clearInterval(tick);
+    if (error || !url) {
+      setUploadProgress(0);
+      setUploadState("error");
+      setUploadError(error || "Upload failed");
+      return;
+    }
+    setCoverUrl(url);
+    setUploadProgress(100);
+    setUploadState("success");
+  }, [user]);
+
+  const onPickFile = (file: File | null) => {
+    setCoverFile(file);
+    setCoverUrl(null);
+    setUploadError(null);
+    setUploadProgress(0);
+    setUploadState("idle");
+    if (file) void startUpload(file);
+  };
+
+  const clearCover = () => {
+    setCoverFile(null);
+    setCoverUrl(null);
+    setUploadError(null);
+    setUploadProgress(0);
+    setUploadState("idle");
   };
 
   const submit = async () => {
@@ -272,17 +318,11 @@ function CreateEventModal({
       toast.error("Title and start time are required");
       return;
     }
-    setSubmitting(true);
-    let cover_url: string | null = null;
-    if (coverFile) {
-      const { url, error: upErr } = await uploadToBucketDetailed("post-media", user.id, coverFile);
-      if (upErr || !url) {
-        toast.error(upErr || "Couldn't upload cover image");
-        setSubmitting(false);
-        return;
-      }
-      cover_url = url;
+    if (coverFile && uploadState !== "success") {
+      toast.error(uploadState === "uploading" ? "Wait for the cover image upload to finish" : "Retry the cover image upload or remove it");
+      return;
     }
+    setSubmitting(true);
     const { error } = await supabase.from("campus_events").insert({
       creator_id: user.id,
       university: profile.university,
@@ -294,7 +334,7 @@ function CreateEventModal({
       starts_at: new Date(startsAt).toISOString(),
       ends_at: endsAt ? new Date(endsAt).toISOString() : null,
       agenda: agenda.trim() || null,
-      cover_url,
+      cover_url: coverUrl,
     });
     setSubmitting(false);
     if (error) {
@@ -349,12 +389,67 @@ function CreateEventModal({
             <Label>Agenda (optional)</Label>
             <Textarea value={agenda} onChange={(e) => setAgenda(e.target.value)} rows={4} maxLength={5000} placeholder="6:00 PM — Doors open&#10;6:30 PM — Keynote&#10;7:30 PM — Networking" />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>Cover image (optional)</Label>
-            <Input type="file" accept="image/*" onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)} />
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => onPickFile(e.target.files?.[0] ?? null)}
+              disabled={uploadState === "uploading"}
+            />
+            {coverFile && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="truncate font-medium">{coverFile.name}</span>
+                  <button
+                    type="button"
+                    onClick={clearCover}
+                    className="text-muted-foreground hover:text-foreground"
+                    aria-label="Remove cover image"
+                    disabled={uploadState === "uploading"}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                {uploadState === "uploading" && (
+                  <>
+                    <Progress value={uploadProgress} className="h-1.5" />
+                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Loader2 className="h-3 w-3 animate-spin" /> Uploading… {uploadProgress}%
+                    </p>
+                  </>
+                )}
+                {uploadState === "success" && (
+                  <p className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Upload complete
+                  </p>
+                )}
+                {uploadState === "error" && (
+                  <div className="space-y-1.5">
+                    <p className="flex items-start gap-1.5 text-xs text-destructive">
+                      <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                      <span>{uploadError ?? "Upload failed"}</span>
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => coverFile && startUpload(coverFile)}
+                      className="h-7 text-xs"
+                    >
+                      <RefreshCw className="h-3 w-3" /> Retry upload
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          <Button onClick={submit} disabled={submitting || !title.trim() || !startsAt} className="w-full">
-            {submitting ? "Posting…" : "Post event"}
+          <Button
+            onClick={submit}
+            disabled={submitting || !title.trim() || !startsAt || uploadState === "uploading"}
+            className="w-full"
+          >
+            {submitting ? "Posting…" : uploadState === "uploading" ? "Uploading cover…" : "Post event"}
           </Button>
         </div>
       </DialogContent>
