@@ -198,7 +198,9 @@ function CreateGroupForm({
       kind,
       creator_id: userId,
       tenant_id: tenantId,
-    });
+      university: kind === "alumni" ? university.trim() : null,
+      requires_approval: kind === "alumni",
+    } as any);
     setSubmitting(false);
     if (error) {
       toast.error(error.message);
