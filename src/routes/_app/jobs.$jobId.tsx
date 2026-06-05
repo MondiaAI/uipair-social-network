@@ -185,51 +185,45 @@ function JobDetailsPage() {
               {job.is_remote ? (job.location ? `${job.location} · Remote` : "Remote") : job.location}
             </span>
           )}
-          {salary && (
-            <span className="inline-flex items-center gap-1 font-medium text-emerald-700">
-              <DollarSign className="h-4 w-4" /> {salary}
-            </span>
-          )}
-          {job.compensation && !salary && (
-            <span className="inline-flex items-center gap-1 font-medium text-emerald-700">
-              <DollarSign className="h-4 w-4" /> {job.compensation}
-            </span>
-          )}
-          {job.category === "internship" && job.duration_months && (
-            <span className="inline-flex items-center gap-1">
-              <Clock className="h-4 w-4" /> {job.duration_months} months
-            </span>
-          )}
           {job.deadline && (
             <span className="inline-flex items-center gap-1">
               <Calendar className="h-4 w-4" /> Apply by {new Date(job.deadline).toLocaleDateString()}
             </span>
           )}
+          <span>{job.is_paid ? "Paid" : "Unpaid"}</span>
         </div>
-
-        <div className="flex flex-wrap gap-2">
-          {!isPremium ? (
-            <Button onClick={() => setShowUpgrade(true)} className="gap-2">
-              <Lock className="h-4 w-4" /> Premium — Unlock Apply
-            </Button>
-          ) : (
-            <>
-              <Button onClick={() => setShowApply(true)} disabled={isApplied} className="gap-2">
-                {isApplied ? <><BookmarkCheck className="h-4 w-4" /> Applied</> : <><Send className="h-4 w-4" /> Apply</>}
-              </Button>
-              <Button variant="outline" onClick={saveJob} className="gap-2">
-                {isSaved ? <><BookmarkCheck className="h-4 w-4" /> Saved</> : <><Bookmark className="h-4 w-4" /> Save</>}
-              </Button>
-              {job.apply_url && (
-                <Button asChild variant="ghost" className="gap-2">
-                  <a href={job.apply_url} target="_blank" rel="noopener noreferrer">
-                    External link <ExternalLink className="h-4 w-4" />
-                  </a>
-                </Button>
-              )}
-            </>
+...
+      <Card className="p-6">
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">At a glance</h2>
+        <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
+          {job.category === "employment" && salary && (
+            <Stat icon={<DollarSign className="h-4 w-4" />} label="Salary" value={salary} accent />
           )}
-        </div>
+          {job.category === "employment" && !salary && job.compensation && (
+            <Stat icon={<DollarSign className="h-4 w-4" />} label="Compensation" value={job.compensation} accent />
+          )}
+          {job.category === "internship" && job.stipend_amount != null && (
+            <Stat
+              icon={<DollarSign className="h-4 w-4" />}
+              label="Stipend"
+              value={`${job.salary_currency ?? "USD"} ${job.stipend_amount.toLocaleString()}/month`}
+              accent
+            />
+          )}
+          {job.category === "internship" && job.duration_months && (
+            <Stat icon={<Clock className="h-4 w-4" />} label="Duration" value={`${job.duration_months} month${job.duration_months === 1 ? "" : "s"}`} />
+          )}
+          {job.category === "employment" && job.experience_level && (
+            <Stat icon={<Briefcase className="h-4 w-4" />} label="Seniority" value={job.experience_level.replace(/^\w/, (c) => c.toUpperCase())} />
+          )}
+          <Stat icon={<Briefcase className="h-4 w-4" />} label="Type" value={job.job_type.replace("_", " ").replace(/^\w/, (c) => c.toUpperCase())} />
+          {(job.location || job.is_remote) && (
+            <Stat icon={<MapPin className="h-4 w-4" />} label="Location" value={job.is_remote ? (job.location ? `${job.location} (Remote)` : "Remote") : (job.location ?? "—")} />
+          )}
+          {job.deadline && (
+            <Stat icon={<Calendar className="h-4 w-4" />} label="Apply by" value={new Date(job.deadline).toLocaleDateString()} />
+          )}
+        </dl>
       </Card>
 
       <Card className="p-6 space-y-5">
@@ -241,14 +235,14 @@ function JobDetailsPage() {
         {job.requirements && (
           <section>
             <h2 className="mb-2 text-lg font-semibold">Requirements</h2>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">{job.requirements}</p>
+            <BulletedOrPara text={job.requirements} />
           </section>
         )}
 
         {job.benefits && (
           <section>
-            <h2 className="mb-2 text-lg font-semibold">Benefits</h2>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">{job.benefits}</p>
+            <h2 className="mb-2 text-lg font-semibold">Benefits & perks</h2>
+            <BulletedOrPara text={job.benefits} />
           </section>
         )}
 
@@ -278,12 +272,15 @@ function JobDetailsPage() {
               </a>
             </div>
           )}
+          {!job.company_size && !job.company_website && (
+            <p className="text-xs text-muted-foreground sm:col-span-2">No additional company details provided.</p>
+          )}
         </div>
         {poster && (
           <div className="flex items-center gap-2 border-t pt-3 text-xs text-muted-foreground">
             <Sparkles className="h-4 w-4 text-amber-500" />
             Posted by <span className="font-medium text-foreground">{poster.full_name}</span>
-            {poster.university && <>· {poster.university} alumni</>}
+            {poster.university && <>· {poster.university}</>}
           </div>
         )}
       </Card>
