@@ -39,9 +39,9 @@ export function LiveSessionsRow() {
         .limit(10);
       setSessions((data ?? []) as unknown as LiveSession[]);
     })();
-  }, []);
+  }, [dataLight]);
 
-  if (sessions.length === 0) return null;
+  if (dataLight || sessions.length === 0) return null;
 
   return (
     <>
