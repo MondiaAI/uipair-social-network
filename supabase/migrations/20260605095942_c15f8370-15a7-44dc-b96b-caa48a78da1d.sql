@@ -1,0 +1,2 @@
+ALTER TABLE public.group_chats DROP CONSTRAINT IF EXISTS group_chats_kind_check;
+ALTER TABLE public.group_chats ADD CONSTRAINT group_chats_kind_check CHECK (kind = ANY (ARRAY['study'::text, 'chat'::text, 'research'::text, 'project'::text, 'alumni'::text, 'other'::text]));
