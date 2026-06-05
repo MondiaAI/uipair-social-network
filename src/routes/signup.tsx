@@ -55,6 +55,16 @@ function SignupPage() {
   const [dobMonth, setDobMonth] = useState<string>("");
   const [dobYear, setDobYear] = useState<string>("");
 
+  // Capture ?ref=CODE referral once on mount; persist until signup completes.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get("ref");
+    if (ref && /^[a-z0-9]{4,32}$/i.test(ref)) {
+      try { window.localStorage.setItem("uipair:ref", ref.toLowerCase()); } catch { /* ignore */ }
+    }
+  }, []);
+
   // Refs for jump-to-field on validation errors
   const universityRef = useRef<HTMLDivElement>(null);
   const countryRef = useRef<HTMLDivElement>(null);
