@@ -1350,6 +1350,7 @@ export type Database = {
           created_at: string
           creator_id: string
           description: string | null
+          graduation_year: number | null
           id: string
           kind: string
           last_message_at: string
@@ -1363,6 +1364,7 @@ export type Database = {
           created_at?: string
           creator_id: string
           description?: string | null
+          graduation_year?: number | null
           id?: string
           kind?: string
           last_message_at?: string
@@ -1376,6 +1378,7 @@ export type Database = {
           created_at?: string
           creator_id?: string
           description?: string | null
+          graduation_year?: number | null
           id?: string
           kind?: string
           last_message_at?: string
