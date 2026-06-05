@@ -177,7 +177,7 @@ describe("property: highlighting ranges", () => {
 
   it("query whose normalization is empty produces no highlights", () => {
     fc.assert(
-      fc.property(SUBJECT_TEXT, fc.stringOf(fc.constantFrom(" ", "\t", "\n"), { maxLength: 8 }), (text, ws) => {
+      fc.property(SUBJECT_TEXT, fc.string({ unit: fc.constantFrom(" ", "\t", "\n"), maxLength: 8 }), (text: string, ws: string) => {
         expect(computeHighlightRanges(text, ws)).toEqual([]);
       }),
       { numRuns: 100 },
