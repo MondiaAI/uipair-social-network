@@ -25,6 +25,8 @@ type GroupMeta = {
   description: string | null;
   kind: string;
   creator_id: string;
+  university: string | null;
+  requires_approval: boolean;
 };
 
 type Member = {
@@ -65,7 +67,7 @@ function GroupChatPage() {
     (async () => {
       setLoading(true);
       const [{ data: g, error: gErr }, { data: mems }, { data: msgs }] = await Promise.all([
-        supabase.from("group_chats").select("id, name, description, kind, creator_id").eq("id", groupId).maybeSingle(),
+        supabase.from("group_chats").select("id, name, description, kind, creator_id, university, requires_approval").eq("id", groupId).maybeSingle(),
         supabase.from("group_chat_members").select("user_id, role").eq("group_id", groupId),
         supabase.from("group_chat_messages").select("id, group_id, sender_id, content, created_at").eq("group_id", groupId).order("created_at", { ascending: true }).limit(500),
       ]);
