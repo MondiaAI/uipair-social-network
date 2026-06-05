@@ -22,6 +22,7 @@ interface CircleEditable {
   id: string;
   name: string;
   subject: string;
+  custom_subject?: string | null;
   description: string | null;
   scope: "campus" | "global";
   is_premium: boolean;
@@ -61,8 +62,9 @@ export function CircleCreatorPanel({
 }) {
   const allSubjects = useAllSubjects();
   const [name, setName] = useState(circle.name);
-  const [subject, setSubject] = useState(circle.subject);
-  const [customSubject, setCustomSubject] = useState("");
+  // Single free-text field. If subject==="Other" and custom_subject present, show the custom value.
+  const initialSubjectDisplay = circle.subject === "Other" && circle.custom_subject ? circle.custom_subject : circle.subject;
+  const [subjectInput, setSubjectInput] = useState(initialSubjectDisplay);
   const [degree, setDegree] = useState<string | null>(circle.degree ?? null);
   const [description, setDescription] = useState(circle.description ?? "");
   const [scope, setScope] = useState<"campus" | "global">(circle.scope);
