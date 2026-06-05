@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { subjectChipClass, subjectLabel } from "@/lib/subjects";
+import { Highlight } from "@/components/peerly/Highlight";
 import { cn } from "@/lib/utils";
 
 export interface CircleCardData {
@@ -33,11 +34,13 @@ export function CircleCard({
   joined,
   onJoin,
   joining = false,
+  searchQuery = "",
 }: {
   circle: CircleCardData;
   joined: boolean;
   onJoin: (id: string) => void;
   joining?: boolean;
+  searchQuery?: string;
 }) {
   const leaderName = circle.leader?.full_name || circle.leader?.username || "Unknown";
   const leaderInitials = leaderName.split(" ").map((s) => s[0]).join("").slice(0, 2).toUpperCase();
@@ -53,14 +56,15 @@ export function CircleCard({
           params={{ circleId: circle.id }}
           className="font-semibold text-base leading-snug hover:underline line-clamp-2 text-left"
         >
-          {circle.name}
+          <Highlight text={circle.name} query={searchQuery} />
+
         </Link>
         {circle.is_premium && <Lock className="h-4 w-4 text-muted-foreground shrink-0" />}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <span className={cn("text-xs px-2 py-0.5 rounded-full border", subjectChipClass(circle.subject))}>
-          {subjectLabel(circle.subject, circle.custom_subject)}
+          <Highlight text={subjectLabel(circle.subject, circle.custom_subject)} query={searchQuery} />
         </span>
         <Badge variant="outline" className="text-[10px] uppercase tracking-wide">
           {circle.scope}
@@ -77,7 +81,9 @@ export function CircleCard({
       </div>
 
       {circle.description && (
-        <p className="text-sm text-muted-foreground line-clamp-2">{circle.description}</p>
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          <Highlight text={circle.description} query={searchQuery} />
+        </p>
       )}
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
