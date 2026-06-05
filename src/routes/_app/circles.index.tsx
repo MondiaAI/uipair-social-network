@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CircleCard, type CircleCardData } from "@/components/peerly/CircleCard";
 
 import { NewMembersRow } from "@/components/peerly/NewMembersRow";
-import { AlumniCommunityCard } from "@/components/peerly/AlumniCommunityCard";
+
 import { SUBJECTS, addCustomSubject, normalizeSubject, subjectLabel } from "@/lib/subjects";
 import { useAllSubjects } from "@/lib/use-all-subjects";
 import { DegreeFilterBar, matchesDegree, useSharedDegree, type DegreeKey } from "@/components/peerly/DegreeFilterBar";
@@ -247,7 +247,7 @@ function CirclesPage() {
         <Button onClick={handleJoinByInvite} disabled={!inviteInput.trim()}>Join</Button>
       </div>
 
-      <AlumniCommunityCard />
+      
 
       <div className="mb-6">
         <NewMembersRow title="New students to connect with" />

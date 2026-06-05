@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Search, Users, BookOpen, MessageSquare, FlaskConical, Briefcase, MoreHorizontal, Loader2 } from "lucide-react";
+import { Plus, Search, Users, BookOpen, MessageSquare, FlaskConical, Briefcase, MoreHorizontal, Loader2, GraduationCap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_app/groups/")({
   }),
 });
 
-type GroupKind = "study" | "chat" | "research" | "project" | "other";
+type GroupKind = "study" | "chat" | "research" | "project" | "alumni" | "other";
 
 type GroupRow = {
   id: string;
@@ -40,6 +40,7 @@ const KIND_META: Record<GroupKind, { label: string; icon: typeof Users; tint: st
   chat: { label: "Chat", icon: MessageSquare, tint: "bg-emerald-500/10 text-emerald-600" },
   research: { label: "Research", icon: FlaskConical, tint: "bg-purple-500/10 text-purple-600" },
   project: { label: "Project", icon: Briefcase, tint: "bg-amber-500/10 text-amber-600" },
+  alumni: { label: "Alumni", icon: GraduationCap, tint: "bg-primary/10 text-primary" },
   other: { label: "Other", icon: MoreHorizontal, tint: "bg-muted text-muted-foreground" },
 };
 
@@ -166,6 +167,7 @@ function CreateGroupForm({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [kind, setKind] = useState<GroupKind>("chat");
+  const [university, setUniversity] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const submit = async () => {
@@ -177,10 +179,22 @@ function CreateGroupForm({
       toast.error("Group name is required");
       return;
     }
+    if (kind === "alumni" && !university.trim()) {
+      toast.error("Pick the university this alumni group is for");
+      return;
+    }
     setSubmitting(true);
+    const finalName =
+      kind === "alumni" && !name.toLowerCase().includes("alumni")
+        ? `${university.trim()} Alumni — ${name.trim()}`
+        : name.trim();
+    const finalDesc =
+      kind === "alumni"
+        ? `${university.trim()} alumni community. ${description.trim()}`.trim()
+        : description.trim() || null;
     const { error } = await supabase.from("group_chats").insert({
-      name: name.trim(),
-      description: description.trim() || null,
+      name: finalName,
+      description: finalDesc,
       kind,
       creator_id: userId,
       tenant_id: tenantId,
@@ -209,13 +223,33 @@ function CreateGroupForm({
               <SelectItem value="chat">💬 Chat</SelectItem>
               <SelectItem value="research">🔬 Research</SelectItem>
               <SelectItem value="project">💼 Project</SelectItem>
+              <SelectItem value="alumni">🎓 Alumni Community</SelectItem>
               <SelectItem value="other">✨ Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        {kind === "alumni" && (
+          <div>
+            <Label>University</Label>
+            <Input
+              value={university}
+              onChange={(e) => setUniversity(e.target.value)}
+              maxLength={120}
+              placeholder="e.g. University of Rwanda"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Open to graduates of any university — pick the one this community is for.
+            </p>
+          </div>
+        )}
         <div>
           <Label>Name</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={120} placeholder="e.g. CS101 Study Squad" />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={120}
+            placeholder={kind === "alumni" ? "e.g. Class of 2020, Engineering Alumni" : "e.g. CS101 Study Squad"}
+          />
         </div>
         <div>
           <Label>Description (optional)</Label>
