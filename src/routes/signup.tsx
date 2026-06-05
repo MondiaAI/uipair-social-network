@@ -244,6 +244,27 @@ function SignupPage() {
     const { error } = await supabase.from("profiles").update(update).eq("id", user.id);
     setLoading(false);
     if (error) return toast.error(error.message);
+
+    // Record referral, if any
+    try {
+      const refCode = typeof window !== "undefined" ? window.localStorage.getItem("uipair:ref") : null;
+      if (refCode) {
+        const { data: app } = await supabase
+          .from("ambassador_applications")
+          .select("user_id")
+          .eq("referral_code", refCode)
+          .maybeSingle();
+        if (app && app.user_id && app.user_id !== user.id) {
+          await supabase.from("referrals").insert({
+            referrer_user_id: app.user_id,
+            referred_user_id: user.id,
+            referral_code: refCode,
+          });
+        }
+        window.localStorage.removeItem("uipair:ref");
+      }
+    } catch { /* best-effort */ }
+
     await refreshProfile();
     toast.success("Welcome to UiPair!");
     navigate({ to: "/feed" });
