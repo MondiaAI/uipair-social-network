@@ -14,6 +14,7 @@ import { BountyCard, type BountyCardData } from "@/components/peerly/BountyCard"
 import { PostGigModal } from "@/components/peerly/PostGigModal";
 import { PostBountyModal } from "@/components/peerly/PostBountyModal";
 import { GigDetailSheet } from "@/components/peerly/GigDetailSheet";
+import { JobsDashboard } from "@/components/peerly/JobsDashboard";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
