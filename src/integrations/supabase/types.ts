@@ -943,6 +943,60 @@ export type Database = {
           },
         ]
       }
+      flutterwave_subscriptions: {
+        Row: {
+          amount_cents: number
+          cancel_at_period_end: boolean
+          created_at: string
+          currency: string
+          current_period_end: string | null
+          current_period_start: string | null
+          flw_customer_email: string | null
+          flw_transaction_id: string | null
+          flw_tx_ref: string | null
+          id: string
+          last_event: Json | null
+          plan: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          cancel_at_period_end?: boolean
+          created_at?: string
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          flw_customer_email?: string | null
+          flw_transaction_id?: string | null
+          flw_tx_ref?: string | null
+          id?: string
+          last_event?: Json | null
+          plan: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          cancel_at_period_end?: boolean
+          created_at?: string
+          currency?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          flw_customer_email?: string | null
+          flw_transaction_id?: string | null
+          flw_tx_ref?: string | null
+          id?: string
+          last_event?: Json | null
+          plan?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -1457,28 +1511,34 @@ export type Database = {
       }
       job_applications: {
         Row: {
+          cover_letter: string | null
           created_at: string
           id: string
           job_id: string
           note: string | null
+          resume_url: string | null
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          cover_letter?: string | null
           created_at?: string
           id?: string
           job_id: string
           note?: string | null
+          resume_url?: string | null
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          cover_letter?: string | null
           created_at?: string
           id?: string
           job_id?: string
           note?: string | null
+          resume_url?: string | null
           status?: string
           updated_at?: string
           user_id?: string
@@ -1497,11 +1557,18 @@ export type Database = {
         Row: {
           apply_email: string | null
           apply_url: string | null
+          benefits: string | null
+          category: string
           company: string
+          company_logo_url: string | null
+          company_size: string | null
+          company_website: string | null
           compensation: string | null
           created_at: string
           deadline: string | null
           description: string
+          duration_months: number | null
+          experience_level: string | null
           id: string
           is_active: boolean
           is_paid: boolean
@@ -1509,6 +1576,12 @@ export type Database = {
           job_type: string
           location: string | null
           poster_id: string
+          requirements: string | null
+          salary_currency: string | null
+          salary_max: number | null
+          salary_min: number | null
+          salary_period: string | null
+          stipend_amount: number | null
           tags: string[]
           title: string
           updated_at: string
@@ -1516,11 +1589,18 @@ export type Database = {
         Insert: {
           apply_email?: string | null
           apply_url?: string | null
+          benefits?: string | null
+          category?: string
           company: string
+          company_logo_url?: string | null
+          company_size?: string | null
+          company_website?: string | null
           compensation?: string | null
           created_at?: string
           deadline?: string | null
           description: string
+          duration_months?: number | null
+          experience_level?: string | null
           id?: string
           is_active?: boolean
           is_paid?: boolean
@@ -1528,6 +1608,12 @@ export type Database = {
           job_type: string
           location?: string | null
           poster_id: string
+          requirements?: string | null
+          salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          salary_period?: string | null
+          stipend_amount?: number | null
           tags?: string[]
           title: string
           updated_at?: string
@@ -1535,11 +1621,18 @@ export type Database = {
         Update: {
           apply_email?: string | null
           apply_url?: string | null
+          benefits?: string | null
+          category?: string
           company?: string
+          company_logo_url?: string | null
+          company_size?: string | null
+          company_website?: string | null
           compensation?: string | null
           created_at?: string
           deadline?: string | null
           description?: string
+          duration_months?: number | null
+          experience_level?: string | null
           id?: string
           is_active?: boolean
           is_paid?: boolean
@@ -1547,6 +1640,12 @@ export type Database = {
           job_type?: string
           location?: string | null
           poster_id?: string
+          requirements?: string | null
+          salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          salary_period?: string | null
+          stipend_amount?: number | null
           tags?: string[]
           title?: string
           updated_at?: string
@@ -1806,6 +1905,63 @@ export type Database = {
           shared_skills?: string[]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      payout_accounts: {
+        Row: {
+          bank_account_name: string | null
+          bank_account_number: string | null
+          bank_country: string | null
+          bank_name: string | null
+          bank_swift: string | null
+          created_at: string
+          id: string
+          is_default: boolean
+          label: string | null
+          method: string
+          mm_country: string | null
+          mm_phone: string | null
+          mm_provider: string | null
+          updated_at: string
+          user_id: string
+          wallet_email: string | null
+        }
+        Insert: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_country?: string | null
+          bank_name?: string | null
+          bank_swift?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          method: string
+          mm_country?: string | null
+          mm_phone?: string | null
+          mm_provider?: string | null
+          updated_at?: string
+          user_id: string
+          wallet_email?: string | null
+        }
+        Update: {
+          bank_account_name?: string | null
+          bank_account_number?: string | null
+          bank_country?: string | null
+          bank_name?: string | null
+          bank_swift?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          label?: string | null
+          method?: string
+          mm_country?: string | null
+          mm_phone?: string | null
+          mm_provider?: string | null
+          updated_at?: string
+          user_id?: string
+          wallet_email?: string | null
         }
         Relationships: []
       }
