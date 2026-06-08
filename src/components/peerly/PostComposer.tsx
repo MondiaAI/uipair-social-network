@@ -95,21 +95,23 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
   };
 
   return (
-    <div className="rounded-2xl border bg-card p-4 shadow-sm">
-      <div className="flex gap-3">
-        <Avatar className="h-10 w-10 shrink-0">
+    <div className="rounded-2xl border bg-card p-3 sm:p-4 shadow-sm">
+      <div className="flex gap-2 sm:gap-3">
+        <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
           <AvatarImage src={profile?.avatar_url ?? undefined} />
           <AvatarFallback className="bg-accent text-accent-foreground text-xs font-semibold">
             {initials}
           </AvatarFallback>
         </Avatar>
-        <div className="flex-1 space-y-3">
+        <div className="min-w-0 flex-1 space-y-3">
           <Textarea
             placeholder={`What's on your mind, ${firstName}?`}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="min-h-[64px] resize-none border-none p-0 shadow-none focus-visible:ring-0 text-base"
+            rows={3}
+            className="min-h-[80px] w-full resize-none rounded-xl border bg-muted/40 px-3 py-2 text-base shadow-none focus-visible:ring-2 focus-visible:ring-ring"
           />
+
 
           <div className="flex flex-wrap gap-2">
             {COMPOSER_TAGS.map((t) => {
