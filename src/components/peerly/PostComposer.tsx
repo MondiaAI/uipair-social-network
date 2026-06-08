@@ -72,27 +72,35 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
     if (!user) { toast.error("Sign in to post"); return; }
     if (!content.trim() && !mediaUrl) return;
     setSubmitting(true);
+    const loadingId = toast.loading("Posting…");
     const finalContent = mediaUrl && !mediaIsImage
       ? `${content.trim()}${content.trim() ? "\n\n" : ""}📎 ${mediaName ?? "Attachment"}: ${mediaUrl}`
       : content.trim();
-    const { error } = await supabase.from("posts").insert({
-      user_id: user.id,
-      content: finalContent,
-      post_type: postType,
-      is_live_session: isLive,
-      university: profile?.university ?? null,
-      media_url: mediaIsImage ? mediaUrl : null,
-      degree,
-    });
-    setSubmitting(false);
-    if (error) { toast.error(error.message); return; }
-    setContent("");
-    setPostType("brainstorm");
-    setIsLive(false);
-    setDegree(null);
-    clearMedia();
-    onPosted();
+    try {
+      const { error } = await supabase.from("posts").insert({
+        user_id: user.id,
+        content: finalContent,
+        post_type: postType,
+        is_live_session: isLive,
+        university: profile?.university ?? null,
+        media_url: mediaIsImage ? mediaUrl : null,
+        degree,
+      });
+      if (error) throw error;
+      toast.success("Posted", { id: loadingId });
+      setContent("");
+      setPostType("brainstorm");
+      setIsLive(false);
+      setDegree(null);
+      clearMedia();
+      onPosted();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't post. Please try again.", { id: loadingId });
+    } finally {
+      setSubmitting(false);
+    }
   };
+
 
   return (
     <div className="rounded-2xl border bg-card p-3 sm:p-4 shadow-sm">
