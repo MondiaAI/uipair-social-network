@@ -198,13 +198,13 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
             }}
           />
 
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-3">
             <div className="flex items-center gap-1 text-muted-foreground">
               <button
                 type="button"
                 onClick={() => imageInputRef.current?.click()}
-                disabled={uploading}
-                className="rounded-md p-2 hover:bg-muted disabled:opacity-50"
+                disabled={uploading || submitting}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 disabled:opacity-50"
                 title="Add image"
                 aria-label="Add image"
               >
@@ -213,8 +213,8 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="rounded-md p-2 hover:bg-muted disabled:opacity-50"
+                disabled={uploading || submitting}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 disabled:opacity-50"
                 title="Attach file"
                 aria-label="Attach file"
               >
@@ -222,6 +222,7 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
               </button>
               <button
                 type="button"
+                disabled={submitting}
                 onClick={() => {
                   setIsLive((v) => {
                     const next = !v;
@@ -231,24 +232,36 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
                   });
                 }}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium hover:bg-muted transition-colors",
+                  "inline-flex h-11 min-w-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium hover:bg-muted active:bg-muted/80 transition-colors disabled:opacity-50",
                   isLive && "bg-destructive/10 text-destructive hover:bg-destructive/15 ring-1 ring-destructive/40",
                 )}
                 title="Toggle live session"
                 aria-pressed={isLive}
               >
-                <Radio className={cn("h-4 w-4", isLive && "animate-pulse")} />
+                <Radio className={cn("h-5 w-5", isLive && "animate-pulse")} />
                 <span className="hidden xs:inline sm:inline">{isLive ? "Live • ON" : "Live"}</span>
               </button>
             </div>
             <Button
               onClick={handleSubmit}
               disabled={submitting || uploading || (!content.trim() && !mediaUrl)}
-              className="ml-auto"
+              className="ml-auto h-11 min-w-[96px] gap-2 px-5 text-sm font-semibold"
+              aria-busy={submitting}
             >
-              {submitting ? "Posting…" : "Post"}
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Posting…
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Post
+                </>
+              )}
             </Button>
           </div>
+
 
         </div>
       </div>
