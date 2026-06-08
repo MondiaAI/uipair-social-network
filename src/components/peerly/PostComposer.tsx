@@ -39,9 +39,54 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [keyboardInset, setKeyboardInset] = useState(0);
+  const savedScrollYRef = useRef<number | null>(null);
+  const didScrollIntoViewRef = useRef(false);
+  const draftKey = user ? `${DRAFT_KEY_PREFIX}${user.id}` : null;
+  const draftLoadedRef = useRef(false);
 
+  // ---- Draft autosave ----------------------------------------------------
+  // Restore any saved draft for this user on mount / when the user resolves.
+  useEffect(() => {
+    if (!draftKey || draftLoadedRef.current) return;
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(draftKey);
+      if (raw) {
+        const d = JSON.parse(raw) as Partial<Draft>;
+        if (typeof d.content === "string") setContent(d.content.slice(0, MAX_CONTENT_LEN));
+        if (d.postType) setPostType(d.postType);
+        if (typeof d.isLive === "boolean") setIsLive(d.isLive);
+        if (typeof d.degree === "string" || d.degree === null) setDegree(d.degree ?? null);
+      }
+    } catch {
+      /* ignore corrupt draft */
+    }
+    draftLoadedRef.current = true;
+  }, [draftKey]);
+
+  // Persist the draft as the user types / changes options.
+  useEffect(() => {
+    if (!draftKey || !draftLoadedRef.current) return;
+    if (typeof window === "undefined") return;
+    const handle = window.setTimeout(() => {
+      try {
+        if (!content.trim() && !degree && !isLive && postType === "brainstorm") {
+          window.localStorage.removeItem(draftKey);
+          return;
+        }
+        const draft: Draft = { content, postType, isLive, degree };
+        window.localStorage.setItem(draftKey, JSON.stringify(draft));
+      } catch {
+        /* quota / private mode — silently ignore */
+      }
+    }, 300);
+    return () => window.clearTimeout(handle);
+  }, [content, postType, isLive, degree, draftKey]);
+
+  // ---- Keyboard / viewport tracking --------------------------------------
   // Track the iOS on-screen keyboard via visualViewport so the composer
-  // stays visible while typing and snaps back when the keyboard closes.
+  // stays visible while typing, without re-scrolling on every keystroke
+  // (which previously caused the textarea to "jump" as the user typed).
   useEffect(() => {
     if (typeof window === "undefined") return;
     const vv = window.visualViewport;
@@ -49,13 +94,6 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
     const update = () => {
       const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
       setKeyboardInset(inset);
-      const active = document.activeElement;
-      if (inset > 0 && active && containerRef.current?.contains(active)) {
-        // Re-scroll the composer above the keyboard on resize events.
-        requestAnimationFrame(() => {
-          textareaRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
-        });
-      }
     };
     update();
     vv.addEventListener("resize", update);
@@ -66,6 +104,7 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
       setKeyboardInset(0);
     };
   }, []);
+
 
   const initials = (profile?.full_name || profile?.username || "?")
     .split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
