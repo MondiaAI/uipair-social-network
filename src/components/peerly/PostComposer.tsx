@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,36 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
   const [uploading, setUploading] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [keyboardInset, setKeyboardInset] = useState(0);
+
+  // Track the iOS on-screen keyboard via visualViewport so the composer
+  // stays visible while typing and snaps back when the keyboard closes.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKeyboardInset(inset);
+      const active = document.activeElement;
+      if (inset > 0 && active && containerRef.current?.contains(active)) {
+        // Re-scroll the composer above the keyboard on resize events.
+        requestAnimationFrame(() => {
+          textareaRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+        });
+      }
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      setKeyboardInset(0);
+    };
+  }, []);
 
   const initials = (profile?.full_name || profile?.username || "?")
     .split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -104,8 +134,15 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
 
   return (
     <div
-      className="rounded-2xl border bg-card p-3 sm:p-4 shadow-sm"
-      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      ref={containerRef}
+      className="rounded-2xl border bg-card p-3 sm:p-4 shadow-sm transition-[padding] duration-200"
+      style={{
+        paddingBottom:
+          keyboardInset > 0
+            ? `calc(${keyboardInset}px + 0.75rem)`
+            : "max(0.75rem, env(safe-area-inset-bottom))",
+        scrollMarginBottom: keyboardInset > 0 ? `${keyboardInset + 16}px` : undefined,
+      }}
     >
       <div className="flex gap-2 sm:gap-3">
         <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
@@ -116,15 +153,21 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
         </Avatar>
         <div className="min-w-0 flex-1 space-y-3">
           <Textarea
+            ref={textareaRef}
             placeholder={`What's on your mind, ${firstName}?`}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={3}
             onFocus={(e) => {
               // Keep the composer visible above the iOS keyboard
+              const el = e.currentTarget;
               setTimeout(() => {
-                e.currentTarget?.scrollIntoView({ block: "center", behavior: "smooth" });
+                el?.scrollIntoView({ block: "center", behavior: "smooth" });
               }, 250);
+            }}
+            onBlur={() => {
+              // Restore layout when the keyboard dismisses
+              setKeyboardInset(0);
             }}
             className="min-h-[96px] w-full resize-none rounded-xl border bg-muted/40 px-3 py-3 text-base leading-relaxed shadow-none focus-visible:ring-2 focus-visible:ring-ring"
           />
