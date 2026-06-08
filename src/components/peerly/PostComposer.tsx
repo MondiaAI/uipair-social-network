@@ -25,6 +25,36 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
   const [uploading, setUploading] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [keyboardInset, setKeyboardInset] = useState(0);
+
+  // Track the iOS on-screen keyboard via visualViewport so the composer
+  // stays visible while typing and snaps back when the keyboard closes.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKeyboardInset(inset);
+      const active = document.activeElement;
+      if (inset > 0 && active && containerRef.current?.contains(active)) {
+        // Re-scroll the composer above the keyboard on resize events.
+        requestAnimationFrame(() => {
+          textareaRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+        });
+      }
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      setKeyboardInset(0);
+    };
+  }, []);
 
   const initials = (profile?.full_name || profile?.username || "?")
     .split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
