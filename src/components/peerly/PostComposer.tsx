@@ -95,21 +95,23 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
   };
 
   return (
-    <div className="rounded-2xl border bg-card p-4 shadow-sm">
-      <div className="flex gap-3">
-        <Avatar className="h-10 w-10 shrink-0">
+    <div className="rounded-2xl border bg-card p-3 sm:p-4 shadow-sm">
+      <div className="flex gap-2 sm:gap-3">
+        <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
           <AvatarImage src={profile?.avatar_url ?? undefined} />
           <AvatarFallback className="bg-accent text-accent-foreground text-xs font-semibold">
             {initials}
           </AvatarFallback>
         </Avatar>
-        <div className="flex-1 space-y-3">
+        <div className="min-w-0 flex-1 space-y-3">
           <Textarea
             placeholder={`What's on your mind, ${firstName}?`}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="min-h-[64px] resize-none border-none p-0 shadow-none focus-visible:ring-0 text-base"
+            rows={3}
+            className="min-h-[80px] w-full resize-none rounded-xl border bg-muted/40 px-3 py-2 text-base shadow-none focus-visible:ring-2 focus-visible:ring-ring"
           />
+
 
           <div className="flex flex-wrap gap-2">
             {COMPOSER_TAGS.map((t) => {
@@ -178,7 +180,7 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
             }}
           />
 
-          <div className="flex items-center justify-between gap-2 border-t pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
             <div className="flex items-center gap-1 text-muted-foreground">
               <button
                 type="button"
@@ -188,7 +190,7 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
                 title="Add image"
                 aria-label="Add image"
               >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImageIcon className="h-5 w-5" />}
               </button>
               <button
                 type="button"
@@ -198,7 +200,7 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
                 title="Attach file"
                 aria-label="Attach file"
               >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Paperclip className="h-5 w-5" />}
               </button>
               <button
                 type="button"
@@ -211,20 +213,25 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
                   });
                 }}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium hover:bg-muted transition-colors",
+                  "inline-flex items-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium hover:bg-muted transition-colors",
                   isLive && "bg-destructive/10 text-destructive hover:bg-destructive/15 ring-1 ring-destructive/40",
                 )}
                 title="Toggle live session"
                 aria-pressed={isLive}
               >
                 <Radio className={cn("h-4 w-4", isLive && "animate-pulse")} />
-                {isLive ? "Live • ON" : "Live"}
+                <span className="hidden xs:inline sm:inline">{isLive ? "Live • ON" : "Live"}</span>
               </button>
             </div>
-            <Button onClick={handleSubmit} disabled={submitting || uploading || (!content.trim() && !mediaUrl)}>
+            <Button
+              onClick={handleSubmit}
+              disabled={submitting || uploading || (!content.trim() && !mediaUrl)}
+              className="ml-auto"
+            >
               {submitting ? "Posting…" : "Post"}
             </Button>
           </div>
+
         </div>
       </div>
     </div>
