@@ -11,6 +11,17 @@ import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { toast } from "sonner";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_CONTENT_LEN = 2000;
+const WARN_REMAINING = 200;
+const DRAFT_KEY_PREFIX = "peerly:composer:draft:";
+
+type Draft = {
+  content: string;
+  postType: PostType;
+  isLive: boolean;
+  degree: string | null;
+};
+
 
 export function PostComposer({ onPosted }: { onPosted: () => void }) {
   const { user, profile } = useAuth();
@@ -28,9 +39,54 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [keyboardInset, setKeyboardInset] = useState(0);
+  const savedScrollYRef = useRef<number | null>(null);
+  const didScrollIntoViewRef = useRef(false);
+  const draftKey = user ? `${DRAFT_KEY_PREFIX}${user.id}` : null;
+  const draftLoadedRef = useRef(false);
 
+  // ---- Draft autosave ----------------------------------------------------
+  // Restore any saved draft for this user on mount / when the user resolves.
+  useEffect(() => {
+    if (!draftKey || draftLoadedRef.current) return;
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(draftKey);
+      if (raw) {
+        const d = JSON.parse(raw) as Partial<Draft>;
+        if (typeof d.content === "string") setContent(d.content.slice(0, MAX_CONTENT_LEN));
+        if (d.postType) setPostType(d.postType);
+        if (typeof d.isLive === "boolean") setIsLive(d.isLive);
+        if (typeof d.degree === "string" || d.degree === null) setDegree(d.degree ?? null);
+      }
+    } catch {
+      /* ignore corrupt draft */
+    }
+    draftLoadedRef.current = true;
+  }, [draftKey]);
+
+  // Persist the draft as the user types / changes options.
+  useEffect(() => {
+    if (!draftKey || !draftLoadedRef.current) return;
+    if (typeof window === "undefined") return;
+    const handle = window.setTimeout(() => {
+      try {
+        if (!content.trim() && !degree && !isLive && postType === "brainstorm") {
+          window.localStorage.removeItem(draftKey);
+          return;
+        }
+        const draft: Draft = { content, postType, isLive, degree };
+        window.localStorage.setItem(draftKey, JSON.stringify(draft));
+      } catch {
+        /* quota / private mode — silently ignore */
+      }
+    }, 300);
+    return () => window.clearTimeout(handle);
+  }, [content, postType, isLive, degree, draftKey]);
+
+  // ---- Keyboard / viewport tracking --------------------------------------
   // Track the iOS on-screen keyboard via visualViewport so the composer
-  // stays visible while typing and snaps back when the keyboard closes.
+  // stays visible while typing, without re-scrolling on every keystroke
+  // (which previously caused the textarea to "jump" as the user typed).
   useEffect(() => {
     if (typeof window === "undefined") return;
     const vv = window.visualViewport;
@@ -38,13 +94,6 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
     const update = () => {
       const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
       setKeyboardInset(inset);
-      const active = document.activeElement;
-      if (inset > 0 && active && containerRef.current?.contains(active)) {
-        // Re-scroll the composer above the keyboard on resize events.
-        requestAnimationFrame(() => {
-          textareaRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
-        });
-      }
     };
     update();
     vv.addEventListener("resize", update);
@@ -55,6 +104,7 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
       setKeyboardInset(0);
     };
   }, []);
+
 
   const initials = (profile?.full_name || profile?.username || "?")
     .split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -123,6 +173,9 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
       setIsLive(false);
       setDegree(null);
       clearMedia();
+      if (draftKey && typeof window !== "undefined") {
+        try { window.localStorage.removeItem(draftKey); } catch { /* ignore */ }
+      }
       onPosted();
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't post. Please try again.", { id: loadingId });
@@ -156,21 +209,65 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
             ref={textareaRef}
             placeholder={`What's on your mind, ${firstName}?`}
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value.slice(0, MAX_CONTENT_LEN);
+              setContent(next);
+            }}
+            maxLength={MAX_CONTENT_LEN}
             rows={3}
             onFocus={(e) => {
-              // Keep the composer visible above the iOS keyboard
+              // Save the page scroll position so we can restore it after
+              // the keyboard closes — prevents the layout from "jumping".
+              if (typeof window !== "undefined" && savedScrollYRef.current === null) {
+                savedScrollYRef.current = window.scrollY;
+              }
               const el = e.currentTarget;
-              setTimeout(() => {
-                el?.scrollIntoView({ block: "center", behavior: "smooth" });
-              }, 250);
+              // Only scroll the composer into view ONCE per focus session.
+              // Re-scrolling on every visualViewport resize caused the
+              // textarea to jump as the user typed.
+              if (!didScrollIntoViewRef.current) {
+                didScrollIntoViewRef.current = true;
+                setTimeout(() => {
+                  el?.scrollIntoView({ block: "center", behavior: "smooth" });
+                }, 250);
+              }
             }}
             onBlur={() => {
-              // Restore layout when the keyboard dismisses
+              // Restore layout + scroll position when the keyboard dismisses.
               setKeyboardInset(0);
+              didScrollIntoViewRef.current = false;
+              const y = savedScrollYRef.current;
+              savedScrollYRef.current = null;
+              if (typeof window !== "undefined" && y !== null) {
+                // Defer so iOS finishes the viewport resize first.
+                setTimeout(() => window.scrollTo({ top: y, behavior: "smooth" }), 50);
+              }
             }}
             className="min-h-[96px] w-full resize-none rounded-xl border bg-muted/40 px-3 py-3 text-base leading-relaxed shadow-none focus-visible:ring-2 focus-visible:ring-ring"
           />
+
+          {/* Live character count + remaining-limit indicator */}
+          <div
+            className={cn(
+              "flex justify-end text-xs tabular-nums",
+              content.length >= MAX_CONTENT_LEN
+                ? "text-destructive font-semibold"
+                : MAX_CONTENT_LEN - content.length <= WARN_REMAINING
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-muted-foreground",
+            )}
+            aria-live="polite"
+          >
+            <span>
+              {content.length.toLocaleString()} / {MAX_CONTENT_LEN.toLocaleString()}
+              {MAX_CONTENT_LEN - content.length <= WARN_REMAINING && (
+                <span className="ml-1">
+                  ({(MAX_CONTENT_LEN - content.length).toLocaleString()} left)
+                </span>
+              )}
+            </span>
+          </div>
+
 
 
 
