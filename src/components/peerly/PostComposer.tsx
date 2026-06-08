@@ -103,7 +103,10 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
 
 
   return (
-    <div className="rounded-2xl border bg-card p-3 sm:p-4 shadow-sm">
+    <div
+      className="rounded-2xl border bg-card p-3 sm:p-4 shadow-sm"
+      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+    >
       <div className="flex gap-2 sm:gap-3">
         <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
           <AvatarImage src={profile?.avatar_url ?? undefined} />
@@ -117,8 +120,15 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={3}
-            className="min-h-[80px] w-full resize-none rounded-xl border bg-muted/40 px-3 py-2 text-base shadow-none focus-visible:ring-2 focus-visible:ring-ring"
+            onFocus={(e) => {
+              // Keep the composer visible above the iOS keyboard
+              setTimeout(() => {
+                e.currentTarget?.scrollIntoView({ block: "center", behavior: "smooth" });
+              }, 250);
+            }}
+            className="min-h-[96px] w-full resize-none rounded-xl border bg-muted/40 px-3 py-3 text-base leading-relaxed shadow-none focus-visible:ring-2 focus-visible:ring-ring"
           />
+
 
 
           <div className="flex flex-wrap gap-2">
