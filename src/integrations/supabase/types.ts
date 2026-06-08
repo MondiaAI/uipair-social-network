@@ -3174,6 +3174,20 @@ export type Database = {
         Returns: undefined
       }
       ensure_alumni_circle: { Args: { _tenant: string }; Returns: string }
+      get_circle_subscriptions_for_leader: {
+        Args: { _circle_id: string }
+        Returns: {
+          cancel_at_period_end: boolean
+          circle_id: string
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
       has_active_circle_subscription: {
         Args: { _circle_id: string; _environment?: string; _user_id: string }
         Returns: boolean
