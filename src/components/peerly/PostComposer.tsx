@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image as ImageIcon, Paperclip, Radio, X, Loader2 } from "lucide-react";
+import { Image as ImageIcon, Paperclip, Radio, X, Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { COMPOSER_TAGS, POST_TYPE_META, type PostType } from "@/lib/post-types";
 import { DegreePicker } from "@/components/peerly/DegreePicker";
