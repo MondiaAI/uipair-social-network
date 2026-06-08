@@ -11,6 +11,17 @@ import { DegreePicker } from "@/components/peerly/DegreePicker";
 import { toast } from "sonner";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_CONTENT_LEN = 2000;
+const WARN_REMAINING = 200;
+const DRAFT_KEY_PREFIX = "peerly:composer:draft:";
+
+type Draft = {
+  content: string;
+  postType: PostType;
+  isLive: boolean;
+  degree: string | null;
+};
+
 
 export function PostComposer({ onPosted }: { onPosted: () => void }) {
   const { user, profile } = useAuth();
