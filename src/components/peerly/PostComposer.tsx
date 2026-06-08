@@ -173,6 +173,9 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
       setIsLive(false);
       setDegree(null);
       clearMedia();
+      if (draftKey && typeof window !== "undefined") {
+        try { window.localStorage.removeItem(draftKey); } catch { /* ignore */ }
+      }
       onPosted();
     } catch (e: any) {
       toast.error(e?.message ?? "Couldn't post. Please try again.", { id: loadingId });
