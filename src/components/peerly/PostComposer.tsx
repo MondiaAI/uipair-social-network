@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image as ImageIcon, Paperclip, Radio, X, Loader2 } from "lucide-react";
+import { Image as ImageIcon, Paperclip, Radio, X, Loader2, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { COMPOSER_TAGS, POST_TYPE_META, type PostType } from "@/lib/post-types";
 import { DegreePicker } from "@/components/peerly/DegreePicker";
@@ -72,30 +72,41 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
     if (!user) { toast.error("Sign in to post"); return; }
     if (!content.trim() && !mediaUrl) return;
     setSubmitting(true);
+    const loadingId = toast.loading("Posting…");
     const finalContent = mediaUrl && !mediaIsImage
       ? `${content.trim()}${content.trim() ? "\n\n" : ""}📎 ${mediaName ?? "Attachment"}: ${mediaUrl}`
       : content.trim();
-    const { error } = await supabase.from("posts").insert({
-      user_id: user.id,
-      content: finalContent,
-      post_type: postType,
-      is_live_session: isLive,
-      university: profile?.university ?? null,
-      media_url: mediaIsImage ? mediaUrl : null,
-      degree,
-    });
-    setSubmitting(false);
-    if (error) { toast.error(error.message); return; }
-    setContent("");
-    setPostType("brainstorm");
-    setIsLive(false);
-    setDegree(null);
-    clearMedia();
-    onPosted();
+    try {
+      const { error } = await supabase.from("posts").insert({
+        user_id: user.id,
+        content: finalContent,
+        post_type: postType,
+        is_live_session: isLive,
+        university: profile?.university ?? null,
+        media_url: mediaIsImage ? mediaUrl : null,
+        degree,
+      });
+      if (error) throw error;
+      toast.success("Posted", { id: loadingId });
+      setContent("");
+      setPostType("brainstorm");
+      setIsLive(false);
+      setDegree(null);
+      clearMedia();
+      onPosted();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Couldn't post. Please try again.", { id: loadingId });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+
   return (
-    <div className="rounded-2xl border bg-card p-3 sm:p-4 shadow-sm">
+    <div
+      className="rounded-2xl border bg-card p-3 sm:p-4 shadow-sm"
+      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+    >
       <div className="flex gap-2 sm:gap-3">
         <Avatar className="h-9 w-9 sm:h-10 sm:w-10 shrink-0">
           <AvatarImage src={profile?.avatar_url ?? undefined} />
@@ -109,8 +120,15 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={3}
-            className="min-h-[80px] w-full resize-none rounded-xl border bg-muted/40 px-3 py-2 text-base shadow-none focus-visible:ring-2 focus-visible:ring-ring"
+            onFocus={(e) => {
+              // Keep the composer visible above the iOS keyboard
+              setTimeout(() => {
+                e.currentTarget?.scrollIntoView({ block: "center", behavior: "smooth" });
+              }, 250);
+            }}
+            className="min-h-[96px] w-full resize-none rounded-xl border bg-muted/40 px-3 py-3 text-base leading-relaxed shadow-none focus-visible:ring-2 focus-visible:ring-ring"
           />
+
 
 
           <div className="flex flex-wrap gap-2">
@@ -180,13 +198,13 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
             }}
           />
 
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-3">
             <div className="flex items-center gap-1 text-muted-foreground">
               <button
                 type="button"
                 onClick={() => imageInputRef.current?.click()}
-                disabled={uploading}
-                className="rounded-md p-2 hover:bg-muted disabled:opacity-50"
+                disabled={uploading || submitting}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 disabled:opacity-50"
                 title="Add image"
                 aria-label="Add image"
               >
@@ -195,8 +213,8 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="rounded-md p-2 hover:bg-muted disabled:opacity-50"
+                disabled={uploading || submitting}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted active:bg-muted/80 disabled:opacity-50"
                 title="Attach file"
                 aria-label="Attach file"
               >
@@ -204,6 +222,7 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
               </button>
               <button
                 type="button"
+                disabled={submitting}
                 onClick={() => {
                   setIsLive((v) => {
                     const next = !v;
@@ -213,24 +232,36 @@ export function PostComposer({ onPosted }: { onPosted: () => void }) {
                   });
                 }}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-md px-2 py-2 text-xs font-medium hover:bg-muted transition-colors",
+                  "inline-flex h-11 min-w-11 items-center gap-1.5 rounded-full px-3 text-sm font-medium hover:bg-muted active:bg-muted/80 transition-colors disabled:opacity-50",
                   isLive && "bg-destructive/10 text-destructive hover:bg-destructive/15 ring-1 ring-destructive/40",
                 )}
                 title="Toggle live session"
                 aria-pressed={isLive}
               >
-                <Radio className={cn("h-4 w-4", isLive && "animate-pulse")} />
+                <Radio className={cn("h-5 w-5", isLive && "animate-pulse")} />
                 <span className="hidden xs:inline sm:inline">{isLive ? "Live • ON" : "Live"}</span>
               </button>
             </div>
             <Button
               onClick={handleSubmit}
               disabled={submitting || uploading || (!content.trim() && !mediaUrl)}
-              className="ml-auto"
+              className="ml-auto h-11 min-w-[96px] gap-2 px-5 text-sm font-semibold"
+              aria-busy={submitting}
             >
-              {submitting ? "Posting…" : "Post"}
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Posting…
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Post
+                </>
+              )}
             </Button>
           </div>
+
 
         </div>
       </div>
