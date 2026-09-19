@@ -17,7 +17,9 @@ USING (
 );
 
 -- 3) Realtime channel authorization: require authenticated subscribers
-ALTER TABLE realtime.messages ENABLE ROW LEVEL SECURITY;
+-- (RLS is already enabled by default on realtime.messages in new Supabase
+-- projects; the CLI migration role isn't the table owner so re-enabling it
+-- here would fail with "must be owner of table messages".)
 
 DROP POLICY IF EXISTS "Authenticated can receive realtime" ON realtime.messages;
 CREATE POLICY "Authenticated can receive realtime"

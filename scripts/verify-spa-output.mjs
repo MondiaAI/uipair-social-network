@@ -1,7 +1,7 @@
-// Verifies the Vercel-targeted SPA build output:
+// Verifies the static-host SPA build output (e.g. Hostinger shared hosting):
 //   1. dist/client/index.html exists and references a real entry chunk + CSS
-//   2. The vercel.json rewrite rule routes all non-asset client paths to /index.html
-//      (so /circles, /match, /lab, etc. never 404 on Vercel).
+//   2. .htaccess ships in the output and rewrites non-asset client paths to
+//      /index.html (so /circles, /match, /lab, etc. never 404 on refresh).
 //
 // Fails the CI job with a non-zero exit code if any check fails.
 
@@ -44,54 +44,17 @@ ok(`${cssMatches.length} CSS file(s) present`);
 if (!/id="root"/.test(html)) fail("index.html has no <div id=\"root\"> mount node.");
 ok("mount node #root present");
 
-// 5. vercel.json rewrites all SPA client routes to /index.html
-const vercel = JSON.parse(readFileSync("vercel.json", "utf8"));
-const rewrites = vercel.rewrites || [];
-if (rewrites.length === 0) fail("vercel.json has no rewrites — SPA deep links will 404.");
-
-// Build a tester from the rewrite source pattern. We accept the canonical
-// "everything except /assets/* or files with an extension" rule.
-const spaRewrite = rewrites.find((r) => r.destination === "/index.html");
-if (!spaRewrite) fail("vercel.json has no rewrite with destination \"/index.html\".");
-let re;
-try {
-  // Strip Vercel's leading "/" — the source is a path pattern, not a JS regex
-  // delimiter — and compile the inner group as RegExp.
-  re = new RegExp("^" + spaRewrite.source + "$");
-} catch (e) {
-  fail(`vercel.json rewrite source is not a valid regex: ${spaRewrite.source}`);
+// 5. .htaccess ships in the build output with an SPA fallback rewrite
+const HTACCESS = join(OUT, ".htaccess");
+if (!existsSync(HTACCESS)) fail(`Missing ${HTACCESS} — SPA deep links will 404 on Apache-based hosts.`);
+const htaccess = readFileSync(HTACCESS, "utf8");
+if (!/RewriteEngine\s+On/i.test(htaccess)) fail(".htaccess has no \"RewriteEngine On\" directive.");
+if (!/RewriteRule\s+\^\s+index\.html/i.test(htaccess)) {
+  fail(".htaccess has no fallback RewriteRule to index.html.");
 }
-
-const spaRoutes = [
-  "/",
-  "/feed",
-  "/circles",
-  "/circles/discover",
-  "/match",
-  "/lab",
-  "/lab/abc-123",
-  "/messages",
-  "/settings",
-  "/profile/some-user-id",
-  "/login",
-  "/signup",
-];
-const mustNotRewrite = [
-  "/assets/index-abc.js",
-  "/assets/main.css",
-  "/favicon.svg",
-  "/manifest.json",
-  "/og-image.png",
-];
-
-for (const path of spaRoutes) {
-  if (!re.test(path)) fail(`SPA route ${path} is NOT rewritten to /index.html — it will 404 on Vercel.`);
+if (!/RewriteCond[^\n]+-f[\s\S]*RewriteCond[^\n]+-d/i.test(htaccess)) {
+  fail(".htaccess is missing the -f/-d conditions that let real files/assets pass through untouched.");
 }
-ok(`all ${spaRoutes.length} SPA routes rewrite to /index.html`);
+ok(".htaccess present with SPA fallback rewrite and asset passthrough");
 
-for (const path of mustNotRewrite) {
-  if (re.test(path)) fail(`Static asset ${path} would be rewritten to /index.html — assets must pass through.`);
-}
-ok(`${mustNotRewrite.length} static asset paths correctly bypass the rewrite`);
-
-console.log("[verify-spa-output] ✅ All checks passed — Vercel SPA output is healthy.");
+console.log("[verify-spa-output] ✅ All checks passed — static SPA output is healthy.");

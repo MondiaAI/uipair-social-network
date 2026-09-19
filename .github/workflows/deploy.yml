@@ -42,9 +42,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      # ----- Frontend (Vercel-compatible client bundle) -----
-      # Produces dist/client/ with a synthesized SPA index.html so any
-      # static host (Vercel, Netlify, S3, etc.) can serve it.
+      # ----- Frontend (static client bundle) -----
+      # Produces dist/client/ with a synthesized SPA index.html + .htaccess so
+      # any static host (Hostinger, Netlify, S3, etc.) can serve it.
       - name: Build React frontend (SPA client)
         run: bun run build:client
 
@@ -91,15 +91,10 @@ jobs:
           PAYMENTS_SANDBOX_WEBHOOK_SECRET: ${{ secrets.PAYMENTS_SANDBOX_WEBHOOK_SECRET }}
           STRIPE_SANDBOX_API_KEY: ${{ secrets.STRIPE_SANDBOX_API_KEY }}
 
-      # ----- Deploy SPA to Vercel (optional, only if VERCEL_TOKEN is set) -----
-      # Vercel can also auto-deploy directly from GitHub using vercel.json —
-      # this step is here for fully-CI-driven deploys.
-      - name: Deploy SPA to Vercel
-        if: ${{ secrets.VERCEL_TOKEN != '' }}
-        run: |
-          npm i -g vercel@latest
-          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      # ----- Deploy SPA to Hostinger -----
+      # The static client bundle (dist/client, including .htaccess for SPA
+      # routing) is uploaded to Hostinger's shared hosting. Deployment is
+      # currently manual (upload dist/client via FTP/File Manager after this
+      # workflow's client-bundle artifact is built) — wire up an automated
+      # step here (e.g. an FTP-deploy action) once Hostinger credentials are
+      # available as repo secrets.

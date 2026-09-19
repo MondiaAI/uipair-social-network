@@ -193,10 +193,16 @@ function SignupPage() {
     if (!acceptTerms) return toast.error("Please accept the Terms of Service and Privacy Policy");
     if (!passwordStrong) return toast.error("Please choose a stronger password");
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email, password,
-      options: { emailRedirectTo: window.location.origin, data: { full_name: fullName, terms_accepted_at: new Date().toISOString() } },
-    });
+    let error;
+    try {
+      ({ error } = await supabase.auth.signUp({
+        email, password,
+        options: { emailRedirectTo: window.location.origin, data: { full_name: fullName, terms_accepted_at: new Date().toISOString() } },
+      }));
+    } catch {
+      setLoading(false);
+      return toast.error("Network error — check your connection and try again.");
+    }
     setLoading(false);
     if (error) return toast.error(error.message);
     setStep(2);

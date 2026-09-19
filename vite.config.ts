@@ -8,8 +8,8 @@ import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 // When SPA_BUILD=1 (set by `bun run build:client`), enable TanStack Start's SPA
 // mode so the framework emits a static index.html that boots via createRoot()
 // rather than hydrateRoot(). This lets the build run on static hosts like
-// Vercel without the Cloudflare Worker SSR layer. The default (Lovable sandbox
-// / Cloudflare) build keeps full SSR.
+// Hostinger without the Cloudflare Worker SSR layer. The default (Lovable
+// sandbox / Cloudflare) build keeps full SSR.
 const isSpaBuild = process.env.SPA_BUILD === "1";
 
 export default defineConfig({

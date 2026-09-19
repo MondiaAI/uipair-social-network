@@ -1,6 +1,7 @@
 
--- Hide Stripe payment processor IDs from all client roles on circle_subscriptions
-REVOKE SELECT (stripe_customer_id, stripe_subscription_id) ON public.circle_subscriptions FROM authenticated, anon;
+-- Hide payment processor IDs from all client roles on circle_subscriptions
+-- (columns were renamed stripe_* -> fw_* by 20260601000000_rename_stripe_to_fw_columns.sql)
+REVOKE SELECT (fw_customer_id, fw_subscription_id) ON public.circle_subscriptions FROM authenticated, anon;
 
 -- Tighten realtime channel authorization with topic-scoped policies
 DROP POLICY IF EXISTS "Authenticated can receive realtime" ON realtime.messages;

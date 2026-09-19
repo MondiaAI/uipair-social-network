@@ -1,7 +1,7 @@
 import { test, expect, type ConsoleMessage } from "@playwright/test";
 
 /**
- * Smoke test for the built SPA (Vercel / preview / any static host).
+ * Smoke test for the built SPA (Hostinger / preview / any static host).
  *
  * Verifies:
  *  - the SPA shell loads

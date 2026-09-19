@@ -14,6 +14,136 @@ export type Database = {
   }
   public: {
     Tables: {
+      _deprecated_messages_scaffold: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          sender_id: string
+          thread_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          thread_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          thread_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "_deprecated_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      _deprecated_profiles_scaffold: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      _deprecated_thread_participants: {
+        Row: {
+          created_at: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "thread_participants_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "_deprecated_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      _deprecated_threads: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      _deprecated_uipair: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
+      _deprecated_uipair_social_network: {
+        Row: {
+          created_at: string
+          id: number
+          "University name": string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          "University name"?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          "University name"?: string | null
+        }
+        Relationships: []
+      }
       ambassador_applications: {
         Row: {
           created_at: string
@@ -533,10 +663,10 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           environment: string
+          fw_customer_id: string
+          fw_subscription_id: string
           id: string
           status: string
-          stripe_customer_id: string
-          stripe_subscription_id: string
           tenant_id: string
           updated_at: string
           user_id: string
@@ -548,10 +678,10 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
+          fw_customer_id: string
+          fw_subscription_id: string
           id?: string
           status?: string
-          stripe_customer_id: string
-          stripe_subscription_id: string
           tenant_id?: string
           updated_at?: string
           user_id: string
@@ -563,10 +693,10 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           environment?: string
+          fw_customer_id?: string
+          fw_subscription_id?: string
           id?: string
           status?: string
-          stripe_customer_id?: string
-          stripe_subscription_id?: string
           tenant_id?: string
           updated_at?: string
           user_id?: string
@@ -3165,6 +3295,7 @@ export type Database = {
       are_friends: { Args: { _a: string; _b: string }; Returns: boolean }
       auto_verify_student: { Args: { _url: string }; Returns: undefined }
       current_tenant_id: { Args: never; Returns: string }
+      dearmor: { Args: { "": string }; Returns: string }
       decline_group_join_request: {
         Args: { _request_id: string }
         Returns: undefined
@@ -3174,6 +3305,8 @@ export type Database = {
         Returns: undefined
       }
       ensure_alumni_circle: { Args: { _tenant: string }; Returns: string }
+      gen_random_uuid: { Args: never; Returns: string }
+      gen_salt: { Args: { "": string }; Returns: string }
       get_circle_subscriptions_for_leader: {
         Args: { _circle_id: string }
         Returns: {
@@ -3226,6 +3359,10 @@ export type Database = {
       }
       join_public_project: { Args: { _project_id: string }; Returns: string }
       normalize_location: { Args: { input: string }; Returns: string }
+      pgp_armor_headers: {
+        Args: { "": string }
+        Returns: Record<string, unknown>[]
+      }
       redeem_circle_invite: { Args: { _token: string }; Returns: string }
       redeem_group_invite: { Args: { _token: string }; Returns: string }
       request_project_join: {
@@ -3311,12 +3448,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3340,11 +3477,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3365,11 +3502,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3390,11 +3527,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3407,11 +3544,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

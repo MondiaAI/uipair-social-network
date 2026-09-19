@@ -1,0 +1,11 @@
+# SPA routing for Apache-based static hosting (e.g. Hostinger shared hosting).
+# Serves real files/assets as-is; everything else falls back to index.html so
+# client-side routes (e.g. /circles, /feed) don't 404 on refresh/deep-link.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  RewriteRule ^ index.html [L]
+</IfModule>

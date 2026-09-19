@@ -13,15 +13,15 @@ concurrency:
 
 jobs:
   build-client:
-    name: Build SPA client (Vercel-compatible)
+    name: Build SPA client (static host, e.g. Hostinger)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       # Publishable build-time envs. Fall back to known public Supabase project
       # values so PRs from forks (which can't read repo secrets) still build.
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://nlebbmfxwztutflkxdff.supabase.co' }}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sZWJibWZ4d3p0dXRmbGt4ZGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NjY5MjcsImV4cCI6MjA5MzQ0MjkyN30.XEgQZQn_MTO5BCaIrnueuVod9klB7wbWZajG-5I1xGo' }}
-      VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID || '6fc24415-9315-4655-9213-fe093e352f40' }}
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://rryeqtadpsusvadnptib.supabase.co' }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyeWVxdGFkcHN1c3ZhZG5wdGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MTgxOTIsImV4cCI6MjA5NTQ5NDE5Mn0.SOm-QtRTK1UGtdKof9SOrYeBnEfEnlBA_P40obPG23I' }}
+      VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID || 'rryeqtadpsusvadnptib' }}
       # Optional: Flutterwave publishable key for payments UI. Empty is safe —
       # client-side payment widgets just won't initialize.
       VITE_FLUTTERWAVE_PUBLIC_KEY: ${{ secrets.VITE_FLUTTERWAVE_PUBLIC_KEY }}
@@ -37,7 +37,7 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Build SPA (build:client)
         run: bun run build:client
-      - name: Verify SPA output (index.html + shell + Vercel rewrites)
+      - name: Verify SPA output (index.html + shell + .htaccess rewrites)
         run: node scripts/verify-spa-output.mjs
       - name: Upload SPA bundle (always — inspect on failure)
         if: always()
@@ -53,9 +53,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://nlebbmfxwztutflkxdff.supabase.co' }}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sZWJibWZ4d3p0dXRmbGt4ZGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NjY5MjcsImV4cCI6MjA5MzQ0MjkyN30.XEgQZQn_MTO5BCaIrnueuVod9klB7wbWZajG-5I1xGo' }}
-      VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID || '6fc24415-9315-4655-9213-fe093e352f40' }}
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://rryeqtadpsusvadnptib.supabase.co' }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyeWVxdGFkcHN1c3ZhZG5wdGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MTgxOTIsImV4cCI6MjA5NTQ5NDE5Mn0.SOm-QtRTK1UGtdKof9SOrYeBnEfEnlBA_P40obPG23I' }}
+      VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID || 'rryeqtadpsusvadnptib' }}
       VITE_FLUTTERWAVE_PUBLIC_KEY: ${{ secrets.VITE_FLUTTERWAVE_PUBLIC_KEY }}
     steps:
       - uses: actions/checkout@v4
@@ -87,9 +87,9 @@ jobs:
       # Smoke test consumes the prebuilt SPA bundle from build-client, so these
       # envs are mainly informational + available if the test ever needs them
       # (e.g. to call Supabase from the test harness, not from the SPA itself).
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://nlebbmfxwztutflkxdff.supabase.co' }}
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5sZWJibWZ4d3p0dXRmbGt4ZGZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4NjY5MjcsImV4cCI6MjA5MzQ0MjkyN30.XEgQZQn_MTO5BCaIrnueuVod9klB7wbWZajG-5I1xGo' }}
-      VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID || '6fc24415-9315-4655-9213-fe093e352f40' }}
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://rryeqtadpsusvadnptib.supabase.co' }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyeWVxdGFkcHN1c3ZhZG5wdGliIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5MTgxOTIsImV4cCI6MjA5NTQ5NDE5Mn0.SOm-QtRTK1UGtdKof9SOrYeBnEfEnlBA_P40obPG23I' }}
+      VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID || 'rryeqtadpsusvadnptib' }}
       VITE_FLUTTERWAVE_PUBLIC_KEY: ${{ secrets.VITE_FLUTTERWAVE_PUBLIC_KEY }}
     steps:
       - uses: actions/checkout@v4
@@ -119,7 +119,7 @@ jobs:
         id: seed
         if: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY != '' }}
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://nlebbmfxwztutflkxdff.supabase.co' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://rryeqtadpsusvadnptib.supabase.co' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           SEED_JSON=$(bun scripts/seed-e2e.mjs)

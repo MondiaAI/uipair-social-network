@@ -40,7 +40,15 @@ function LoginPage() {
     if (submittingRef.current || loading) return;
     submittingRef.current = true;
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    let error;
+    try {
+      ({ error } = await supabase.auth.signInWithPassword({ email, password }));
+    } catch {
+      submittingRef.current = false;
+      setLoading(false);
+      toast.error("Network error — check your connection and try again.");
+      return;
+    }
     if (error) {
       submittingRef.current = false;
       setLoading(false);

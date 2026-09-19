@@ -1,10 +1,10 @@
-// Post-build step for the Vercel / static-host target.
+// Post-build step for the static-host target (e.g. Hostinger).
 //
 // `vite build` (driven by @lovable.dev/vite-tanstack-config) emits the client
 // bundle into dist/client/assets/* but does NOT write an index.html, because
 // the Cloudflare Workers target serves the HTML shell from the server entry.
 //
-// For a static / SPA deploy (e.g. Vercel) we synthesize a minimal index.html
+// For a static / SPA deploy (e.g. Hostinger) we synthesize a minimal index.html
 // that boots the same client entry. TanStack Router then takes over routing
 // on the client. Routes that depend on SSR-only behavior (loaders that read
 // server-only env, requireSupabaseAuth on public loaders, etc.) will fall
